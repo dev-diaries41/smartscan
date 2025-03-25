@@ -1,0 +1,82 @@
+package com.fpf.smartscan.ui.screens.settings
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import com.fpf.smartscan.ui.components.DirectoryPicker
+import com.fpf.smartscan.R
+import com.fpf.smartscan.ui.components.CustomSlider
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsDetailScreen(
+    type: String,
+    viewModel: SettingsViewModel,
+) {
+    val appSettings by viewModel.appSettings.collectAsState()
+    val context = LocalContext.current
+    val initialTargetDirectories = remember { appSettings.targetDirectories }
+    val initialDestinationDirectories = remember { appSettings.destinationDirectories }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.onSettingsDetailsExit(
+                initialDestinationDirectories = initialDestinationDirectories,
+                initialTargetDirectories = initialTargetDirectories,
+                )
+        }
+    }
+
+
+    Box(modifier = Modifier
+        .padding(16.dp)
+        .fillMaxSize()
+    ) {
+        when (type) {
+            "targets" -> {
+                DirectoryPicker(
+                    directories = appSettings.targetDirectories,
+                    onDirectoriesChanged = { newDirs ->
+                        viewModel.updateTargetDirectories(newDirs)
+                    },
+                    description = stringResource(R.string.setting_target_folders_description)
+                )
+            }
+            "destinations" -> {
+                DirectoryPicker (
+                    directories = appSettings.destinationDirectories,
+                    onDirectoriesChanged = { newDirs ->
+                        viewModel.updateDestinationDirectories(newDirs)
+                    },
+                    onVerifyDir = {uri -> viewModel.verifyDir(uri, context) },
+                    description = stringResource(R.string.setting_destination_folders_description)
+                )
+            }
+            "threshold" -> {
+                CustomSlider  (
+                    minValue = 0.1f,
+                    maxValue = 0.2f,
+                    initialValue = appSettings.similarityThreshold,
+                    onValueChange = { value ->
+                        viewModel.updateSimilarityThreshold(value)
+                    },
+                    description = stringResource(R.string.setting_similarity_threshold_description)
+                )
+            }
+            else -> {
+                Text("Unknown setting type")
+            }
+        }
+    }
+}

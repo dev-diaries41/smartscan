@@ -1,0 +1,229 @@
+package com.fpf.smartscan.ui.screens.settings
+
+import android.app.Application
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.fpf.smartscan.lib.Storage
+import com.fpf.smartscan.workers.scheduleClassificationWorker
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.encodeToString
+import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
+import androidx.lifecycle.LiveData
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
+import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.withContext
+import kotlin.collections.any
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
+
+
+@Serializable
+data class AppSettings(
+    val enableScan: Boolean = false,
+    val targetDirectories: List<String> = emptyList(),
+    val frequency: String = "1 Day",
+    val destinationDirectories: List<String> = emptyList(),
+    val similarityThreshold: Float = 0.2f,
+    val numberSimilarResults: Int = 5,
+    )
+
+class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository: PrototypeEmbeddingRepository =
+        PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
+    val prototypeList: LiveData<List<PrototypeEmbedding>> = repository.allEmbeddings
+    private val storage = Storage.getInstance(getApplication())
+    private val _appSettings = MutableStateFlow(AppSettings())
+    val appSettings: StateFlow<AppSettings> = _appSettings
+
+    init {
+        loadSettings()
+    }
+
+    fun updateEnableScan(enable: Boolean){
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(enableScan = enable)
+        saveSettings()
+        if(enable){
+            updateWorker()
+        }else{
+            viewModelScope.launch {
+                val workScheduled = isWorkScheduled(getApplication(), "ClassificationWorker" )
+                if(workScheduled){
+                    WorkManager.getInstance(getApplication()).cancelUniqueWork("ClassificationWorker")
+                }
+            }
+        }
+    }
+
+    fun updateFrequency(frequency: String) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(frequency = frequency)
+        saveSettings()
+        updateWorker()
+    }
+
+    fun updateTargetDirectories(directories: List<String>) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(targetDirectories = directories)
+        saveSettings()
+    }
+
+
+    fun updateDestinationDirectories(directories: List<String>) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(destinationDirectories = directories)
+        saveSettings()
+    }
+
+    fun updateSimilarityThreshold(threshold: Float) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(similarityThreshold = threshold)
+        saveSettings()
+    }
+
+    fun updateNumberSimilarImages(numberSimilarResults: String) {
+        val number = numberSimilarResults.toIntOrNull()?.takeIf { it in 1..20 } ?: 5
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(numberSimilarResults = number)
+        saveSettings()
+    }
+
+    fun updatePrototypes(context: Context, uris: List<String>): Job {
+        if (uris.isEmpty()) return Job().apply { complete() }
+        return viewModelScope.launch(Dispatchers.IO) {
+            val existingEmbeddings = repository.getAllEmbeddingsSync()
+            val existingIds = existingEmbeddings.map { it.id }.toSet()
+            val missingUris = uris.filterNot { it in existingIds }
+            if (missingUris.isEmpty()) return@launch
+
+            val embeddingsHandler = Embeddings(context.resources)
+            val semaphore = Semaphore(1)
+
+            try {
+                val jobs = missingUris.map { uri ->
+                    async {
+                        semaphore.withPermit {
+                            try {
+                                val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri())
+                                val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(bitmaps)
+                                repository.insert(
+                                    PrototypeEmbedding(
+                                        id = uri,
+                                        date = System.currentTimeMillis(),
+                                        embeddings = prototypeEmbedding
+                                    )
+                                )
+                            } catch (e: Exception) {
+                                Log.e("PrototypeUpdate", "Failed to generate or insert prototype for URI: $uri", e)
+                            }
+                        }
+                    }
+                }
+                jobs.awaitAll()
+            } catch (e: Exception) {
+                Log.e("PrototypeUpdate", "Unexpected error during prototype update", e)
+            } finally {
+                embeddingsHandler.closeSession()
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun updateWorker() {
+        if (_appSettings.value.targetDirectories.isNotEmpty() &&
+            _appSettings.value.enableScan &&
+            _appSettings.value.frequency.isNotEmpty() &&
+            _appSettings.value.destinationDirectories.isNotEmpty()) {
+
+            val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
+            scheduleClassificationWorker(
+                getApplication(),
+                uriArray as Array<Uri?>,
+                _appSettings.value.frequency
+            )
+        }
+    }
+
+    fun onSettingsDetailsExit(initialDestinationDirectories: List<String>, initialTargetDirectories: List<String>) {
+        val destinationChanged = initialDestinationDirectories != _appSettings.value.destinationDirectories
+        val targetChanged = initialTargetDirectories != _appSettings.value.targetDirectories
+
+        viewModelScope.launch {
+            if (destinationChanged) {
+                val job = updatePrototypes(getApplication(), _appSettings.value.destinationDirectories)
+                job.join()
+            }
+
+            if (destinationChanged || targetChanged) {
+                updateWorker()
+            }
+        }
+    }
+
+    fun verifyDir(uri: Uri, context: Context): Boolean {
+        val documentFile = DocumentFile.fromTreeUri(context, uri)
+        if (documentFile == null || !documentFile.isDirectory) {
+            Toast.makeText(context, "Invalid directory", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        val imageCount = documentFile.listFiles().count { file ->
+            file.type?.startsWith("image/") == true
+        }
+
+        if (imageCount < 10) {
+            Toast.makeText(context, "Directory must contain at least 10 images", Toast.LENGTH_LONG).show()
+            return false
+        }
+        return true
+    }
+
+    private fun loadSettings() {
+        viewModelScope.launch {
+            val jsonSettings = storage.getItem("app_settings")
+            _appSettings.value = if (jsonSettings != null) {
+                try {
+                    Json.decodeFromString<AppSettings>(jsonSettings)
+                } catch (e: Exception) {
+                    Log.e("Settings", "Failed to decode settings", e)
+                    AppSettings()
+                }
+            } else {
+                AppSettings()
+            }
+        }
+    }
+
+    private fun saveSettings() {
+        viewModelScope.launch {
+            val jsonSettings = Json.encodeToString(_appSettings.value)
+            storage.setItem("app_settings", jsonSettings)
+        }
+    }
+
+    private suspend fun isWorkScheduled(context: Context, workName: String): Boolean {
+        return withContext(Dispatchers.IO) {
+            val workManager = WorkManager.getInstance(context)
+            val workInfoList = workManager.getWorkInfosForUniqueWork(workName).get()
+            workInfoList.any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }
+        }
+    }
+}
