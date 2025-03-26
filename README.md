@@ -26,6 +26,9 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 - **Result Display:** Show the top result plus up to 20 similar images.
 - **Weekly Updates:** Automatically refresh the image index for new images.
 
+### Fully On-Device
+All processing—including both image organisation and text-based search—is handled entirely on-device, ensuring privacy, speed, and offline functionality.
+
 ---
 
 ## How to use
