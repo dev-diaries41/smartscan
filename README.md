@@ -4,13 +4,13 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 
 
 <div align="center">
-  <img src="fastlane/metadata/android/en-Us/images/featureGraphic.png" alt="Banner" style="border-radius: 20px;">
+  <img src="fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner" style="border-radius: 20px;">
 </div>
 
 
-| <img src="fastlane/metadata/android/en-Us/images/phoneScreenshots/1.png" alt="Screenshot 1" width="200px"> | <img src="fastlane/metadata/android/en-Us/images/phoneScreenshots/2.png" alt="Screenshot 2" width="200px"> | <img src="fastlane/metadata/android/en-Us/images/phoneScreenshots/3.png" alt="Screenshot 3" width="200px"> |
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Screenshot 1" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Screenshot 2" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Screenshot 3" width="200px"> |
 | --- | --- | --- |
-| <img src="fastlane/metadata/android/en-Us/images/phoneScreenshots/4.png" alt="Screenshot 4" width="200px"> | <img src="fastlane/metadata/android/en-Us/images/phoneScreenshots/5.png" alt="Screenshot 5" width="200px"> | <img src="fastlane/metadata/android/en-Us/images/phoneScreenshots/6.png" alt="Screenshot 6" width="200px"> |
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Screenshot 4" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Screenshot 5" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" alt="Screenshot 6" width="200px"> |
 
 ---
 
@@ -40,8 +40,8 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 **Note:** Each destination folder should contain at least 10 images. This sample set is crucial for accurate matching.
 
 <div style="display: flex; justify-content: space-between; padding-top: 20px;">
-  <img src="fastlane/metadata/android/en-Us/images/other/target.png" alt="Target folders" style="border-radius: 15px; margin: 5px; width:200px;">
-  <img src="fastlane/metadata/android/en-Us/images/other/destination.png" alt="Destination folders" style="border-radius: 15px; margin: 5px; width:200px;">
+  <img src="fastlane/metadata/android/en-US/images/other/target.png" alt="Target folders" style="border-radius: 15px; margin: 5px; width:200px;">
+  <img src="fastlane/metadata/android/en-US/images/other/destination.png" alt="Destination folders" style="border-radius: 15px; margin: 5px; width:200px;">
 </div>
 
 
