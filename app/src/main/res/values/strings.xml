@@ -1,7 +1,6 @@
 <resources>
     <!-- About -->
     <string name="app_name">SmartScan</string>
-    <string name="version">Version 1.0.0</string>
     <string name="copyright">© 2025 D41 Dev</string>
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
 

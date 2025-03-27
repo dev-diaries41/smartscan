@@ -1,6 +1,5 @@
 package com.fpf.smartscan.ui.screens.settings
 
-
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
@@ -34,7 +33,12 @@ fun SettingsScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current // Access the current context
     val sourceCodeUrl = stringResource(R.string.source_code_url)
-
+    val versionName: String? = try {
+        val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
+        packageInfo.versionName
+    } catch (e: Exception) {
+        null
+    }
     Box(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -129,10 +133,12 @@ fun SettingsScreen(
                     style = MaterialTheme.typography.displaySmall,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
-                Text(
-                    text = stringResource(R.string.version),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                versionName?.let {
+                    Text(
+                        text = "Version $it",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
                 Text(
                     text = stringResource(R.string.copyright),
                     style = MaterialTheme.typography.bodyMedium
