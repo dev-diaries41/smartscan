@@ -1,8 +1,11 @@
 package com.fpf.smartscan.ui.screens.settings
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,54 +31,57 @@ fun SettingsDetailScreen(
     val context = LocalContext.current
     val initialTargetDirectories = remember { appSettings.targetDirectories }
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
+    val scrollState = rememberScrollState()
 
     DisposableEffect(Unit) {
         onDispose {
             viewModel.onSettingsDetailsExit(
                 initialDestinationDirectories = initialDestinationDirectories,
                 initialTargetDirectories = initialTargetDirectories,
-                )
+            )
         }
     }
 
-
-    Box(modifier = Modifier
-        .padding(16.dp)
-        .fillMaxSize()
+    Box(
+        modifier = Modifier
+            .padding(16.dp)
+            .fillMaxSize()
     ) {
-        when (type) {
-            "targets" -> {
-                DirectoryPicker(
-                    directories = appSettings.targetDirectories,
-                    onDirectoriesChanged = { newDirs ->
-                        viewModel.updateTargetDirectories(newDirs)
-                    },
-                    description = stringResource(R.string.setting_target_folders_description)
-                )
-            }
-            "destinations" -> {
-                DirectoryPicker (
-                    directories = appSettings.destinationDirectories,
-                    onDirectoriesChanged = { newDirs ->
-                        viewModel.updateDestinationDirectories(newDirs)
-                    },
-                    onVerifyDir = {uri -> viewModel.verifyDir(uri, context) },
-                    description = stringResource(R.string.setting_destination_folders_description)
-                )
-            }
-            "threshold" -> {
-                CustomSlider  (
-                    minValue = 0.1f,
-                    maxValue = 0.2f,
-                    initialValue = appSettings.similarityThreshold,
-                    onValueChange = { value ->
-                        viewModel.updateSimilarityThreshold(value)
-                    },
-                    description = stringResource(R.string.setting_similarity_threshold_description)
-                )
-            }
-            else -> {
-                Text("Unknown setting type")
+        Column(modifier = Modifier.verticalScroll(scrollState)) {
+            when (type) {
+                "targets" -> {
+                    DirectoryPicker(
+                        directories = appSettings.targetDirectories,
+                        onDirectoriesChanged = { newDirs ->
+                            viewModel.updateTargetDirectories(newDirs)
+                        },
+                        description = stringResource(R.string.setting_target_folders_description)
+                    )
+                }
+                "destinations" -> {
+                    DirectoryPicker(
+                        directories = appSettings.destinationDirectories,
+                        onDirectoriesChanged = { newDirs ->
+                            viewModel.updateDestinationDirectories(newDirs)
+                        },
+                        onVerifyDir = { uri -> viewModel.verifyDir(uri, context) },
+                        description = stringResource(R.string.setting_destination_folders_description)
+                    )
+                }
+                "threshold" -> {
+                    CustomSlider(
+                        minValue = 0.1f,
+                        maxValue = 0.2f,
+                        initialValue = appSettings.similarityThreshold,
+                        onValueChange = { value ->
+                            viewModel.updateSimilarityThreshold(value)
+                        },
+                        description = stringResource(R.string.setting_similarity_threshold_description)
+                    )
+                }
+                else -> {
+                    Text("Unknown setting type")
+                }
             }
         }
     }
