@@ -5,11 +5,16 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,6 +28,9 @@ import com.fpf.smartscan.ui.components.SettingsSelect
 import com.fpf.smartscan.ui.components.SettingsSwitch
 import com.fpf.smartscan.ui.components.SettingsIncrementor
 import androidx.core.net.toUri
+import com.fpf.smartscan.ui.permissions.StorageAccess
+import com.fpf.smartscan.ui.permissions.getStorageAccess
+import com.fpf.smartscan.workers.scheduleImageIndexWorker
 
 @Composable
 fun SettingsScreen(
@@ -39,7 +47,43 @@ fun SettingsScreen(
     } catch (e: Exception) {
         null
     }
+
+    val refreshMessageFull = stringResource(R.string.setting_refresh_image_index_description_full)
+    val refreshMessagePartial = stringResource(R.string.setting_refresh_image_index_description_partial)
+    val refreshMessageDenied = stringResource(R.string.setting_refresh_image_index_description_denied)
+
+    var showRefreshDialog by remember { mutableStateOf(false) }
+    var refreshDialogMessage by remember { mutableStateOf("") }
+    var currentStorageAccess by remember { mutableStateOf(StorageAccess.Full) }
+
     Box(modifier = Modifier.fillMaxSize()) {
+        if (showRefreshDialog) {
+            AlertDialog(
+                onDismissRequest = { showRefreshDialog = false },
+                title = { Text(text = stringResource(id = R.string.setting_refresh_image_index)) },
+                text = { Text(text = refreshDialogMessage) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (currentStorageAccess != StorageAccess.Denied) {
+                                scheduleImageIndexWorker(context, "1 Week")
+                            }
+                            showRefreshDialog = false
+                        }
+                    ) {
+                        Text(text = "Confirm")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showRefreshDialog = false }
+                    ) {
+                        Text(text = "Cancel")
+                    }
+                }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -87,6 +131,20 @@ fun SettingsScreen(
                     text = stringResource(id = R.string.image_search_settings),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                SettingsCard(
+                    text = stringResource(id = R.string.setting_refresh_image_index),
+                    onClick = {
+                        val storageAccess = getStorageAccess(context)
+                        currentStorageAccess = storageAccess
+                        refreshDialogMessage = when (storageAccess) {
+                            StorageAccess.Full -> refreshMessageFull
+                            StorageAccess.Partial -> refreshMessagePartial
+                            StorageAccess.Denied -> refreshMessageDenied
+                        }
+                        showRefreshDialog = true
+                    }
                 )
 
                 SettingsIncrementor(
