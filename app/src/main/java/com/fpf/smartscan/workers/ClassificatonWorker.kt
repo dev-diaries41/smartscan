@@ -3,9 +3,7 @@ package com.fpf.smartscan.workers
 import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.provider.DocumentsContract
 import android.util.Log
-import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.*
 import java.util.concurrent.TimeUnit
@@ -32,13 +30,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
         val prototypeList = prototypeRepository.getAllEmbeddingsSync()
         val uriStrings = inputData.getStringArray("uris") ?: return Result.failure()
         val uris = uriStrings.map { it.toUri() }
-        val sharedPreferences = applicationContext.getSharedPreferences(
-            "ClassificationWorkerPrefs",
-            Context.MODE_PRIVATE
-        )
-        val lastProcessedTime = sharedPreferences.getLong("last_processed_time", 0L)
         val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
-        var maxProcessedTime = lastProcessedTime
         val embeddingHandler = Embeddings(applicationContext.resources)
         val tag = "ClassificationWorker"
         var processedFileCount = 0
@@ -52,15 +44,11 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                             val fileName = documentFile.name ?: ""
 
                             if (imageExtensions.any { fileName.endsWith(".$it", ignoreCase = true) }) {
-                                val fileModifiedTime = getLastModifiedTime(documentFile.uri)
-                                if (fileModifiedTime > lastProcessedTime && prototypeList.isNotEmpty()) {
+                                if (prototypeList.isNotEmpty()) {
                                     val processed = processNewImage(applicationContext, documentFile.uri,
                                         prototypeList, embeddingHandler)
                                     if (processed) {
                                         processedFileCount++
-                                    }
-                                    if (fileModifiedTime > maxProcessedTime) {
-                                        maxProcessedTime = fileModifiedTime
                                     }
                                 }
                             }
@@ -69,11 +57,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 } else {
                     Log.e(tag, "Invalid directory URI: $uri")
                 }
-            }
-
-            if (maxProcessedTime > lastProcessedTime) {
-                sharedPreferences.edit { putLong("last_processed_time", maxProcessedTime) }
-                Log.i(tag, "Updated last process time: $maxProcessedTime")
             }
 
             if(processedFileCount > 0){
@@ -117,22 +100,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
         catch (e: Exception){
             Log.e(tag, "Error inserting scan data: ${e.message}", e)
         }
-    }
-
-    /**
-     * Queries the content resolver to get the last modified timestamp for the given Uri.
-     * Note: Not every Uri supports this query.
-     */
-    private fun getLastModifiedTime(uri: Uri): Long {
-        var lastModified = 0L
-        val projection = arrayOf(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-        val cursor = applicationContext.contentResolver.query(uri, projection, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                lastModified = it.getLong(0)
-            }
-        }
-        return lastModified
     }
 }
 
