@@ -23,8 +23,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.collections.any
+import com.fpf.smartscan.R
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
+    private val context = application
     private var embeddingsHandler: Embeddings? = null
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
@@ -52,7 +54,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
             val indexWorkScheduled = isIndexWorkScheduled(application, "ImageIndexWorker")
             if (!indexWorkScheduled) {
                 _isFirstIndex.postValue(true)
-                Log.d("ImageIndex", "Indexing images for the first time")
             }
             _isLoading.postValue(false)
         }
@@ -75,20 +76,15 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
         }
     }
 
-//    fun clearResults() {
-//        _searchResults.value = emptyList()
-//    }
-
     fun searchImages(n: Int, embeddings: List<ImageEmbedding>) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
-            _error.value = "Query cannot be empty."
+            _error.value = context.getString(R.string.search_error_empty_query)
             return
         }
 
-//        val embeddings = imageEmbeddings.value
         if (embeddings.isEmpty()) {
-            _error.value = "Images have not been indexed yet."
+            _error.value = context.getString(R.string.search_error_images_not_indexed)
             return
         }
 
@@ -103,7 +99,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 val similarities = getSimilarities(textEmbedding, embeddings.map { it.embeddings })
 
                 if (similarities.isEmpty()) {
-                    _error.value = "No matching results found."
+                    _error.value = context.getString(R.string.search_error_no_results)
                     _searchResults.value = emptyList()
                     return@launch
                 }
@@ -111,7 +107,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 val results = getTopN(similarities, n, 0.2f)
 
                 if (results.isEmpty() ) {
-                    _error.value = "No matching image found for the query."
+                    _error.value = context.getString(R.string.search_error_no_image_found)
                     _searchResults.value = emptyList()
                     return@launch
                 }
@@ -123,12 +119,13 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 }
 
                 if (missingPermission) {
-                    _error.value = "Missing storage permissions for 1 or more images."
+                    _error.value = context.getString(R.string.search_error_missing_permissions_for_results)
                     return@launch
                 }
                 _searchResults.value = searchResultsUris
             } catch (e: Exception) {
-                _error.value = "An error occurred: ${e.message}"
+                Log.e("ImageSearchError", "$e")
+                _error.value = context.getString(R.string.search_error_unknown)
             } finally {
                 _isLoading.value = false
             }
