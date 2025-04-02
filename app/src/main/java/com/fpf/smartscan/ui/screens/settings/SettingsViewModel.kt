@@ -122,7 +122,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     async {
                         semaphore.withPermit {
                             try {
-                                val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri())
+                                val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri(), 30)
                                 val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(bitmaps)
                                 repository.insert(
                                     PrototypeEmbedding(

@@ -75,14 +75,17 @@ fun getImageUriFromId(id: Long): Uri {
     )
 }
 
-suspend fun fetchBitmapsFromDirectory(context: Context, directoryUri: Uri): List<Bitmap> = withContext(Dispatchers.IO) {
+suspend fun fetchBitmapsFromDirectory(context: Context, directoryUri: Uri, limit: Int? = null): List<Bitmap> = withContext(Dispatchers.IO) {
     val directory = DocumentFile.fromTreeUri(context, directoryUri)
         ?: throw IllegalArgumentException("Invalid directory URI: $directoryUri")
 
     val validExtensions = listOf("png", "jpg", "jpeg", "bmp", "gif")
-    val imageFiles = directory.listFiles().filter { doc ->
-        doc.isFile && (doc.name?.substringAfterLast('.', "")?.lowercase(Locale.getDefault()) in validExtensions)
-    }
+    val imageFiles = directory.listFiles()
+        .filter { doc ->
+            doc.isFile && (doc.name?.substringAfterLast('.', "")?.lowercase(Locale.getDefault()) in validExtensions)
+        }
+        .shuffled()
+        .let { if (limit != null) it.take(limit) else it }
 
     if (imageFiles.isEmpty()) {
         throw IllegalStateException("No valid image files found in directory: $directoryUri")
@@ -97,6 +100,7 @@ suspend fun fetchBitmapsFromDirectory(context: Context, directoryUri: Uri): List
         }
     }
 }
+
 
 fun hasImageAccess(context: Context, uri: Uri): Boolean {
     return try {
