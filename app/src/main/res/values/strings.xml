@@ -17,7 +17,7 @@
         Image indexing is in progress and may take a few minutes. Searching will be disabled until the process is complete. Please ensure that notifications are enabled so you can be informed when indexing is finished.
     </string>
     <string name="storage_permissions">
-        Storage access must be enabled to provide the search functionality.
+        Storage permissions required for search.
     </string>
 
     <!-- Donate screen -->

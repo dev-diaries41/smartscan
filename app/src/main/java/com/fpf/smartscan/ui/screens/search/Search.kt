@@ -120,7 +120,7 @@ fun SearchScreen(
 
 
             OutlinedTextField(
-                enabled = !isLoading,
+                enabled = !isLoading && hasStoragePermission,
                 value = searchQuery,
                 onValueChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
@@ -131,7 +131,7 @@ fun SearchScreen(
                 shape = RoundedCornerShape(8.dp),
                 trailingIcon = {
                     IconButton(
-                        enabled = !isLoading,
+                        enabled = !isLoading && hasStoragePermission,
                         onClick = {
                             searchViewModel.searchImages(appSettings.numberSimilarResults)
                         }
@@ -167,6 +167,13 @@ fun SearchScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = it, color = Color.Red)
             }
+
+            if(!hasStoragePermission && !isFirstIndex){
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(text = stringResource(R.string.storage_permissions), color = Color.Red)
+            }
+
+
 
             if(searchResults.isEmpty()){
                 Spacer(modifier = Modifier.height(48.dp))
