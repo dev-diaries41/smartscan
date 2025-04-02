@@ -16,6 +16,7 @@ import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.lib.showNotification
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
@@ -31,7 +32,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
         val uriStrings = inputData.getStringArray("uris") ?: return Result.failure()
         val uris = uriStrings.map { it.toUri() }
         val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
-        val embeddingHandler = Embeddings(applicationContext.resources)
+        val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
         val tag = "ClassificationWorker"
         var processedFileCount = 0
 
