@@ -16,7 +16,7 @@ enum class StorageAccess {
     Full, Partial, Denied
 }
 
-private fun getStorageAccess(context: Context): StorageAccess {
+fun getStorageAccess(context: Context): StorageAccess {
     return if (
         checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PERMISSION_GRANTED
     ) {

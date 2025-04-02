@@ -16,9 +16,13 @@
     <string name="first_index">
         Image indexing is in progress and may take a few minutes. Searching will be disabled until the process is complete. Please ensure that notifications are enabled so you can be informed when indexing is finished.
     </string>
-    <string name="storage_permissions">
-        Storage access must be enabled to provide the search functionality.
-    </string>
+    <string name="storage_permissions">Storage permissions required for search.</string>
+    <string name="search_error_images_not_indexed">Images have not been indexed yet.</string>
+    <string name="search_error_no_results">No matching results found.</string>
+    <string name="search_error_no_image_found">No matching image found for the query.</string>
+    <string name="search_error_missing_permissions_for_results">Missing storage permissions for 1 or more images.</string>
+    <string name="search_error_empty_query">Query cannot be empty.</string>
+    <string name="search_error_unknown">An unknown error occurred.</string>
 
     <!-- Donate screen -->
     <string name="label_btc">Bitcoin</string>
@@ -54,6 +58,19 @@
     <string name="setting_similarity_threshold">Similarity threshold</string>
     <string name="setting_similarity_threshold_description">Defines the minimum similarity score required for an image to match a category. Lower values may increase false positives, while higher values may reduce matches.</string>
     <string name="setting_number_similar_results">Similar results</string>
+
+    <!-- Refresh image index -->
+    <string name="setting_refresh_image_index">Refresh image index</string>
+    <string name="setting_refresh_image_index_description_full">
+        Manually refresh image index in the background. This can take up to a few minutes. Make sure notifications are enabled to be notified upon completion.
+    </string>
+
+    <string name="setting_refresh_image_index_description_partial">
+        Manually refresh image index in the background. This can take up to a few minutes, but only the selected images will be indexed. Make sure notifications are enabled to be notified upon completion.
+    </string>
+    <string name="setting_refresh_image_index_description_denied">
+        Missing storage permissions. Please grant storage permissions and make sure notifications are enabled to be notified upon completion.
+    </string>
 
     <!-- Scan Frequency options -->
     <string name="scan_frequency_1d">1 Day</string>

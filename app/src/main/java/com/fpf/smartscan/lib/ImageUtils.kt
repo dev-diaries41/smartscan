@@ -97,3 +97,12 @@ suspend fun fetchBitmapsFromDirectory(context: Context, directoryUri: Uri): List
         }
     }
 }
+
+fun hasImageAccess(context: Context, uri: Uri): Boolean {
+    return try {
+        context.contentResolver.openFileDescriptor(uri, "r")?.use { }
+        true
+    } catch (e: Exception) {
+        false
+    }
+}
