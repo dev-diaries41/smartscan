@@ -39,9 +39,13 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
             }
             val minutes = timeTaken / 60000
             val seconds = (timeTaken % 60000) / 1000
-            val metricLog = "$count images processed in $minutes min $seconds sec."
+            val metricLog = if (count == 0) {
+                "No images indexed"
+            } else {
+                "$count images processed in $minutes min $seconds sec."
+            }
             Log.i(tag, metricLog)
-            showNotification(applicationContext, "Indexing complete", metricLog)
+            showNotification(applicationContext, "Indexing complete", metricLog, 1002)
             return Result.success()
         } catch (e: Exception) {
             Log.e(tag, "Error during work: ${e.message}", e)
