@@ -24,6 +24,7 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -114,7 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val missingUris = uris.filterNot { it in existingIds }
             if (missingUris.isEmpty()) return@launch
 
-            val embeddingsHandler = Embeddings(context.resources)
+            val embeddingsHandler = Embeddings(context.resources, ModelType.IMAGE)
             val semaphore = Semaphore(1)
 
             try {

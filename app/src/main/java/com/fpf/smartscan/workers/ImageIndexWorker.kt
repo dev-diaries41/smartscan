@@ -11,6 +11,7 @@ import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.showNotification
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -29,7 +30,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
 
     override suspend fun doWork(): Result {
-        val embeddingHandler = Embeddings(applicationContext.resources)
+        val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
         val tag = "ImageIndexWorker"
         try {
             var count = 0
