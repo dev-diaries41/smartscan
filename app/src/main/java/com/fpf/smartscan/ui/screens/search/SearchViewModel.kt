@@ -18,6 +18,7 @@ import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getImageUriFromId
+import com.fpf.smartscan.lib.hasImageAccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -28,7 +29,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
-    var imageEmbeddings: List<ImageEmbedding> = emptyList()
+    val imageEmbeddings: LiveData<List<ImageEmbedding>> = repository.allImageEmbeddings
 
     private val _query = MutableLiveData<String>("")
     val query: LiveData<String> = _query
@@ -53,7 +54,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 _isFirstIndex.postValue(true)
                 Log.d("ImageIndex", "Indexing images for the first time")
             }
-            imageEmbeddings = repository.getAllEmbeddingsSync()
             _isLoading.postValue(false)
         }
     }
@@ -79,14 +79,14 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 //        _searchResults.value = emptyList()
 //    }
 
-    fun searchImages(n: Int) {
+    fun searchImages(n: Int, embeddings: List<ImageEmbedding>) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = "Query cannot be empty."
             return
         }
 
-        val embeddings = imageEmbeddings
+//        val embeddings = imageEmbeddings.value
         if (embeddings.isEmpty()) {
             _error.value = "Images have not been indexed yet."
             return
@@ -108,7 +108,6 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                     return@launch
                 }
 
-                println("n : $n")
                 val results = getTopN(similarities, n, 0.2f)
 
                 if (results.isEmpty() ) {
@@ -118,6 +117,15 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 }
 
                 val searchResultsUris = results.map{idx -> getImageUriFromId(embeddings[idx].id)}
+
+                val missingPermission = searchResultsUris.any { uri ->
+                    !hasImageAccess(getApplication(), uri)
+                }
+
+                if (missingPermission) {
+                    _error.value = "Missing storage permissions for 1 or more images."
+                    return@launch
+                }
                 _searchResults.value = searchResultsUris
             } catch (e: Exception) {
                 _error.value = "An error occurred: ${e.message}"

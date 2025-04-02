@@ -48,6 +48,7 @@ fun SearchScreen(
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
+    val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val isFirstIndex by searchViewModel.isFirstIndex.observeAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
@@ -56,15 +57,11 @@ fun SearchScreen(
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showFirstIndexDialog by remember { mutableStateOf(isFirstIndex) }
-    var showStorageDialog by remember { mutableStateOf(false) }
     var hasScheduledIndexing by remember { mutableStateOf(false) }
 
     RequestPermissions { notificationGranted, storageGranted ->
         hasNotificationPermission = notificationGranted
         hasStoragePermission = storageGranted
-        if (!storageGranted) {
-            showStorageDialog = true
-        }
     }
 
     LaunchedEffect(isFirstIndex, hasStoragePermission) {
@@ -84,21 +81,6 @@ fun SearchScreen(
             },
             confirmButton = {
                 TextButton(onClick = { showFirstIndexDialog = false }) {
-                    Text("OK")
-                }
-            }
-        )
-    }
-
-    if (isFirstIndex && showStorageDialog) {
-        AlertDialog(
-            onDismissRequest = { },
-            title = { Text("Storage permissions") },
-            text = {
-                Text(stringResource(R.string.storage_permissions))
-            },
-            confirmButton = {
-                TextButton(onClick = { showStorageDialog = false }) {
                     Text("OK")
                 }
             }
@@ -133,7 +115,7 @@ fun SearchScreen(
                     IconButton(
                         enabled = !isLoading && hasStoragePermission,
                         onClick = {
-                            searchViewModel.searchImages(appSettings.numberSimilarResults)
+                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
                         }
                     ) {
                         Icon(
@@ -168,12 +150,10 @@ fun SearchScreen(
                 Text(text = it, color = Color.Red)
             }
 
-            if(!hasStoragePermission && !isFirstIndex){
+            if(!hasStoragePermission && !isLoading){
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(text = stringResource(R.string.storage_permissions), color = Color.Red)
             }
-
-
 
             if(searchResults.isEmpty()){
                 Spacer(modifier = Modifier.height(48.dp))
