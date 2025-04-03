@@ -10,3 +10,8 @@
 - Added new feature that allows refreshing image index to handle changes in storage permissions
 - Fix bug that caused some files to be skipped in classification worker
 - Memory optimizations
+
+## v1.0.3 – 03/04/2025
+
+- Delete image_embeddings db when refreshing image index
+
