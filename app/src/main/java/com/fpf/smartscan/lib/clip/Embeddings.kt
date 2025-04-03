@@ -24,10 +24,15 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 import kotlin.use
 
-class Embeddings(resources: Resources) {
+enum class ModelType {
+    IMAGE, TEXT, BOTH
+}
+
+class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
     private var ortEnv: OrtEnvironment = OrtEnvironment.getEnvironment()
-    private var imageSession: OrtSession
-    private var textSession: OrtSession
+    private var imageSession: OrtSession? = null
+    private var textSession: OrtSession? = null
+
 
     private val tokenizerVocab: Map<String, Int> = getVocab(resources)
     private val tokenizerMerges: HashMap<Pair<String, String>, Int> = getMerges(resources)
@@ -36,9 +41,14 @@ class Embeddings(resources: Resources) {
     private val tokenizer = ClipTokenizer(tokenizerVocab, tokenizerMerges)
 
     init {
-        imageSession = loadModel(resources, R.raw.image_encoder_quant_int8, "Image")
-        textSession = loadModel(resources, R.raw.text_encoder_quant_int8, "Text")
+        if (modelType == ModelType.BOTH || modelType == ModelType.IMAGE) {
+            imageSession = loadModel(resources, R.raw.image_encoder_quant_int8, "Image")
+        }
+        if (modelType == ModelType.BOTH || modelType == ModelType.TEXT) {
+            textSession = loadModel(resources, R.raw.text_encoder_quant_int8, "Text")
+        }
     }
+
 
     private fun loadModel(resources: Resources, resourceId: Int, modelName: String): OrtSession {
         lateinit var session: OrtSession
@@ -51,13 +61,14 @@ class Embeddings(resources: Resources) {
     }
 
     suspend fun generateImageEmbedding(bitmap: Bitmap): FloatArray = withContext(Dispatchers.Default) {
+        val session = imageSession ?: throw IllegalStateException("Image model not loaded")
         val processedBitmap = centerCrop(bitmap, 224)
         val inputShape = longArrayOf(1, 3, 224, 224)
-        val inputName = imageSession.inputNames.iterator().next()
+        val inputName = session.inputNames.iterator().next()
         val imgData = preProcess(processedBitmap)
 
         OnnxTensor.createTensor(ortEnv, imgData, inputShape).use { inputTensor ->
-            imageSession.run(Collections.singletonMap(inputName, inputTensor)).use { output ->
+            session.run(Collections.singletonMap(inputName, inputTensor)).use { output ->
                 @Suppress("UNCHECKED_CAST")
                 val rawOutput = (output[0].value as Array<FloatArray>)[0]
                 normalizeL2(rawOutput)
@@ -66,6 +77,7 @@ class Embeddings(resources: Resources) {
     }
 
     suspend fun generateTextEmbedding(text: String): FloatArray = withContext(Dispatchers.Default) {
+        val session = textSession ?: throw IllegalStateException("Text model not loaded")
         val textClean = Regex("[^A-Za-z0-9 ]").replace(text, "").lowercase()
         var tokens = mutableListOf(tokenBOS) + tokenizer.encode(textClean) + tokenEOS
         tokens = tokens.take(77) + List(77 - tokens.size) { 0 }
@@ -76,10 +88,10 @@ class Embeddings(resources: Resources) {
             rewind()
         }
 
-        val inputName = textSession.inputNames?.iterator()?.next()
+        val inputName = session.inputNames?.iterator()?.next()
 
         OnnxTensor.createTensor(ortEnv, inputIds, inputShape).use { inputTensor ->
-            textSession.run(Collections.singletonMap(inputName, inputTensor)).use { output ->
+            session.run(Collections.singletonMap(inputName, inputTensor)).use { output ->
                 @Suppress("UNCHECKED_CAST")
                 val rawOutput = (output[0].value as Array<FloatArray>)[0]
                 normalizeL2(rawOutput)
@@ -125,8 +137,8 @@ class Embeddings(resources: Resources) {
 
 
     fun closeSession() {
-        imageSession.close()
-        textSession.close()
+        imageSession?.close()
+        textSession?.close()
     }
 
     private fun getVocab(resources: Resources): Map<String, Int> {

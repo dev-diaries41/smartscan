@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import com.fpf.smartscan.R
+import com.fpf.smartscan.lib.clip.ModelType
 
 class SearchViewModel(application: Application) : AndroidViewModel(application) {
     private val context = application
@@ -50,7 +51,7 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
 
     init {
         CoroutineScope(Dispatchers.Default).launch {
-            embeddingsHandler = Embeddings(application.resources)
+            embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
             val indexWorkScheduled = isIndexWorkScheduled(application, "ImageIndexWorker")
             if (!indexWorkScheduled) {
                 _isFirstIndex.postValue(true)
