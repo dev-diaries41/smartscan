@@ -14,7 +14,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
     companion object {
         private const val TAG = "ImageIndexWorker"
-        private const val BATCH_SIZE = 200
+        private const val BATCH_SIZE = 500
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
