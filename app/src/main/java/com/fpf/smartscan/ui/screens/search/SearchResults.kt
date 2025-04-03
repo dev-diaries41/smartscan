@@ -163,7 +163,7 @@ fun SearchResults(
         Spacer(modifier = Modifier.height(32.dp))
 
         Text(
-            text = "Similar Results",
+            text = "Similar Results (${similarResults.size})",
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.align(Alignment.Start)
         )
