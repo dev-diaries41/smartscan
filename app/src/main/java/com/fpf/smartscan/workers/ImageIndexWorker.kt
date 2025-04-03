@@ -43,8 +43,10 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                     "IS_LAST_BATCH" to isLastBatch
                 )
 
+                val batchTag = "ImageBatchWorker"
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ImageBatchWorker>()
                     .setInputData(workData)
+                    .addTag(batchTag)
                     .build()
 
                 continuation = continuation?.then(batchWorkerRequest) ?: workManager.beginWith(batchWorkerRequest)
