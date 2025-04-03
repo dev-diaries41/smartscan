@@ -3,3 +3,10 @@
 - Updated `build.gradle` for compatibility with F-Droid reproducible builds  
 - Updated app version display in the Settings screen  
 - Made the Setting Details screen scrollable
+
+## v1.0.2 – 03/04/2025
+
+- Fix search bug that occured due to changes in storage permissions
+- Added new feature that allows refreshing image index to handle changes in storage permissions
+- Fix bug that caused some files to be skipped in classification worker
+- Memory optimizations
