@@ -14,4 +14,4 @@
 ## v1.0.3 – 03/04/2025
 
 - Delete image_embeddings db when refreshing image index
-
+- Remove battery constraint on image indexer worker
