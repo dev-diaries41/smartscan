@@ -184,9 +184,9 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
 
             if (destinationChanged || targetChanged) {
-                val workerName = "ImageIndexWorker"
+                val workerTag = "ImageBatchWorker"
                 val workManager = WorkManager.getInstance(getApplication())
-                val workInfoList = workManager.getWorkInfosForUniqueWork(workerName).get()
+                val workInfoList = workManager.getWorkInfosByTag(workerTag).get()
                 val isImageIndexerRunning = workInfoList.any { it.state == WorkInfo.State.RUNNING }
                 updateWorker(delayInMinutes = if (isImageIndexerRunning) 5L else null)
             }
