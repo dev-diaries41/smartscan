@@ -16,7 +16,7 @@
     <string name="first_index">
         Image indexing is in progress and may take a few minutes. Searching will be disabled until the process is complete. Please ensure that notifications are enabled so you can be informed when indexing is finished.
     </string>
-    <string name="storage_permissions">Storage permissions required for search.</string>
+    <string name="storage_permissions">Storage permission required to search images.</string>
     <string name="search_error_images_not_indexed">Images have not been indexed yet.</string>
     <string name="search_error_no_results">No matching results found.</string>
     <string name="search_error_no_image_found">No matching image found for the query.</string>
