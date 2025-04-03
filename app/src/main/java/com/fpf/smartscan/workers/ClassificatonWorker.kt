@@ -21,6 +21,11 @@ import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.moveFile
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -28,30 +33,27 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     private  val prototypeRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(applicationContext as Application).prototypeEmbeddingDao())
 
     override suspend fun doWork(): Result {
+        val tag = "ClassificationWorker"
         val prototypeList = prototypeRepository.getAllEmbeddingsSync()
+        if (prototypeList.isEmpty()) {
+            Log.e(tag, "No prototype embeddings available.")
+            return Result.failure()
+        }
         val uriStrings = inputData.getStringArray("uris") ?: return Result.failure()
         val uris = uriStrings.map { it.toUri() }
         val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
         val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
-        val tag = "ClassificationWorker"
-        var processedFileCount = 0
 
         try {
+            val imageFileUris = mutableListOf<Uri>()
             for (uri in uris) {
                 val documentDir = DocumentFile.fromTreeUri(applicationContext, uri)
                 if (documentDir != null && documentDir.isDirectory) {
                     documentDir.listFiles().forEach { documentFile ->
                         if (documentFile.isFile) {
                             val fileName = documentFile.name ?: ""
-
                             if (imageExtensions.any { fileName.endsWith(".$it", ignoreCase = true) }) {
-                                if (prototypeList.isNotEmpty()) {
-                                    val processed = processNewImage(applicationContext, documentFile.uri,
-                                        prototypeList, embeddingHandler)
-                                    if (processed) {
-                                        processedFileCount++
-                                    }
-                                }
+                                imageFileUris.add(documentFile.uri)
                             }
                         }
                     }
@@ -60,9 +62,23 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 }
             }
 
-            if(processedFileCount > 0){
+            val semaphore = Semaphore(3)
+            val processedResults = coroutineScope {
+                imageFileUris.map { fileUri ->
+                    async {
+                        semaphore.withPermit {
+                            processNewImage(applicationContext, fileUri, prototypeList, embeddingHandler)
+                        }
+                    }
+                }.awaitAll()
+            }
+
+            val processedFileCount = processedResults.count { it }
+
+            if (processedFileCount > 0) {
                 insertScanData(repository, processedFileCount)
-                showNotification(applicationContext, "Smart Scan Complete", "$processedFileCount images processed.")
+                showNotification(applicationContext, "Smart Scan Complete", "$processedFileCount images processed."
+                )
             }
             return Result.success()
         } catch (e: Exception) {
@@ -72,6 +88,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             embeddingHandler.closeSession()
         }
     }
+
 
     private suspend fun processNewImage(context: Context, uri: Uri, prototypeEmbeddings: List<PrototypeEmbedding>, embeddingsHandler: Embeddings
     ): Boolean {
@@ -106,11 +123,12 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
 
 fun scheduleClassificationWorker(context: Context, uris: Array<Uri?>,  frequency: String) {
+    val workerName = "ClassificationWorker"
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
-            Log.e("ClassificationWorker", "Invalid frequency: $frequency, defaulting to 1 Day")
+            Log.e("ClassificationWorkerScheduleError", "Invalid frequency: $frequency, defaulting to 1 Day")
             1L to TimeUnit.DAYS
         }
     }
@@ -130,7 +148,7 @@ fun scheduleClassificationWorker(context: Context, uris: Array<Uri?>,  frequency
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        "ClassificationWorker",
+        workerName,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )
