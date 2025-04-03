@@ -11,6 +11,7 @@ import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.showNotification
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -29,7 +30,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
 
     override suspend fun doWork(): Result {
-        val embeddingHandler = Embeddings(applicationContext.resources)
+        val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
         val tag = "ImageIndexWorker"
         try {
             var count = 0
@@ -38,9 +39,13 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
             }
             val minutes = timeTaken / 60000
             val seconds = (timeTaken % 60000) / 1000
-            val metricLog = "$count images processed in $minutes min $seconds sec."
+            val metricLog = if (count == 0) {
+                "No images indexed"
+            } else {
+                "$count images processed in $minutes min $seconds sec."
+            }
             Log.i(tag, metricLog)
-            showNotification(applicationContext, "Indexing complete", metricLog)
+            showNotification(applicationContext, "Indexing complete", metricLog, 1002)
             return Result.success()
         } catch (e: Exception) {
             Log.e(tag, "Error during work: ${e.message}", e)
@@ -112,6 +117,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
 
     fun scheduleImageIndexWorker(context: Context, frequency: String) {
+        val workerName = "ImageIndexWorker"
         val duration = when (frequency) {
             "1 Day" -> 1L to TimeUnit.DAYS
             "1 Week" -> 7L to TimeUnit.DAYS
@@ -130,7 +136,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "ImageIndexWorker",
+            workerName,
             ExistingPeriodicWorkPolicy.REPLACE,
             workRequest
         )

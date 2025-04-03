@@ -24,6 +24,7 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -114,7 +115,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             val missingUris = uris.filterNot { it in existingIds }
             if (missingUris.isEmpty()) return@launch
 
-            val embeddingsHandler = Embeddings(context.resources)
+            val embeddingsHandler = Embeddings(context.resources, ModelType.IMAGE)
             val semaphore = Semaphore(1)
 
             try {
@@ -122,7 +123,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
                     async {
                         semaphore.withPermit {
                             try {
-                                val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri())
+                                val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri(), 30)
                                 val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(bitmaps)
                                 repository.insert(
                                     PrototypeEmbedding(
@@ -147,18 +148,14 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun updateWorker() {
+    fun updateWorker(delayInMinutes: Long? = null) {
         if (_appSettings.value.targetDirectories.isNotEmpty() &&
             _appSettings.value.enableScan &&
             _appSettings.value.frequency.isNotEmpty() &&
             _appSettings.value.destinationDirectories.isNotEmpty()) {
 
             val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
-            scheduleClassificationWorker(
-                getApplication(),
-                uriArray as Array<Uri?>,
-                _appSettings.value.frequency
-            )
+            scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
         }
     }
 
@@ -173,7 +170,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             }
 
             if (destinationChanged || targetChanged) {
-                updateWorker()
+                val workerName = "ImageIndexWorker"
+                val workManager = WorkManager.getInstance(getApplication())
+                val workInfoList = workManager.getWorkInfosForUniqueWork(workerName).get()
+                val isImageIndexerRunning = workInfoList.any { it.state == WorkInfo.State.RUNNING }
+                updateWorker(delayInMinutes = if (isImageIndexerRunning) 5L else null)
             }
         }
     }

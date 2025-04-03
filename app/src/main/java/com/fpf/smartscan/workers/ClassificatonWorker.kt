@@ -3,9 +3,7 @@ package com.fpf.smartscan.workers
 import android.app.Application
 import android.content.Context
 import android.net.Uri
-import android.provider.DocumentsContract
 import android.util.Log
-import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.work.*
 import java.util.concurrent.TimeUnit
@@ -18,10 +16,16 @@ import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.lib.showNotification
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.moveFile
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
@@ -29,40 +33,27 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     private  val prototypeRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(applicationContext as Application).prototypeEmbeddingDao())
 
     override suspend fun doWork(): Result {
+        val tag = "ClassificationWorker"
         val prototypeList = prototypeRepository.getAllEmbeddingsSync()
+        if (prototypeList.isEmpty()) {
+            Log.e(tag, "No prototype embeddings available.")
+            return Result.failure()
+        }
         val uriStrings = inputData.getStringArray("uris") ?: return Result.failure()
         val uris = uriStrings.map { it.toUri() }
-        val sharedPreferences = applicationContext.getSharedPreferences(
-            "ClassificationWorkerPrefs",
-            Context.MODE_PRIVATE
-        )
-        val lastProcessedTime = sharedPreferences.getLong("last_processed_time", 0L)
         val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
-        var maxProcessedTime = lastProcessedTime
-        val embeddingHandler = Embeddings(applicationContext.resources)
-        val tag = "ClassificationWorker"
-        var processedFileCount = 0
+        val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
 
         try {
+            val imageFileUris = mutableListOf<Uri>()
             for (uri in uris) {
                 val documentDir = DocumentFile.fromTreeUri(applicationContext, uri)
                 if (documentDir != null && documentDir.isDirectory) {
                     documentDir.listFiles().forEach { documentFile ->
                         if (documentFile.isFile) {
                             val fileName = documentFile.name ?: ""
-
                             if (imageExtensions.any { fileName.endsWith(".$it", ignoreCase = true) }) {
-                                val fileModifiedTime = getLastModifiedTime(documentFile.uri)
-                                if (fileModifiedTime > lastProcessedTime && prototypeList.isNotEmpty()) {
-                                    val processed = processNewImage(applicationContext, documentFile.uri,
-                                        prototypeList, embeddingHandler)
-                                    if (processed) {
-                                        processedFileCount++
-                                    }
-                                    if (fileModifiedTime > maxProcessedTime) {
-                                        maxProcessedTime = fileModifiedTime
-                                    }
-                                }
+                                imageFileUris.add(documentFile.uri)
                             }
                         }
                     }
@@ -71,14 +62,23 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 }
             }
 
-            if (maxProcessedTime > lastProcessedTime) {
-                sharedPreferences.edit { putLong("last_processed_time", maxProcessedTime) }
-                Log.i(tag, "Updated last process time: $maxProcessedTime")
+            val semaphore = Semaphore(3)
+            val processedResults = coroutineScope {
+                imageFileUris.map { fileUri ->
+                    async {
+                        semaphore.withPermit {
+                            processNewImage(applicationContext, fileUri, prototypeList, embeddingHandler)
+                        }
+                    }
+                }.awaitAll()
             }
 
-            if(processedFileCount > 0){
+            val processedFileCount = processedResults.count { it }
+
+            if (processedFileCount > 0) {
                 insertScanData(repository, processedFileCount)
-                showNotification(applicationContext, "Smart Scan Complete", "$processedFileCount images processed.")
+                showNotification(applicationContext, "Smart Scan Complete", "$processedFileCount images processed."
+                )
             }
             return Result.success()
         } catch (e: Exception) {
@@ -88,6 +88,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             embeddingHandler.closeSession()
         }
     }
+
 
     private suspend fun processNewImage(context: Context, uri: Uri, prototypeEmbeddings: List<PrototypeEmbedding>, embeddingsHandler: Embeddings
     ): Boolean {
@@ -118,31 +119,21 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             Log.e(tag, "Error inserting scan data: ${e.message}", e)
         }
     }
-
-    /**
-     * Queries the content resolver to get the last modified timestamp for the given Uri.
-     * Note: Not every Uri supports this query.
-     */
-    private fun getLastModifiedTime(uri: Uri): Long {
-        var lastModified = 0L
-        val projection = arrayOf(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-        val cursor = applicationContext.contentResolver.query(uri, projection, null, null, null)
-        cursor?.use {
-            if (it.moveToFirst()) {
-                lastModified = it.getLong(0)
-            }
-        }
-        return lastModified
-    }
 }
 
 
-fun scheduleClassificationWorker(context: Context, uris: Array<Uri?>,  frequency: String) {
+fun scheduleClassificationWorker(
+    context: Context,
+    uris: Array<Uri?>,
+    frequency: String,
+    delayInMinutes: Long? = null
+) {
+    val workerName = "ClassificationWorker"
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
-            Log.e("ClassificationWorker", "Invalid frequency: $frequency, defaulting to 1 Day")
+            Log.e("ClassificationWorkerScheduleError", "Invalid frequency: $frequency, defaulting to 1 Day")
             1L to TimeUnit.DAYS
         }
     }
@@ -152,17 +143,23 @@ fun scheduleClassificationWorker(context: Context, uris: Array<Uri?>,  frequency
         .putStringArray("uris", uriStrings as Array<String?>)
         .build()
 
-    val workRequest = PeriodicWorkRequestBuilder<ClassificationWorker>(duration.first, duration.second)
+    // Create the PeriodicWorkRequestBuilder
+    val workRequestBuilder = PeriodicWorkRequestBuilder<ClassificationWorker>(duration.first, duration.second)
         .setInputData(inputData)
         .setConstraints(
             Constraints(
                 requiresBatteryNotLow = true,
             )
         )
-        .build()
+
+    if (delayInMinutes != null && delayInMinutes > 0) {
+        workRequestBuilder.setInitialDelay(delayInMinutes, TimeUnit.MINUTES)
+    }
+
+    val workRequest = workRequestBuilder.build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        "ClassificationWorker",
+        workerName,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )
