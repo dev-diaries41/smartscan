@@ -122,7 +122,12 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 }
 
 
-fun scheduleClassificationWorker(context: Context, uris: Array<Uri?>,  frequency: String) {
+fun scheduleClassificationWorker(
+    context: Context,
+    uris: Array<Uri?>,
+    frequency: String,
+    delayInMinutes: Long? = null
+) {
     val workerName = "ClassificationWorker"
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
@@ -138,14 +143,20 @@ fun scheduleClassificationWorker(context: Context, uris: Array<Uri?>,  frequency
         .putStringArray("uris", uriStrings as Array<String?>)
         .build()
 
-    val workRequest = PeriodicWorkRequestBuilder<ClassificationWorker>(duration.first, duration.second)
+    // Create the PeriodicWorkRequestBuilder
+    val workRequestBuilder = PeriodicWorkRequestBuilder<ClassificationWorker>(duration.first, duration.second)
         .setInputData(inputData)
         .setConstraints(
             Constraints(
                 requiresBatteryNotLow = true,
             )
         )
-        .build()
+
+    if (delayInMinutes != null && delayInMinutes > 0) {
+        workRequestBuilder.setInitialDelay(delayInMinutes, TimeUnit.MINUTES)
+    }
+
+    val workRequest = workRequestBuilder.build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         workerName,
