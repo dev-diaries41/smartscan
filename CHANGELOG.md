@@ -15,3 +15,4 @@
 
 - Delete image_embeddings db when refreshing image index
 - Remove battery constraint on image indexer worker
+- Chanied image index workers
