@@ -117,6 +117,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
 
     fun scheduleImageIndexWorker(context: Context, frequency: String) {
+        val workerName = "ImageIndexWorker"
         val duration = when (frequency) {
             "1 Day" -> 1L to TimeUnit.DAYS
             "1 Week" -> 7L to TimeUnit.DAYS
@@ -135,7 +136,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-            "ImageIndexWorker",
+            workerName,
             ExistingPeriodicWorkPolicy.REPLACE,
             workRequest
         )
