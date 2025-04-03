@@ -128,11 +128,6 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
         }
 
         val workRequest = PeriodicWorkRequestBuilder<ImageIndexWorker>(duration.first, duration.second)
-            .setConstraints(
-                Constraints(
-                    requiresBatteryNotLow = true,
-                )
-            )
             .build()
 
         WorkManager.getInstance(context).enqueueUniquePeriodicWork(
