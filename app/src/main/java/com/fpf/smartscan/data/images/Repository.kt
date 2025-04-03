@@ -19,4 +19,8 @@ class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
     suspend fun isImageIndexed(id: Long): Boolean {
         return dao.isImageIndexed(id)
     }
+
+    suspend fun deleteAllEmbeddings() {
+        dao.deleteAll()
+    }
 }

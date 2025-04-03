@@ -113,7 +113,7 @@ fun SearchScreen(
                 shape = RoundedCornerShape(8.dp),
                 trailingIcon = {
                     IconButton(
-                        enabled = !isLoading && hasStoragePermission,
+                        enabled = !isLoading && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
                             searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
                         }

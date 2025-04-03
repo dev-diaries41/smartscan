@@ -19,7 +19,6 @@
     <string name="storage_permissions">Storage permission required to search images.</string>
     <string name="search_error_images_not_indexed">Images have not been indexed yet.</string>
     <string name="search_error_no_results">No matching results found.</string>
-    <string name="search_error_no_image_found">No matching image found for the query.</string>
     <string name="search_error_missing_permissions_for_results">Missing storage permissions for 1 or more images.</string>
     <string name="search_error_empty_query">Query cannot be empty.</string>
     <string name="search_error_unknown">An unknown error occurred.</string>
