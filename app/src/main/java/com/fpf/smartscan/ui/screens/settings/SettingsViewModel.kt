@@ -20,12 +20,15 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
+import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -158,6 +161,17 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
         }
     }
+
+    fun refreshImageIndex() {
+        viewModelScope.launch {
+            val imageRepository = ImageEmbeddingRepository(
+                ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao()
+            )
+            imageRepository.deleteAllEmbeddings()
+            scheduleImageIndexWorker(getApplication(), "1 Week")
+        }
+    }
+
 
     fun onSettingsDetailsExit(initialDestinationDirectories: List<String>, initialTargetDirectories: List<String>) {
         val destinationChanged = initialDestinationDirectories != _appSettings.value.destinationDirectories

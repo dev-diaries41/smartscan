@@ -108,22 +108,24 @@ class SearchViewModel(application: Application) : AndroidViewModel(application) 
                 val results = getTopN(similarities, n, 0.2f)
 
                 if (results.isEmpty() ) {
-                    _error.value = context.getString(R.string.search_error_no_image_found)
+                    _error.value = context.getString(R.string.search_error_no_results)
                     _searchResults.value = emptyList()
                     return@launch
                 }
 
-                val searchResultsUris = results.map{idx -> getImageUriFromId(embeddings[idx].id)}
-
-                val missingPermission = searchResultsUris.any { uri ->
-                    !hasImageAccess(getApplication(), uri)
+                val searchResultsUris = results.map { idx -> getImageUriFromId(embeddings[idx].id) }
+                val filteredSearchResultsUris = searchResultsUris.filter { uri ->
+                    hasImageAccess(getApplication(), uri)
                 }
 
-                if (missingPermission) {
-                    _error.value = context.getString(R.string.search_error_missing_permissions_for_results)
+                if (filteredSearchResultsUris.isEmpty()) {
+                    _error.value = context.getString(R.string.search_error_no_results)
+                    _searchResults.value = emptyList()
                     return@launch
                 }
-                _searchResults.value = searchResultsUris
+
+                _searchResults.value = filteredSearchResultsUris
+
             } catch (e: Exception) {
                 Log.e("ImageSearchError", "$e")
                 _error.value = context.getString(R.string.search_error_unknown)

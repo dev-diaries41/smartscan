@@ -66,7 +66,7 @@ fun SettingsScreen(
                     TextButton(
                         onClick = {
                             if (currentStorageAccess != StorageAccess.Denied) {
-                                scheduleImageIndexWorker(context, "1 Week")
+                                viewModel.refreshImageIndex()
                             }
                             showRefreshDialog = false
                         }
