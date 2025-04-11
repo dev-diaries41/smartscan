@@ -5,6 +5,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.res.stringResource
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
@@ -19,6 +20,7 @@ import com.fpf.smartscan.lib.getBitmapFromUri
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import com.fpf.smartscan.R
 
 class TestViewModel(application: Application) : AndroidViewModel(application){
     private var embeddingsHandler: Embeddings? = null
@@ -45,7 +47,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
 
     fun inference(context: Context, prototypeEmbeddings:  List<PrototypeEmbedding>) {
         if (prototypeEmbeddings.isEmpty()) {
-            Toast.makeText(context, "No prototype embeddings", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.test_no_prototype_embeddings), Toast.LENGTH_SHORT).show()
             return
         }
 
