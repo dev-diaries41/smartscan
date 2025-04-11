@@ -31,6 +31,9 @@
     <string name="eth_wallet">0xa53aC18B25942C71019f85314AF67F6132E525ad</string>
     <string name="ltc_wallet">ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3</string>
 
+    <!-- Test screen -->
+    <string name="test_no_prototype_embeddings">Missing destination folders or their embeddings</string>
+
 
     <!-- Scan history screen -->
     <string name="no_scan_history">No Scan History</string>
