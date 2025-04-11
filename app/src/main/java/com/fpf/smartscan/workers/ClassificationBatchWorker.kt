@@ -15,6 +15,7 @@ import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.lib.showNotification
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
+import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.processors.Organiser
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -42,23 +43,23 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
         val batchStartTime = System.currentTimeMillis()
         val organiser = Organiser(applicationContext)
+        val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: run {
+            Log.e(TAG, "IMAGE_URI_FILE not provided")
+            return@withContext Result.failure()
+        }
+        val batchIndex = inputData.getInt("BATCH_INDEX", -1)
+        val batchSize = inputData.getInt("BATCH_SIZE", -1)
+        val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
+        val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
+
 
         try {
-            val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: run {
-                Log.e(TAG, "IMAGE_URI_FILE not provided")
-                return@withContext Result.failure()
-            }
-            val batchIndex = inputData.getInt("BATCH_INDEX", -1)
-            val batchSize = inputData.getInt("BATCH_SIZE", -1)
-            val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
-            val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
 
             if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
                 Log.e(TAG, "Invalid batch parameters provided")
                 return@withContext Result.failure()
             }
 
-            // Load the persisted JSON file and parse it.
             val file = File(imageUriFilePath)
             if (!file.exists()) {
                 Log.e(TAG, "Persisted image URI file not found: $imageUriFilePath")
@@ -99,7 +100,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             }
 
             if (isLastBatch) {
-                onLastBatch(sharedPreferences, updatedProcessingTime, updatedTotal )
+                onLastBatch(updatedProcessingTime, updatedTotal )
             }
 
             return@withContext Result.success()
@@ -108,6 +109,10 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             return@withContext Result.failure()
         } finally {
             embeddingHandler.closeSession()
+            if(isLastBatch){
+                deleteLocalFile(applicationContext, imageUriFilePath)
+                resetMetrics(sharedPreferences)
+            }
         }
     }
 
@@ -122,14 +127,13 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         }
     }
 
-    private fun onLastBatch(preferences: SharedPreferences, totalProcessingTime: Long, totalProcessedCount: Int){
+    private fun onLastBatch(totalProcessingTime: Long, totalProcessedCount: Int){
         val processingTimeSeconds = totalProcessingTime / 1000
         val minutes = processingTimeSeconds / 60
         val seconds = processingTimeSeconds % 60
         val notificationText = "Total images processed: $totalProcessedCount, Total processing time: ${minutes}m ${seconds}s"
         Log.i(TAG, notificationText)
         showNotification(applicationContext, "Smart Scan Complete", notificationText, 1002)
-        resetMetrics(preferences)
     }
 
     private fun updateMetrics(preferences: SharedPreferences, processedCount: Int, batchStartTime: Long): Pair<Int, Long> {
@@ -151,3 +155,4 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         }
     }
 }
+

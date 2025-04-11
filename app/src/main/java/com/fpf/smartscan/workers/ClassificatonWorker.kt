@@ -46,7 +46,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            // Retrieve directory URIs (as strings) from input data.
             val uriStrings = inputData.getStringArray("uris") ?: run {
                 Log.e(TAG, "No URIs provided to classify.")
                 return@withContext Result.failure()
@@ -61,11 +60,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             }
             Log.i(TAG, "Found ${fileUriList.size} image files for classification.")
 
-            // Persist the full list to file
             val imageUriFilePath = persistImageUriList(applicationContext, fileUriList)
-            Log.i(TAG, "Persisted ${fileUriList.size} image URIs to file: $imageUriFilePath")
 
-            // Dynamically calculate batch size to keep total workers within MAX_WORKERS.
             val totalImages = fileUriList.size
             val totalBatches = (totalImages + BATCH_SIZE - 1) / BATCH_SIZE
             Log.i(TAG, "Will schedule $totalBatches batch workers (batch size: $BATCH_SIZE).")
@@ -96,7 +92,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 Log.i(TAG, "Chained ClassificationBatchWorker for batch $batchIndex")
             }
 
-            // Enqueue the entire chain of batch workers.
             continuation?.enqueue()
 
             return@withContext Result.success()
@@ -107,14 +102,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     }
 }
 
-/**
- * Schedules the ClassificationWorker (the orchestrator) for periodic processing.
- *
- * @param context The application context.
- * @param uris An array of directory URIs (nullable) where images are located.
- * @param frequency Frequency string (e.g., "1 Day", "1 Week") for periodic scheduling.
- * @param delayInMinutes Optional initial delay in minutes.
- */
 fun scheduleClassificationWorker(
     context: Context,
     uris: Array<Uri?>,

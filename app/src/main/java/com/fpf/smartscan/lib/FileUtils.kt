@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
+import java.io.File
 
 fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Boolean {
     val tag = "FileOperationError"
@@ -62,4 +63,14 @@ fun getFilesFromDir(context: Context, uris: List<Uri>, fileExtensions: List<Stri
     }
 
     return fileUris
+}
+
+
+fun deleteLocalFile(context: Context, fileName: String): Boolean {
+    val file = File(context.filesDir, fileName)
+    return if (file.exists()) {
+        file.delete()
+    } else {
+        false
+    }
 }
