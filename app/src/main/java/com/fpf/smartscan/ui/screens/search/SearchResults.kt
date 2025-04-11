@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.runtime.Composable
@@ -30,6 +32,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
@@ -53,8 +56,11 @@ object BitmapCache {
     fun put(uri: Uri, bitmap: Bitmap): Bitmap? = cache.put(uri, bitmap)
 }
 
-
-suspend fun loadBitmapFromUri(context: Context, uri: Uri, targetWidth: Int? = null, targetHeight: Int? = null
+suspend fun loadBitmapFromUri(
+    context: Context,
+    uri: Uri,
+    targetWidth: Int? = null,
+    targetHeight: Int? = null
 ): Bitmap? {
     return withContext(Dispatchers.IO) {
         BitmapCache.get(uri) ?: try {
@@ -113,6 +119,7 @@ fun SearchResults(
 ) {
     val context = LocalContext.current
     var mainResult by remember { mutableStateOf(initialMainResult) }
+    var isExpanded by remember { mutableStateOf(false) }  // New state to track full-screen mode
 
     Column(
         modifier = Modifier
@@ -121,8 +128,7 @@ fun SearchResults(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.End
         ) {
             IconButton(
@@ -141,6 +147,17 @@ fun SearchResults(
                 Icon(
                     imageVector = Icons.Filled.RestartAlt,
                     contentDescription = "Reset Image",
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            // New icon button to expand image
+            IconButton(
+                onClick = { isExpanded = true }
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Fullscreen,
+                    contentDescription = "Expand Image",
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
@@ -186,6 +203,35 @@ fun SearchResults(
                         uri = uri,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop
+                    )
+                }
+            }
+        }
+    }
+
+    if (isExpanded) {
+        Dialog(onDismissRequest = { isExpanded = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            ) {
+                // Full screen image
+                MediaStoreImage(
+                    uri = mainResult,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+                IconButton(
+                    onClick = { isExpanded = false },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Minimize Image",
+                        tint = Color.White
                     )
                 }
             }
