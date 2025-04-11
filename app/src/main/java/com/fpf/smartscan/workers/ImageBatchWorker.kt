@@ -24,6 +24,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     val batchIds = inputData.getLongArray("BATCH_IMAGE_IDS")?.toList() ?: emptyList()
     val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
     val totalImageIds = inputData.getInt("TOTAL_IMAGES_IDS", 0)
+    private var lastPercentage: Int = 0
 
     companion object {
         private const val TAG = "ImageBatchWorker"
@@ -61,10 +62,20 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     override fun onProgress(processedCount: Int) {
-        val count = if(processedCount >previousProcessingCount) processedCount else previousProcessingCount + processedCount
-        setProgressAsync(workDataOf("processed_count" to count, "total_count" to totalImageIds))
-        Log.i(TAG, "Progress: $count/$totalImageIds images processed")
+        val count = if (processedCount > previousProcessingCount) {
+            processedCount
+        } else {
+            previousProcessingCount + processedCount
+        }
+        val currentPercentage = ((count.toDouble() / totalImageIds) * 100).toInt()
+
+        if (currentPercentage > lastPercentage) {
+            lastPercentage = currentPercentage
+            setProgressAsync(workDataOf("processed_count" to count, "total_count" to totalImageIds))
+            Log.i(TAG, "Progress: $count/$totalImageIds images processed ($currentPercentage%)")
+        }
     }
+
 
     private fun onLastBatch(totalProcessingTime: Long, totalProcessedCount: Int){
         val processingTimeSeconds = totalProcessingTime / 1000
