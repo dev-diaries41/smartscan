@@ -72,8 +72,8 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
         } finally {
             imageIndexer.close()
             if(isLastBatch){
-                jobManager.clearJobs(JOB_NAME)
                 jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
+                jobManager.clearJobs(JOB_NAME)
             }
         }
     }
