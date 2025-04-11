@@ -18,9 +18,12 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams), ImageIndexListener {
 
     private val imageIndexer = ImageIndexer(context.applicationContext as Application, this) // Passing listener
-    private var totalImageIds = 0
     val sharedPreferences = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)!!
     val previousProcessingCount = sharedPreferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
+    val batchStartTime = System.currentTimeMillis()
+    val batchIds = inputData.getLongArray("BATCH_IMAGE_IDS")?.toList() ?: emptyList()
+    val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
+    val totalImageIds = inputData.getInt("TOTAL_IMAGES_IDS", 0)
 
     companion object {
         private const val TAG = "ImageBatchWorker"
@@ -31,16 +34,8 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
-            val batchStartTime = System.currentTimeMillis()
-            val batchIds = inputData.getLongArray("BATCH_IMAGE_IDS")?.toList() ?: emptyList()
-            val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
-            totalImageIds = inputData.getInt("TOTAL_IMAGES_IDS", 0)
-
             if (batchIds.isEmpty()) {
                 Log.i(TAG, "No image IDs provided for this batch.")
-                if (isLastBatch) {
-                    resetMetrics(sharedPreferences)
-                }
                 return@withContext Result.success()
             }
 
@@ -62,6 +57,9 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             return@withContext Result.failure()
         } finally {
             imageIndexer.close()
+            if (isLastBatch) {
+                resetMetrics(sharedPreferences)
+            }
         }
     }
 
@@ -78,7 +76,6 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
         val notificationText = "Total images processed: $totalProcessedCount, Total processing time: ${minutes}m ${seconds}s"
         Log.i(TAG, notificationText)
         showNotification(applicationContext, "Indexing Complete", notificationText, 1002)
-        resetMetrics(sharedPreferences)
     }
 
     private fun updateMetrics(previousTotal: Int, newBatchProcessedCount: Int, batchStartTime: Long): Pair<Int, Long> {
