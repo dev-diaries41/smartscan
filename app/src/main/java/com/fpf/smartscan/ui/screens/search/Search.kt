@@ -27,9 +27,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +46,7 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
+    val progress by searchViewModel.progress.observeAsState(0f)
     val context = LocalContext.current
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
@@ -92,6 +95,7 @@ fun SearchScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,7 +103,23 @@ fun SearchScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
+            if (progress > 0f) {
+                Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                    Text(
+                        text = "Indexing ${"%.0f".format(progress * 100)}%",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    LinearProgressIndicator(
+                        progress = { progress},
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        strokeCap = StrokeCap.Round,
+                    )
+                }
+            }
 
             OutlinedTextField(
                 enabled = !isLoading && hasStoragePermission,
@@ -107,8 +127,7 @@ fun SearchScreen(
                 onValueChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
                 },
-                label = { Text("Search images...", color = Color.White) },
-                textStyle = TextStyle(color = Color.White),
+                label = { Text("Search images...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 trailingIcon = {
@@ -139,7 +158,6 @@ fun SearchScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(48.dp),
-                        color = Color.White,
                         strokeWidth = 4.dp
                     )
                 }

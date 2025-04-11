@@ -14,7 +14,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
     companion object {
         private const val TAG = "ImageIndexWorker"
-        private const val BATCH_SIZE = 500
+        private const val BATCH_SIZE = 50
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -40,7 +40,8 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                 val isLastBatch = (batchIndex == totalBatches - 1)
                 val workData = workDataOf(
                     "BATCH_IMAGE_IDS" to batchIds,
-                    "IS_LAST_BATCH" to isLastBatch
+                    "IS_LAST_BATCH" to isLastBatch,
+                    "TOTAL_IMAGES_IDS" to allImageIds.size
                 )
 
                 val batchTag = "ImageBatchWorker"
