@@ -1,6 +1,5 @@
 package com.fpf.smartscan.lib.processors
 
-import android.app.ActivityManager
 import android.app.Application
 import android.content.ContentUris
 import android.content.Context
@@ -12,6 +11,7 @@ import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getBitmapFromUri
+import com.fpf.smartscan.lib.MemoryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -28,41 +28,19 @@ class ImageIndexer(
 
     companion object {
         private const val TAG = "ImageIndexer"
-        private const val LOW_MEMORY_THRESHOLD = 800L * 1024 * 1024
-        private const val HIGH_MEMORY_THRESHOLD = 1_600L * 1024 * 1024
-        private const val MIN_CONCURRENCY = 1
-        private const val MAX_CONCURRENCY = 4
     }
 
     private val repository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
 
+    private val memoryUtils = MemoryUtils(application.applicationContext)
+
     init {
         embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
     }
 
-    private fun getFreeMemory(): Long {
-        val activityManager = application.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        val memoryInfo = ActivityManager.MemoryInfo()
-        activityManager.getMemoryInfo(memoryInfo)
-        return memoryInfo.availMem
-    }
-
-    private fun calculateConcurrencyLevel(): Int {
-        val freeMemory = getFreeMemory()
-        return when {
-            freeMemory < LOW_MEMORY_THRESHOLD -> MIN_CONCURRENCY
-            freeMemory >= HIGH_MEMORY_THRESHOLD -> MAX_CONCURRENCY
-            else -> {
-                val proportion = (freeMemory - LOW_MEMORY_THRESHOLD).toDouble() /
-                        (HIGH_MEMORY_THRESHOLD - LOW_MEMORY_THRESHOLD)
-                (MIN_CONCURRENCY + proportion * (MAX_CONCURRENCY - MIN_CONCURRENCY)).toInt().coerceAtLeast(MIN_CONCURRENCY)
-            }
-        }
-    }
-
-    suspend fun indexImages(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
+    private suspend fun indexImagesInternal(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
         try {
             if (imageIds.isEmpty()) {
@@ -70,13 +48,14 @@ class ImageIndexer(
                 return@withContext 0
             }
 
-            val indexedIds: Set<Long> = repository.getAllEmbeddingsSync().map { it.id }.toSet()
+            val indexedIds: Set<Long> =
+                repository.getAllEmbeddingsSync().map { it.id }.toSet()
             val imagesToProcess = imageIds.filterNot { indexedIds.contains(it) }
             var totalProcessed = 0
 
             for (batch in imagesToProcess.chunked(10)) {
-                val currentConcurrency = calculateConcurrencyLevel()
-//                Log.i(TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${getFreeMemory() / (1024 * 1024)} MB")
+                val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
+//                Log.i(TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${memoryUtils.getFreeMemory() / (1024 * 1024)} MB")
 
                 val semaphore = Semaphore(currentConcurrency)
 
@@ -89,7 +68,8 @@ class ImageIndexer(
                                     id
                                 )
                                 val bitmap = getBitmapFromUri(application, contentUri)
-                                val embedding: FloatArray? = embeddingHandler?.generateImageEmbedding(bitmap)
+                                val embedding: FloatArray? =
+                                    embeddingHandler?.generateImageEmbedding(bitmap)
                                 bitmap.recycle()
                                 if (embedding != null) {
                                     repository.insert(
@@ -119,6 +99,10 @@ class ImageIndexer(
             Log.e(TAG, "Error indexing images: ${e.message}", e)
             return@withContext 0
         }
+    }
+
+    suspend fun indexImages(imageIds: List<Long>): Int {
+        return indexImagesInternal(imageIds)
     }
 
     fun close() {
