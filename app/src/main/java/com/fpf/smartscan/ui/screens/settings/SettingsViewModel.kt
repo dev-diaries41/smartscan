@@ -57,6 +57,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
 
+    companion object {
+        private const val TAG = "SettingsViewModel"
+        private const val CLASSIFICATION_WORKER = "ClassificationWorker"
+        private const val CLASSIFICATION_BATCH_WORKER ="ClassificationBatchWorker"
+        private const val IMAGE_INDEXER_BATCH_WORKER ="ImageBatchWorker"
+    }
+
     init {
         loadSettings()
     }
@@ -69,7 +76,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             updateWorker()
         }else{
             viewModelScope.launch {
-                val workScheduled = isWorkScheduled(getApplication(), "ClassificationWorker" )
+                val workScheduled = isWorkScheduled(getApplication(), CLASSIFICATION_WORKER )
                 if(workScheduled){
                     cancelClassificationWorker()
                 }
@@ -136,14 +143,14 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                                     )
                                 )
                             } catch (e: Exception) {
-                                Log.e("PrototypeUpdate", "Failed to generate or insert prototype for URI: $uri", e)
+                                Log.e(TAG, "Failed to generate or insert prototype for URI: $uri", e)
                             }
                         }
                     }
                 }
                 jobs.awaitAll()
             } catch (e: Exception) {
-                Log.e("PrototypeUpdate", "Unexpected error during prototype update", e)
+                Log.e(TAG, "Unexpected error during prototype update", e)
             } finally {
                 embeddingsHandler.closeSession()
             }
@@ -184,12 +191,18 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
 
             if (destinationChanged || targetChanged) {
-                val workerTag = "ImageBatchWorker"
+                val workerTag = IMAGE_INDEXER_BATCH_WORKER
                 val workManager = WorkManager.getInstance(getApplication())
                 val workInfoList = workManager.getWorkInfosByTag(workerTag).get()
-                val isImageIndexerRunning = workInfoList.any { it.state == WorkInfo.State.RUNNING }
-                updateWorker(delayInMinutes = if (isImageIndexerRunning) 5L else null)
+                val runningOrEnqueuedWorkersCount = workInfoList.count {
+                    it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
+                }
+                // This delay prevents indexing and classification workers running at the same time to limit resource usage.
+                val delayInMinutes = if (runningOrEnqueuedWorkersCount > 0) 5L * runningOrEnqueuedWorkersCount else null
+
+                updateWorker(delayInMinutes)
             }
+
         }
     }
 
@@ -212,8 +225,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     private fun cancelClassificationWorker(){
-        WorkManager.getInstance(getApplication()).cancelUniqueWork("ClassificationWorker")
-        WorkManager.getInstance(application).cancelAllWorkByTag("ClassificationBatchWorker")
+        WorkManager.getInstance(getApplication()).cancelUniqueWork(CLASSIFICATION_WORKER)
+        WorkManager.getInstance(application).cancelAllWorkByTag(CLASSIFICATION_BATCH_WORKER)
     }
 
     private fun loadSettings() {
