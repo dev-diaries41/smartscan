@@ -55,10 +55,6 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
                 processedCount = processedCount
             )
 
-            if (isLastBatch) {
-                jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
-            }
-
             Result.success()
 
         } catch (e: Exception) {
@@ -77,6 +73,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             imageIndexer.close()
             if(isLastBatch){
                 jobManager.clearJobs(JOB_NAME)
+                jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
             }
         }
     }
@@ -88,7 +85,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
         if (currentPercentage > lastPercentage) {
             lastPercentage = currentPercentage
             setProgressAsync(workDataOf("processed_count" to count, "total_count" to totalImageIds))
-            Log.i(TAG, "Progress: $count/$totalImageIds images processed ($currentPercentage%)")
+//            Log.i(TAG, "Progress: $count/$totalImageIds images processed ($currentPercentage%)")
         }
     }
 }
