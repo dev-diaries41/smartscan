@@ -30,6 +30,10 @@ class ImageIndexer(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
 
+    init {
+        embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
+    }
+
     suspend fun indexImages(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
         try {
             if (imageIds.isEmpty()) {
@@ -38,10 +42,6 @@ class ImageIndexer(
             }
 
             Log.i(TAG, "Processing ${imageIds.size} images.")
-
-            if (embeddingHandler == null){
-                embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
-            }
 
             val indexedIds: Set<Long> = repository.getAllEmbeddingsSync().map { it.id }.toSet()
             val semaphore = Semaphore(4)

@@ -27,11 +27,13 @@ class Organiser(private val context: Context) {
         private const val TAG = "ClassificationProcessor"
     }
 
-    private val prototypeRepository: PrototypeEmbeddingRepository by lazy {
-        PrototypeEmbeddingRepository(
-            PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
-                .prototypeEmbeddingDao()
-        )
+    private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(
+        PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
+            .prototypeEmbeddingDao()
+    )
+
+    init {
+        embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
     }
 
     suspend fun processBatch(directoryUris: List<Uri>): Int {
@@ -49,9 +51,6 @@ class Organiser(private val context: Context) {
             return 0
         }
 
-        if (embeddingHandler == null) {
-            embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
-        }
         val semaphore = Semaphore(3)
         val results = supervisorScope {
             imageFiles.map { imageUri ->
