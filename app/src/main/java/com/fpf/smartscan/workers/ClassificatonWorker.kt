@@ -41,7 +41,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
     companion object {
         private const val TAG = "ClassificationWorker"
-        private const val DEFAULT_BATCH_SIZE = 500
+        private const val BATCH_SIZE = 250
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -67,8 +67,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
             // Dynamically calculate batch size to keep total workers within MAX_WORKERS.
             val totalImages = fileUriList.size
-            val totalBatches = (totalImages + DEFAULT_BATCH_SIZE - 1) / DEFAULT_BATCH_SIZE
-            Log.i(TAG, "Will schedule $totalBatches batch workers (batch size: $DEFAULT_BATCH_SIZE).")
+            val totalBatches = (totalImages + BATCH_SIZE - 1) / BATCH_SIZE
+            Log.i(TAG, "Will schedule $totalBatches batch workers (batch size: $BATCH_SIZE).")
 
             val workManager = WorkManager.getInstance(applicationContext)
             var continuation: WorkContinuation? = null
@@ -80,7 +80,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 val workData = workDataOf(
                     "IMAGE_URI_FILE" to imageUriFilePath,
                     "BATCH_INDEX" to batchIndex,
-                    "BATCH_SIZE" to DEFAULT_BATCH_SIZE,
+                    "BATCH_SIZE" to BATCH_SIZE,
                     "TOTAL_IMAGES" to totalImages,
                     "IS_LAST_BATCH" to isLastBatch
                 )
