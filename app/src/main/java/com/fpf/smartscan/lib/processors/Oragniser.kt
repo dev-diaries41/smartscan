@@ -37,11 +37,11 @@ class Organiser(private val context: Context) {
     }
 
     suspend fun processBatch(imageUris: List<Uri>): Int {
-        if (imageFiles.isEmpty()) {
+        if (imageUris.isEmpty()) {
             Log.i(TAG, "No image files found for classification.")
             return 0
         }
-        Log.i(TAG, "Found ${imageFiles.size} image files for classification.")
+        Log.i(TAG, "Processing ${imageUris.size} images for classification.")
 
         val prototypeList: List<PrototypeEmbedding> = prototypeRepository.getAllEmbeddingsSync()
         if (prototypeList.isEmpty()) {
@@ -51,7 +51,7 @@ class Organiser(private val context: Context) {
 
         val semaphore = Semaphore(3)
         val results = supervisorScope {
-            imageFiles.map { imageUri ->
+            imageUris.map { imageUri ->
                 async {
                     semaphore.withPermit {
                         processImage(imageUri, prototypeList)
