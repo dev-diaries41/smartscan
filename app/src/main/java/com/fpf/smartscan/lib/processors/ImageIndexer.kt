@@ -16,9 +16,11 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicInteger
 
 class ImageIndexer(
-    private val application: Application
+    private val application: Application,
+    private val listener: ImageIndexListener? = null
 ){
     var embeddingHandler: Embeddings? = null
 
@@ -35,6 +37,7 @@ class ImageIndexer(
     }
 
     suspend fun indexImages(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
+        val processedCount = AtomicInteger(0)
         try {
             if (imageIds.isEmpty()) {
                 Log.i(TAG, "No images found.")
@@ -66,6 +69,8 @@ class ImageIndexer(
                                         embeddings = embedding
                                     )
                                 )
+                                val current = processedCount.incrementAndGet()
+                                listener?.onProgress(current)
                                 return@async 1
                             }
                         } catch (e: Exception) {
@@ -85,8 +90,14 @@ class ImageIndexer(
         }
     }
 
-    fun onComplete(){
+    fun close(){
         embeddingHandler?.closeSession()
         embeddingHandler = null
     }
+}
+
+interface ImageIndexListener {
+    fun onProgress(processedCount: Int)
+//    fun onError(imageId: Long, exception: Exception)
+//    fun onComplete(totalProcessed: Int)
 }
