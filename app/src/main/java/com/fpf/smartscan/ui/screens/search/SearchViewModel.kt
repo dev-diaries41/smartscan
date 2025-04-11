@@ -58,7 +58,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     init {
         observeWorkProgress()
         CoroutineScope(Dispatchers.Default).launch {
-            embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
             val indexWorkScheduled = isIndexWorkScheduled("ImageIndexWorker")
             if (!indexWorkScheduled) {
                 _isFirstIndex.postValue(true)
@@ -120,24 +119,27 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _isLoading.value = true
         _error.value = null
 
-        viewModelScope.launch {
+        CoroutineScope(Dispatchers.Default).launch {
             try {
+                if (embeddingsHandler == null) {
+                    embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
+                }
                 val textEmbedding = embeddingsHandler?.generateTextEmbedding(currentQuery)
                     ?: throw IllegalArgumentException("Failed to generate text embedding.")
 
                 val similarities = getSimilarities(textEmbedding, embeddings.map { it.embeddings })
 
                 if (similarities.isEmpty()) {
-                    _error.value = application.getString(R.string.search_error_no_results)
-                    _searchResults.value = emptyList()
+                    _error.postValue(application.getString(R.string.search_error_no_results))
+                    _searchResults.postValue(emptyList())
                     return@launch
                 }
 
                 val results = getTopN(similarities, n, 0.2f)
 
-                if (results.isEmpty() ) {
-                    _error.value = application.getString(R.string.search_error_no_results)
-                    _searchResults.value = emptyList()
+                if (results.isEmpty()) {
+                    _error.postValue(application.getString(R.string.search_error_no_results))
+                    _searchResults.postValue(emptyList())
                     return@launch
                 }
 
@@ -147,23 +149,23 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
 
                 if (filteredSearchResultsUris.isEmpty()) {
-                    _error.value = application.getString(R.string.search_error_no_results)
-                    _searchResults.value = emptyList()
+                    _error.postValue(application.getString(R.string.search_error_no_results))
+                    _searchResults.postValue(emptyList())
                     return@launch
                 }
 
-                _searchResults.value = filteredSearchResultsUris
+                _searchResults.postValue(filteredSearchResultsUris)
 
             } catch (e: Exception) {
-                Log.e("ImageSearchError", "$e")
-                _error.value = application.getString(R.string.search_error_unknown)
+                Log.e("SearchViewModel", "$e")
+                _error.postValue(application.getString(R.string.search_error_unknown))
             } finally {
-                _isLoading.value = false
+                _isLoading.postValue(false)
             }
         }
     }
 
-    override fun onCleared() {
+        override fun onCleared() {
         super.onCleared()
         embeddingsHandler?.closeSession()
     }
