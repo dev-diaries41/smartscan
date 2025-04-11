@@ -2,107 +2,93 @@ package com.fpf.smartscan.workers
 
 import android.app.Application
 import android.content.Context
-import android.content.SharedPreferences
 import android.util.Log
-import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
-import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams), ImageIndexListener {
 
-    private val imageIndexer = ImageIndexer(context.applicationContext as Application, this) // Passing listener
-    val sharedPreferences = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)!!
-    val previousProcessingCount = sharedPreferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
-    val batchStartTime = System.currentTimeMillis()
-    val batchIds = inputData.getLongArray("BATCH_IMAGE_IDS")?.toList() ?: emptyList()
-    val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
-    val totalImageIds = inputData.getInt("TOTAL_IMAGES_IDS", 0)
+    private val jobManager = JobManager.getInstance(context)
+    private lateinit var imageIndexer: ImageIndexer
+    private var startTime: Long = 0L
+    private var previousProcessingCount: Int = 0
     private var lastPercentage: Int = 0
+
+    private val batchIds = inputData.getLongArray("BATCH_IMAGE_IDS")?.toList() ?: emptyList()
+    private val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
+    private val totalImageIds = inputData.getInt("TOTAL_IMAGES_IDS", 0)
 
     companion object {
         private const val TAG = "ImageBatchWorker"
-        private const val PREFS_NAME = "ImageIndexPrefs"
-        private const val KEY_TOTAL_PROCESSED_COUNT = "totalProcessedCount"
-        private const val KEY_TOTAL_PROCESSING_TIME = "totalProcessingTime"
+        private const val JOB_NAME = "index"
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        try {
-            if (batchIds.isEmpty()) {
-                Log.i(TAG, "No image IDs provided for this batch.")
-                return@withContext Result.success()
-            }
+        val startResult = jobManager.onStart(JOB_NAME)
+        startTime = startResult.startTime
+        previousProcessingCount = startResult.initialProcessedCount
 
+        if (batchIds.isEmpty()) {
+            Log.i(TAG, "No image IDs provided for this batch.")
+            return@withContext Result.success()
+        }
+
+        imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
+
+        try {
             Log.i(TAG, "Processing batch of ${batchIds.size} images.")
 
             val processedCount = imageIndexer.indexImages(batchIds)
-            val (updatedTotal, updatedProcessingTime) = updateMetrics(previousProcessingCount, processedCount, batchStartTime)
+
+            val finishTime = System.currentTimeMillis()
+
+            jobManager.onComplete(
+                jobName = JOB_NAME,
+                startTime = startTime,
+                finishTime = finishTime,
+                processedCount = processedCount
+            )
 
             if (isLastBatch) {
-                onLastBatch(updatedProcessingTime, updatedTotal)
+                jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
             }
 
-            return@withContext Result.success()
+            Result.success()
+
         } catch (e: Exception) {
+            val failTime = System.currentTimeMillis()
             Log.e(TAG, "Error processing batch: ${e.message}", e)
-            return@withContext Result.failure()
+
+            jobManager.onError(
+                jobName = JOB_NAME,
+                startTime = startTime,
+                finishTime = failTime,
+                processedCount = 0
+            )
+
+            Result.failure()
         } finally {
             imageIndexer.close()
-            if (isLastBatch) {
-                resetMetrics(sharedPreferences)
+            if(isLastBatch){
+                jobManager.clearJobs(JOB_NAME)
             }
         }
     }
 
     override fun onProgress(processedCount: Int) {
-        val count = if (processedCount > previousProcessingCount) {
-            processedCount
-        } else {
-            previousProcessingCount + processedCount
-        }
+        val count = previousProcessingCount + processedCount
         val currentPercentage = ((count.toDouble() / totalImageIds) * 100).toInt()
 
         if (currentPercentage > lastPercentage) {
             lastPercentage = currentPercentage
             setProgressAsync(workDataOf("processed_count" to count, "total_count" to totalImageIds))
             Log.i(TAG, "Progress: $count/$totalImageIds images processed ($currentPercentage%)")
-        }
-    }
-
-
-    private fun onLastBatch(totalProcessingTime: Long, totalProcessedCount: Int){
-        val processingTimeSeconds = totalProcessingTime / 1000
-        val minutes = processingTimeSeconds / 60
-        val seconds = processingTimeSeconds % 60
-        val notificationText = "Total images processed: $totalProcessedCount, Total processing time: ${minutes}m ${seconds}s"
-        Log.i(TAG, notificationText)
-        showNotification(applicationContext, "Indexing Complete", notificationText, 1002)
-    }
-
-    private fun updateMetrics(previousTotal: Int, newBatchProcessedCount: Int, batchStartTime: Long): Pair<Int, Long> {
-        val previousProcessingTime = sharedPreferences.getLong(KEY_TOTAL_PROCESSING_TIME, 0L)
-        val batchProcessingTime = System.currentTimeMillis() - batchStartTime
-        val updatedProcessedCount = previousTotal + newBatchProcessedCount
-        val updatedProcessingTime = previousProcessingTime + batchProcessingTime
-
-        sharedPreferences.edit {
-            putInt(KEY_TOTAL_PROCESSED_COUNT, updatedProcessedCount)
-            putLong(KEY_TOTAL_PROCESSING_TIME, updatedProcessingTime)
-        }
-        return Pair(updatedProcessedCount, updatedProcessingTime)
-    }
-
-    private fun resetMetrics(sharedPreferences: SharedPreferences) {
-        sharedPreferences.edit {
-            putInt(KEY_TOTAL_PROCESSED_COUNT, 0)
-            putLong(KEY_TOTAL_PROCESSING_TIME, 0L)
         }
     }
 }
