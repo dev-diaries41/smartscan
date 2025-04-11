@@ -9,6 +9,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ImageSearch
@@ -34,6 +36,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.permissions.RequestPermissions
@@ -130,6 +133,16 @@ fun SearchScreen(
                 label = { Text("Search images...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
+                keyboardActions = KeyboardActions (
+                    onSearch = {
+                        if (!isLoading && hasStoragePermission && searchQuery.isNotEmpty()) {
+                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
+                        }
+                    }
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Search // This sets the Enter key to trigger the search action
+                ),
                 trailingIcon = {
                     IconButton(
                         enabled = !isLoading && hasStoragePermission && searchQuery.isNotEmpty(),
@@ -145,6 +158,7 @@ fun SearchScreen(
                     }
                 }
             )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             AnimatedVisibility(
