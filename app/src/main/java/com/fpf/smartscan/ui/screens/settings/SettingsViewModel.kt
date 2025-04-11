@@ -49,7 +49,7 @@ data class AppSettings(
     val numberSimilarResults: Int = 5,
     )
 
-class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository =
         PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
     val prototypeList: LiveData<List<PrototypeEmbedding>> = repository.allEmbeddings
@@ -71,7 +71,7 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             viewModelScope.launch {
                 val workScheduled = isWorkScheduled(getApplication(), "ClassificationWorker" )
                 if(workScheduled){
-                    WorkManager.getInstance(getApplication()).cancelUniqueWork("ClassificationWorker")
+                    cancelClassificationWorker()
                 }
             }
         }
@@ -209,6 +209,11 @@ class SettingsViewModel(application: Application) : AndroidViewModel(application
             return false
         }
         return true
+    }
+
+    private fun cancelClassificationWorker(){
+        WorkManager.getInstance(getApplication()).cancelUniqueWork("ClassificationWorker")
+        WorkManager.getInstance(application).cancelAllWorkByTag("ClassificationBatchWorker")
     }
 
     private fun loadSettings() {
