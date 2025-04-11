@@ -1,26 +1,15 @@
 package com.fpf.smartscan.workers
 
 import android.app.Application
-import android.content.ContentUris
 import android.content.Context
 import android.content.SharedPreferences
-import android.provider.MediaStore
 import android.util.Log
 import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.fpf.smartscan.data.images.ImageEmbedding
-import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
-import com.fpf.smartscan.data.images.ImageEmbeddingRepository
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
-import com.fpf.smartscan.lib.getBitmapFromUri
+import com.fpf.smartscan.lib.processors.ImageIndexer
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 
 class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
@@ -33,13 +22,9 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
         private const val KEY_TOTAL_PROCESSING_TIME = "totalProcessingTime"
     }
 
-    private val repository = ImageEmbeddingRepository(
-        ImageEmbeddingDatabase.getDatabase(applicationContext as Application).imageEmbeddingDao()
-    )
-
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val sharedPreferences = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
+        val imageIndexer = ImageIndexer(applicationContext as Application)
         try {
             val batchStartTime = System.currentTimeMillis()
 
@@ -56,42 +41,11 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
 
             Log.i(TAG, "Processing batch of ${batchIds.size} images.")
 
-            val indexedIds: Set<Long> = repository.getAllEmbeddingsSync().map { it.id }.toSet()
-            val semaphore = Semaphore(4)
+            val processedCount = imageIndexer.indexImages(batchIds)
 
-            val deferredResults = batchIds.map { id ->
-                if (indexedIds.contains(id)) return@map null
-                async {
-                    semaphore.withPermit {
-                        try {
-                            val contentUri = ContentUris.withAppendedId(
-                                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                id
-                            )
-                            val bitmap = getBitmapFromUri(applicationContext, contentUri)
-                            val embedding: FloatArray? = embeddingHandler.generateImageEmbedding(bitmap)
-                            bitmap.recycle()
-                            if (embedding != null) {
-                                repository.insert(
-                                    ImageEmbedding(
-                                        id = id,
-                                        date = System.currentTimeMillis(),
-                                        embeddings = embedding
-                                    )
-                                )
-                                return@async 1
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to process image $id", e)
-                        }
-                        return@async 0
-                    }
-                }
-            }.filterNotNull()
-
-            val processedCount = deferredResults.awaitAll().sum()
             Log.i(TAG, "Processed $processedCount images in this batch.")
 
+            // Update the total processed count and processing time
             val previousTotal = sharedPreferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
             val newTotal = previousTotal + processedCount
             saveTotalProcessedCount(sharedPreferences, newTotal)
@@ -116,10 +70,9 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             Log.e(TAG, "Error processing batch: ${e.message}", e)
             return@withContext Result.failure()
         } finally {
-            embeddingHandler.closeSession()
+            imageIndexer.onComplete()
         }
     }
-
 
     private fun saveTotalProcessedCount(sharedPreferences: SharedPreferences, count: Int) {
         sharedPreferences.edit { putInt(KEY_TOTAL_PROCESSED_COUNT, count) }
