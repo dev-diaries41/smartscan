@@ -34,7 +34,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             if (batchIds.isEmpty()) {
                 Log.i(TAG, "No image IDs provided for this batch.")
                 if (isLastBatch) {
-                    resetSharedPreferences(sharedPreferences)
+                    resetMetrics(sharedPreferences)
                 }
                 return@withContext Result.success()
             }
@@ -45,24 +45,10 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
 
             Log.i(TAG, "Processed $processedCount images in this batch.")
 
-            // Update the total processed count and processing time
-            val previousTotal = sharedPreferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
-            val newTotal = previousTotal + processedCount
-            saveTotalProcessedCount(sharedPreferences, newTotal)
-
-            val batchProcessingTime = System.currentTimeMillis() - batchStartTime
-            val previousProcessingTime = sharedPreferences.getLong(KEY_TOTAL_PROCESSING_TIME, 0L)
-            val newProcessingTime = previousProcessingTime + batchProcessingTime
-            saveTotalProcessingTime(sharedPreferences, newProcessingTime)
+            val (updatedTotal, updatedProcessingTime) = updateMetrics(sharedPreferences, processedCount, batchStartTime)
 
             if (isLastBatch) {
-                val processingTimeSeconds = newProcessingTime / 1000
-                val minutes = processingTimeSeconds / 60
-                val seconds = processingTimeSeconds % 60
-                val notificationText = "Total images processed: $newTotal, Total processing time: ${minutes}m ${seconds}s"
-                Log.i(TAG, notificationText)
-                showNotification(applicationContext, "Indexing Complete", notificationText, 1002)
-                resetSharedPreferences(sharedPreferences)
+                onLastBatch(sharedPreferences, updatedProcessingTime, updatedTotal)
             }
 
             return@withContext Result.success()
@@ -74,15 +60,29 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
         }
     }
 
-    private fun saveTotalProcessedCount(sharedPreferences: SharedPreferences, count: Int) {
-        sharedPreferences.edit { putInt(KEY_TOTAL_PROCESSED_COUNT, count) }
+    private fun onLastBatch(preferences: SharedPreferences, totalProcessingTime: Long, totalProcessedCount: Int){
+        val processingTimeSeconds = totalProcessingTime / 1000
+        val minutes = processingTimeSeconds / 60
+        val seconds = processingTimeSeconds % 60
+        val notificationText = "Total images processed: $totalProcessedCount, Total processing time: ${minutes}m ${seconds}s"
+        Log.i(TAG, notificationText)
+        showNotification(applicationContext, "Indexing Complete", notificationText, 1002)
+        resetMetrics(preferences)
     }
 
-    private fun saveTotalProcessingTime(sharedPreferences: SharedPreferences, time: Long) {
-        sharedPreferences.edit { putLong(KEY_TOTAL_PROCESSING_TIME, time) }
+    private fun updateMetrics(preferences: SharedPreferences, processedCount: Int, batchStartTime: Long): Pair<Int, Long> {
+        val previousTotal = preferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
+        val updatedProcessedCount = previousTotal + processedCount
+        preferences.edit { putInt(KEY_TOTAL_PROCESSED_COUNT, updatedProcessedCount) }
+
+        val batchProcessingTime = System.currentTimeMillis() - batchStartTime
+        val previousProcessingTime = preferences.getLong(KEY_TOTAL_PROCESSING_TIME, 0L)
+        val updatedProcessingTime = previousProcessingTime + batchProcessingTime
+        preferences.edit { putLong(KEY_TOTAL_PROCESSING_TIME, updatedProcessingTime) }
+        return Pair(updatedProcessedCount, updatedProcessingTime)
     }
 
-    private fun resetSharedPreferences(sharedPreferences: SharedPreferences) {
+    private fun resetMetrics(sharedPreferences: SharedPreferences) {
         sharedPreferences.edit {
             putInt(KEY_TOTAL_PROCESSED_COUNT, 0)
             putLong(KEY_TOTAL_PROCESSING_TIME, 0L)

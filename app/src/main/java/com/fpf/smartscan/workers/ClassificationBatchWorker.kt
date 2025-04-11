@@ -73,6 +73,9 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             val startIndex = batchIndex * batchSize
             val endIndex = kotlin.math.min(startIndex + batchSize, totalImages)
             if (startIndex >= endIndex) {
+                if (isLastBatch) {
+                resetMetrics(sharedPreferences)
+                }
                 Log.i(TAG, "No images to process in this batch ($batchIndex).")
                 return@withContext Result.success()
             }
@@ -96,13 +99,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             }
 
             if (isLastBatch) {
-                val processingTimeSeconds = updatedProcessingTime / 1000
-                val minutes = processingTimeSeconds / 60
-                val seconds = processingTimeSeconds % 60
-                val notificationText = "Total images processed: $updatedTotal, Total processing time: ${minutes}m ${seconds}s"
-                Log.i(TAG, notificationText)
-                showNotification(applicationContext, "Smart Scan Complete", notificationText, 1002)
-                resetMetrics(sharedPreferences)
+                onLastBatch(sharedPreferences, updatedProcessingTime, updatedTotal )
             }
 
             return@withContext Result.success()
@@ -115,15 +112,24 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     }
 
 
-
     private suspend fun insertScanData(repository: ScanDataRepository, processedImages: Int) {
         try {
             repository.insert(
                 ScanData(result = processedImages, date = System.currentTimeMillis())
             )
         } catch (e: Exception) {
-            Log.e("DataInsertionError", "Error inserting scan data: ${e.message}", e)
+            Log.e(TAG, "Error inserting scan data: ${e.message}", e)
         }
+    }
+
+    private fun onLastBatch(preferences: SharedPreferences, totalProcessingTime: Long, totalProcessedCount: Int){
+        val processingTimeSeconds = totalProcessingTime / 1000
+        val minutes = processingTimeSeconds / 60
+        val seconds = processingTimeSeconds % 60
+        val notificationText = "Total images processed: $totalProcessedCount, Total processing time: ${minutes}m ${seconds}s"
+        Log.i(TAG, notificationText)
+        showNotification(applicationContext, "Smart Scan Complete", notificationText, 1002)
+        resetMetrics(preferences)
     }
 
     private fun updateMetrics(preferences: SharedPreferences, processedCount: Int, batchStartTime: Long): Pair<Int, Long> {
