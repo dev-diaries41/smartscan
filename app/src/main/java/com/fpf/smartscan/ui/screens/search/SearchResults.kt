@@ -10,8 +10,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material.icons.Icons
@@ -119,7 +120,7 @@ fun SearchResults(
 ) {
     val context = LocalContext.current
     var mainResult by remember { mutableStateOf(initialMainResult) }
-    var isExpanded by remember { mutableStateOf(false) }  // New state to track full-screen mode
+    var isExpanded by remember { mutableStateOf(false) }  // State to track full-screen mode
 
     Column(
         modifier = Modifier
@@ -151,7 +152,6 @@ fun SearchResults(
                 )
             }
 
-            // New icon button to expand image
             IconButton(
                 onClick = { isExpanded = true }
             ) {
@@ -186,37 +186,45 @@ fun SearchResults(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(600.dp)  //  fixed height required to bounds the grid's maximum height.
         ) {
-            items(similarResults) { uri ->
-                Card(
-                    modifier = Modifier
-                        .size(150.dp)
-                        .clickable { mainResult = uri },
-                    shape = MaterialTheme.shapes.small,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    MediaStoreImage(
-                        uri = uri,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(similarResults) { uri ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clickable { mainResult = uri },
+                        shape = MaterialTheme.shapes.small,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        MediaStoreImage(
+                            uri = uri,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
             }
         }
     }
 
-    if (isExpanded) {
+        if (isExpanded) {
         Dialog(onDismissRequest = { isExpanded = false }) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black)
             ) {
-                // Full screen image
                 MediaStoreImage(
                     uri = mainResult,
                     modifier = Modifier.fillMaxSize(),
