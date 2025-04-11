@@ -42,9 +42,6 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             Log.i(TAG, "Processing batch of ${batchIds.size} images.")
 
             val processedCount = imageIndexer.indexImages(batchIds)
-
-            Log.i(TAG, "Processed $processedCount images in this batch.")
-
             val (updatedTotal, updatedProcessingTime) = updateMetrics(previousProcessingCount, processedCount, batchStartTime)
 
             if (isLastBatch) {
