@@ -15,9 +15,12 @@ import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.moveFile
 import com.fpf.smartscan.lib.MemoryUtils
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 class Organiser(private val context: Context) {
     var embeddingHandler: Embeddings? = null
@@ -38,33 +41,43 @@ class Organiser(private val context: Context) {
         embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
     }
 
-    suspend fun processBatch(imageUris: List<Uri>): Int {
+    suspend fun processBatch(imageUris: List<Uri>): Int = withContext(Dispatchers.IO) {
         if (imageUris.isEmpty()) {
             Log.i(TAG, "No image files found for classification.")
-            return 0
+            return@withContext 0
         }
 
         val prototypeList: List<PrototypeEmbedding> = prototypeRepository.getAllEmbeddingsSync()
         if (prototypeList.isEmpty()) {
             Log.e(TAG, "No prototype embeddings available.")
-            return 0
+            return@withContext 0
         }
 
-        val concurrencyLevel = memoryUtils.calculateConcurrencyLevel()
-        val semaphore = Semaphore(concurrencyLevel)
+        var totalProcessed = 0
 
-        val results = supervisorScope {
-            imageUris.map { imageUri ->
+        for (chunk in imageUris.chunked(10)) {
+            val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
+            Log.i(
+                TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${
+                    memoryUtils.getFreeMemory() / (1024 * 1024)
+                } MB"
+            )
+            val semaphore = Semaphore(currentConcurrency)
+
+            val deferredResults = chunk.map { imageUri ->
                 async {
                     semaphore.withPermit {
                         processImage(imageUri, prototypeList)
                     }
                 }
-            }.awaitAll()
+            }
+
+            // Wait for all processing in this chunk to complete
+            val results = deferredResults.awaitAll()
+            totalProcessed += results.count { it }
         }
 
-        val processedCount = results.count { it }
-        return processedCount
+        return@withContext totalProcessed
     }
 
     private suspend fun processImage(
