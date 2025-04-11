@@ -13,12 +13,11 @@ import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
-import com.fpf.smartscan.lib.getFilesFromDir
 import com.fpf.smartscan.lib.moveFile
+import com.fpf.smartscan.lib.MemoryUtils
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-
 
 class Organiser(private val context: Context) {
     var embeddingHandler: Embeddings? = null
@@ -27,10 +26,13 @@ class Organiser(private val context: Context) {
         private const val TAG = "ClassificationProcessor"
     }
 
-    private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(
-        PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
-            .prototypeEmbeddingDao()
-    )
+    private val prototypeRepository: PrototypeEmbeddingRepository =
+        PrototypeEmbeddingRepository(
+            PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
+                .prototypeEmbeddingDao()
+        )
+
+    private val memoryUtils = MemoryUtils(context)
 
     init {
         embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
@@ -41,7 +43,6 @@ class Organiser(private val context: Context) {
             Log.i(TAG, "No image files found for classification.")
             return 0
         }
-        Log.i(TAG, "Processing ${imageUris.size} images for classification.")
 
         val prototypeList: List<PrototypeEmbedding> = prototypeRepository.getAllEmbeddingsSync()
         if (prototypeList.isEmpty()) {
@@ -49,7 +50,9 @@ class Organiser(private val context: Context) {
             return 0
         }
 
-        val semaphore = Semaphore(3)
+        val concurrencyLevel = memoryUtils.calculateConcurrencyLevel()
+        val semaphore = Semaphore(concurrencyLevel)
+
         val results = supervisorScope {
             imageUris.map { imageUri ->
                 async {
@@ -60,12 +63,13 @@ class Organiser(private val context: Context) {
             }.awaitAll()
         }
 
-        val processedCount = results.count() { it }
+        val processedCount = results.count { it }
         return processedCount
     }
 
     private suspend fun processImage(
-        imageUri: Uri, prototypeEmbeddings: List<PrototypeEmbedding>
+        imageUri: Uri,
+        prototypeEmbeddings: List<PrototypeEmbedding>
     ): Boolean {
         return try {
             val bitmap = getBitmapFromUri(context, imageUri)
@@ -91,7 +95,7 @@ class Organiser(private val context: Context) {
         }
     }
 
-    fun onComplete() {
+    fun close() {
         embeddingHandler?.closeSession()
     }
 }
