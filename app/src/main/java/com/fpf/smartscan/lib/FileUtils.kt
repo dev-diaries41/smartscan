@@ -42,3 +42,24 @@ fun getDirectoryName(context: Context, uri: Uri): String {
     return documentDir?.name.toString()
 }
 
+fun getFilesFromDir(context: Context, uris: List<Uri>, fileExtensions: List<String>): List<Uri> {
+    val fileUris = mutableListOf<Uri>()
+
+    for (uri in uris) {
+        val documentDir = DocumentFile.fromTreeUri(context, uri)
+        if (documentDir != null && documentDir.isDirectory) {
+            documentDir.listFiles().forEach { documentFile ->
+                if (documentFile.isFile) {
+                    val fileName = documentFile.name ?: ""
+                    if (fileExtensions.any { fileName.endsWith(".$it", ignoreCase = true) }) {
+                        fileUris.add(documentFile.uri)
+                    }
+                }
+            }
+        } else {
+            Log.e("getFilesFromDir", "Invalid directory URI: $uri")
+        }
+    }
+
+    return fileUris
+}
