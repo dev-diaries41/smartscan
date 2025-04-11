@@ -61,6 +61,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         private const val TAG = "SettingsViewModel"
         private const val CLASSIFICATION_WORKER = "ClassificationWorker"
         private const val CLASSIFICATION_BATCH_WORKER ="ClassificationBatchWorker"
+        private const val IMAGE_INDEXER_WORKER ="ImageIndexWorker"
         private const val IMAGE_INDEXER_BATCH_WORKER ="ImageBatchWorker"
     }
 
@@ -175,6 +176,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao()
             )
             imageRepository.deleteAllEmbeddings()
+            cancelImageIndexWorker()
             scheduleImageIndexWorker(getApplication(), "1 Week")
         }
     }
@@ -227,6 +229,11 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private fun cancelClassificationWorker(){
         WorkManager.getInstance(getApplication()).cancelUniqueWork(CLASSIFICATION_WORKER)
         WorkManager.getInstance(application).cancelAllWorkByTag(CLASSIFICATION_BATCH_WORKER)
+    }
+
+    private fun cancelImageIndexWorker(){
+        WorkManager.getInstance(getApplication()).cancelUniqueWork(IMAGE_INDEXER_WORKER)
+        WorkManager.getInstance(application).cancelAllWorkByTag(IMAGE_INDEXER_BATCH_WORKER)
     }
 
     private fun loadSettings() {
