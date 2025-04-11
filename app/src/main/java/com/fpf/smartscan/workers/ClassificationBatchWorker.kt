@@ -137,14 +137,17 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     }
 
     private fun updateMetrics(preferences: SharedPreferences, processedCount: Int, batchStartTime: Long): Pair<Int, Long> {
-        val previousTotal = preferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
-        val updatedProcessedCount = previousTotal + processedCount
-        preferences.edit { putInt(KEY_TOTAL_PROCESSED_COUNT, updatedProcessedCount) }
-
         val batchProcessingTime = System.currentTimeMillis() - batchStartTime
         val previousProcessingTime = preferences.getLong(KEY_TOTAL_PROCESSING_TIME, 0L)
+        val previousTotal = preferences.getInt(KEY_TOTAL_PROCESSED_COUNT, 0)
+
+        val updatedProcessedCount = previousTotal + processedCount
         val updatedProcessingTime = previousProcessingTime + batchProcessingTime
-        preferences.edit { putLong(KEY_TOTAL_PROCESSING_TIME, updatedProcessingTime) }
+
+        preferences.edit {
+            putLong(KEY_TOTAL_PROCESSING_TIME, updatedProcessingTime)
+            putInt(KEY_TOTAL_PROCESSED_COUNT, updatedProcessedCount)
+        }
         return Pair(updatedProcessedCount, updatedProcessingTime)
     }
 
