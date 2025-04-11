@@ -36,9 +36,7 @@ class Organiser(private val context: Context) {
         embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
     }
 
-    suspend fun processBatch(directoryUris: List<Uri>): Int {
-        val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
-        val imageFiles = getFilesFromDir(context, directoryUris, imageExtensions)
+    suspend fun processBatch(imageUris: List<Uri>): Int {
         if (imageFiles.isEmpty()) {
             Log.i(TAG, "No image files found for classification.")
             return 0
