@@ -112,9 +112,9 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         } finally {
             organiser.close()
             if (isLastBatch) {
-                deleteLocalFile(applicationContext, imageUriFilePath)
-                jobManager.clearJobs(JOB_NAME)
                 jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
+                jobManager.clearJobs(JOB_NAME)
+                deleteLocalFile(applicationContext, imageUriFilePath)
             }
         }
     }
