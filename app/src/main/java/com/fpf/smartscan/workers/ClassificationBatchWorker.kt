@@ -36,25 +36,22 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         private const val KEY_TOTAL_PROCESSING_TIME = "totalProcessingTime"
     }
 
+    val sharedPreferences = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)!!
     private val scanRepository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
+    val batchIndex = inputData.getInt("BATCH_INDEX", -1)
+    val batchSize = inputData.getInt("BATCH_SIZE", -1)
+    val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
+    val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
 
     override suspend fun doWork(): Result = withContext(kotlinx.coroutines.Dispatchers.IO) {
-        val sharedPreferences = applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val embeddingHandler = Embeddings(applicationContext.resources, ModelType.IMAGE)
         val batchStartTime = System.currentTimeMillis()
         val organiser = Organiser(applicationContext)
         val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: run {
             Log.e(TAG, "IMAGE_URI_FILE not provided")
             return@withContext Result.failure()
         }
-        val batchIndex = inputData.getInt("BATCH_INDEX", -1)
-        val batchSize = inputData.getInt("BATCH_SIZE", -1)
-        val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
-        val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
-
 
         try {
-
             if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
                 Log.e(TAG, "Invalid batch parameters provided")
                 return@withContext Result.failure()
@@ -108,14 +105,13 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             Log.e(TAG, "Error processing batch: ${e.message}", e)
             return@withContext Result.failure()
         } finally {
-            embeddingHandler.closeSession()
+            organiser.close()
             if(isLastBatch){
                 deleteLocalFile(applicationContext, imageUriFilePath)
                 resetMetrics(sharedPreferences)
             }
         }
     }
-
 
     private suspend fun insertScanData(repository: ScanDataRepository, processedImages: Int) {
         try {
