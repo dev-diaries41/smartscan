@@ -23,8 +23,8 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private const val TAG = "ClassificationBatchWorker"
-        private const val JOB_NAME = "classification"
+        private const val TAG = WorkerConstants.CLASSIFICATION_BATCH_WORKER
+        private const val JOB_NAME = WorkerConstants.JOB_NAME_CLASSIFICATION
     }
 
     private val jobManager = JobManager.getInstance(context)

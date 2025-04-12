@@ -28,6 +28,7 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -59,10 +60,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
     companion object {
         private const val TAG = "SettingsViewModel"
-        private const val CLASSIFICATION_WORKER = "ClassificationWorker"
-        private const val CLASSIFICATION_BATCH_WORKER ="ClassificationBatchWorker"
-        private const val IMAGE_INDEXER_WORKER ="ImageIndexWorker"
-        private const val IMAGE_INDEXER_BATCH_WORKER ="ImageBatchWorker"
     }
 
     init {
@@ -77,7 +74,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             updateWorker()
         }else{
             viewModelScope.launch {
-                val workScheduled = isWorkScheduled(getApplication(), CLASSIFICATION_WORKER )
+                val workScheduled = isWorkScheduled(getApplication(), WorkerConstants.CLASSIFICATION_WORKER )
                 if(workScheduled){
                     cancelClassificationWorker()
                 }
@@ -167,7 +164,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
             viewModelScope.launch {
-                val (_, count) = isBatchWorkScheduled(IMAGE_INDEXER_BATCH_WORKER)
+                val (_, count) = isBatchWorkScheduled(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
                 val delayInMinutes = if (count > 0) 5L * count else null
                 scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
@@ -222,13 +219,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     private fun cancelClassificationWorker(){
-        WorkManager.getInstance(getApplication()).cancelUniqueWork(CLASSIFICATION_WORKER)
-        WorkManager.getInstance(application).cancelAllWorkByTag(CLASSIFICATION_BATCH_WORKER)
+        WorkManager.getInstance(getApplication()).cancelUniqueWork(WorkerConstants.CLASSIFICATION_WORKER)
+        WorkManager.getInstance(application).cancelAllWorkByTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
     }
 
     private fun cancelImageIndexWorker(){
-        WorkManager.getInstance(getApplication()).cancelUniqueWork(IMAGE_INDEXER_WORKER)
-        WorkManager.getInstance(application).cancelAllWorkByTag(IMAGE_INDEXER_BATCH_WORKER)
+        WorkManager.getInstance(getApplication()).cancelUniqueWork(WorkerConstants.IMAGE_INDEXER_WORKER)
+        WorkManager.getInstance(application).cancelAllWorkByTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
     }
 
     private fun loadSettings() {

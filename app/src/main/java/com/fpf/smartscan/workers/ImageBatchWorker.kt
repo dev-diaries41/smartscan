@@ -25,8 +25,8 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     private val totalImageIds = inputData.getInt("TOTAL_IMAGES_IDS", 0)
 
     companion object {
-        private const val TAG = "ImageBatchWorker"
-        private const val JOB_NAME = "index"
+        private const val TAG = WorkerConstants.IMAGE_INDEXER_BATCH_WORKER
+        private const val JOB_NAME = WorkerConstants.JOB_NAME_INDEX
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
