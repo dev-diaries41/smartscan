@@ -15,7 +15,6 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams), ImageIndexListener {
 
     private val jobManager = JobManager.getInstance(context)
-    private lateinit var imageIndexer: ImageIndexer
     private var startTime: Long = 0L
     private var previousProcessingCount: Int = 0
     private var lastPercentage: Int = 0
@@ -39,7 +38,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             return@withContext Result.success()
         }
 
-        imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
+        val imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
 
         try {
             Log.i(TAG, "Processing batch of ${batchIds.size} images.")
