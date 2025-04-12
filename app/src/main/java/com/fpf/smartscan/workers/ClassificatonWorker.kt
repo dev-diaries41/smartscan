@@ -41,7 +41,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
     companion object {
         private const val TAG = "ClassificationWorker"
-        private const val BATCH_SIZE = 250
+        private const val BATCH_SIZE = 500
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
