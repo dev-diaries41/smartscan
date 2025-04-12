@@ -7,14 +7,21 @@
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
     <string name="title_scan_history">Scan History</string>
+    <string name="title_test_organisation">Test SmartScan</string>
 
+
+    <!-- Notifications -->
     <string name="worker_channel_id">Background Tasks</string>
     <string name="worker_channel_name">Background Tasks Notifications</string>
     <string name="worker_channel_description">Notifications for background tasks</string>
 
+    <string name="notif_title_smart_scan_complete">Smart Scan Complete</string>
+    <string name="notif_title_index_complete">Indexing Complete</string>
+
+
     <!-- Search screen -->
     <string name="first_index">
-        Image indexing is in progress and may take a few minutes. Searching will be disabled until the process is complete. Please ensure that notifications are enabled so you can be informed when indexing is finished.
+        First image indexing is in progress and may take a few minutes. Searching will be limited until the process is complete. Please ensure that notifications are enabled so you can be informed when indexing is finished.
     </string>
     <string name="storage_permissions">Storage permission required to search images.</string>
     <string name="search_error_images_not_indexed">Images have not been indexed yet.</string>
@@ -31,6 +38,8 @@
     <string name="eth_wallet">0xa53aC18B25942C71019f85314AF67F6132E525ad</string>
     <string name="ltc_wallet">ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3</string>
 
+    <!-- Test screen -->
+    <string name="test_no_prototype_embeddings">Missing destination folders or their embeddings</string>
 
     <!-- Scan history screen -->
     <string name="no_scan_history">No Scan History</string>
@@ -49,23 +58,24 @@
     <string name="setting_target_folders">Target folders</string>
     <string name="setting_target_folders_description">Select which folders should be monitored for new images to organize automatically.</string>
     <string name="setting_destination_folders">Destination folders</string>
-    <string name="setting_destination_folders_description">Select the folders which new images are allowed to be moved to. Each destination folder should contain at least 10 images. This sample set is crucial for accurate matching.</string>
+    <string name="setting_destination_folders_description">Select destination folders for new images. Each folder must contain at least 10 images to ensure accurate matching.</string>
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
-    <string name="setting_test_model">Test SmartScan</string>
     <string name="setting_test_model_description">Upload an image to see the classification result</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
-    <string name="setting_similarity_threshold_description">Defines the minimum similarity score required for an image to match a category. Lower values may increase false positives, while higher values may reduce matches.</string>
+    <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
     <string name="setting_number_similar_results">Similar results</string>
 
     <!-- Refresh image index -->
     <string name="setting_refresh_image_index">Refresh image index</string>
+    <string name="setting_refresh_image_index_description_warning">The image index updates weekly. Only refresh manually if needed — it performs a full reset.</string>
+
     <string name="setting_refresh_image_index_description_full">
-        Manually refresh image index in the background. This can take up to a few minutes. Make sure notifications are enabled to be notified upon completion.
+        Manually refresh image index. This can take up to a few minutes. Make sure notifications are enabled to be notified upon completion.
     </string>
 
     <string name="setting_refresh_image_index_description_partial">
-        Manually refresh image index in the background. This can take up to a few minutes, but only the selected images will be indexed. Make sure notifications are enabled to be notified upon completion.
+        Manually refresh image index. This can take up to a few minutes, but only the selected images will be indexed. Make sure notifications are enabled to be notified upon completion.
     </string>
     <string name="setting_refresh_image_index_description_denied">
         Missing storage permissions. Please grant storage permissions and make sure notifications are enabled to be notified upon completion.

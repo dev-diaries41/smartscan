@@ -5,6 +5,7 @@ import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import androidx.work.*
+import com.fpf.smartscan.lib.JobManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -13,7 +14,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private const val TAG = "ImageIndexWorker"
+        private const val TAG = WorkerConstants.IMAGE_INDEXER_WORKER
         private const val BATCH_SIZE = 500
     }
 
@@ -24,6 +25,10 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                 Log.i(TAG, "No images found to index.")
                 return@withContext Result.success()
             }
+
+            // This prevents stale data between chained workers
+            val jobManager = JobManager.getInstance(applicationContext)
+            jobManager.clearJobs(WorkerConstants.JOB_NAME_INDEX)
 
             // Calculate total number of batches.
             val totalBatches = (allImageIds.size + BATCH_SIZE - 1) / BATCH_SIZE
@@ -40,13 +45,13 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                 val isLastBatch = (batchIndex == totalBatches - 1)
                 val workData = workDataOf(
                     "BATCH_IMAGE_IDS" to batchIds,
-                    "IS_LAST_BATCH" to isLastBatch
+                    "IS_LAST_BATCH" to isLastBatch,
+                    "TOTAL_IMAGES_IDS" to allImageIds.size
                 )
 
-                val batchTag = "ImageBatchWorker"
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ImageBatchWorker>()
                     .setInputData(workData)
-                    .addTag(batchTag)
+                    .addTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
                     .build()
 
                 continuation = continuation?.then(batchWorkerRequest) ?: workManager.beginWith(batchWorkerRequest)
@@ -83,12 +88,11 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
 
 fun scheduleImageIndexWorker(context: Context, frequency: String) {
-    val workerName = "ImageIndexWorker"
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
-            Log.e("ImageIndexWorker", "Invalid frequency: $frequency, defaulting to 1 Week")
+            Log.e("scheduleImageIndexWorker", "Invalid frequency: $frequency, defaulting to 1 Week")
             7L to TimeUnit.DAYS
         }
     }
@@ -97,7 +101,7 @@ fun scheduleImageIndexWorker(context: Context, frequency: String) {
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        workerName,
+        WorkerConstants.IMAGE_INDEXER_WORKER,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )
