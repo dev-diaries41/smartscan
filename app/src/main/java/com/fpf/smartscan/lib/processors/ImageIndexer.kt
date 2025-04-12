@@ -40,7 +40,7 @@ class ImageIndexer(
         embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
     }
 
-    private suspend fun indexImagesInternal(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
+    suspend fun indexImages(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
         try {
             if (imageIds.isEmpty()) {
@@ -48,14 +48,15 @@ class ImageIndexer(
                 return@withContext 0
             }
 
-            val indexedIds: Set<Long> =
-                repository.getAllEmbeddingsSync().map { it.id }.toSet()
+            val indexedIds: Set<Long> = repository.getAllEmbeddingsSync()
+                .map { it.id }
+                .toSet()
             val imagesToProcess = imageIds.filterNot { indexedIds.contains(it) }
             var totalProcessed = 0
 
             for (batch in imagesToProcess.chunked(10)) {
                 val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
-//                Log.i(TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${memoryUtils.getFreeMemory() / (1024 * 1024)} MB")
+                // Log.i(TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${memoryUtils.getFreeMemory() / (1024 * 1024)} MB")
 
                 val semaphore = Semaphore(currentConcurrency)
 
@@ -64,8 +65,7 @@ class ImageIndexer(
                         semaphore.withPermit {
                             try {
                                 val contentUri = ContentUris.withAppendedId(
-                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                                    id
+                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
                                 )
                                 val bitmap = getBitmapFromUri(application, contentUri)
                                 val embedding: FloatArray? =
@@ -90,20 +90,15 @@ class ImageIndexer(
                         }
                     }
                 }
-
                 totalProcessed += deferredResults.awaitAll().sum()
             }
-
-            return@withContext totalProcessed
+            totalProcessed
         } catch (e: Exception) {
             Log.e(TAG, "Error indexing images: ${e.message}", e)
-            return@withContext 0
+            0
         }
     }
 
-    suspend fun indexImages(imageIds: List<Long>): Int {
-        return indexImagesInternal(imageIds)
-    }
 
     fun close() {
         embeddingHandler?.closeSession()
