@@ -39,6 +39,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
     val imageEmbeddings: LiveData<List<ImageEmbedding>> = repository.allImageEmbeddings
+    val hasAnyImages: LiveData<Boolean> = repository.hasAnyEmbedding
 
     private val _query = MutableLiveData<String>("")
     val query: LiveData<String> = _query

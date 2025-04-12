@@ -26,4 +26,6 @@ interface ImageEmbeddingDao {
     @Query("DELETE FROM image_embeddings")
     suspend fun deleteAll()
 
+    @Query("SELECT EXISTS(SELECT 1 FROM image_embeddings)")
+    fun hasAnyImageEmbedding(): LiveData<Boolean>
 }
