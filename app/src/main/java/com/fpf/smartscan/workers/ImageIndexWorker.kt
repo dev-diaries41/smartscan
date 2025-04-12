@@ -14,9 +14,9 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private const val TAG = "ImageIndexWorker"
+        private const val TAG = WorkerConstants.IMAGE_INDEXER_WORKER
         private const val BATCH_SIZE = 500
-        private const val JOB_NAME = "index"
+        private const val JOB_NAME = WorkerConstants.JOB_NAME_INDEX
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -50,10 +50,9 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                     "TOTAL_IMAGES_IDS" to allImageIds.size
                 )
 
-                val batchTag = "ImageBatchWorker"
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ImageBatchWorker>()
                     .setInputData(workData)
-                    .addTag(batchTag)
+                    .addTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
                     .build()
 
                 continuation = continuation?.then(batchWorkerRequest) ?: workManager.beginWith(batchWorkerRequest)
@@ -90,12 +89,11 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
 
 fun scheduleImageIndexWorker(context: Context, frequency: String) {
-    val workerName = "ImageIndexWorker"
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
-            Log.e("ImageIndexWorker", "Invalid frequency: $frequency, defaulting to 1 Week")
+            Log.e("scheduleImageIndexWorker", "Invalid frequency: $frequency, defaulting to 1 Week")
             7L to TimeUnit.DAYS
         }
     }
@@ -104,7 +102,7 @@ fun scheduleImageIndexWorker(context: Context, frequency: String) {
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        workerName,
+        WorkerConstants.IMAGE_INDEXER_WORKER,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )

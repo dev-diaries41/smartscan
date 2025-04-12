@@ -40,7 +40,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private const val TAG = "ClassificationWorker"
+        private const val TAG = WorkerConstants.CLASSIFICATION_WORKER
         private const val BATCH_SIZE = 500
     }
 
@@ -83,7 +83,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ClassificationBatchWorker>()
                     .setInputData(workData)
-                    .addTag("ClassificationBatchWorker")
+                    .addTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
                     .build()
 
                 continuation = continuation?.then(batchWorkerRequest)
@@ -108,12 +108,11 @@ fun scheduleClassificationWorker(
     frequency: String,
     delayInMinutes: Long? = null
 ) {
-    val workerName = "ClassificationWorker"
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
-            Log.e("ClassificationWorkerScheduleError", "Invalid frequency: $frequency, defaulting to 1 Day")
+            Log.e("scheduleClassificationWorker", "Invalid frequency: $frequency, defaulting to 1 Day")
             1L to TimeUnit.DAYS
         }
     }
@@ -135,7 +134,7 @@ fun scheduleClassificationWorker(
     val workRequest = workRequestBuilder.build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        workerName,
+        WorkerConstants.CLASSIFICATION_WORKER,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )

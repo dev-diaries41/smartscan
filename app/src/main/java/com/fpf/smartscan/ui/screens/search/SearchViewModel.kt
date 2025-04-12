@@ -1,12 +1,10 @@
 package com.fpf.smartscan.ui.screens.search
 
 import android.app.Application
-import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import androidx.lifecycle.AndroidViewModel
 import androidx.work.WorkInfo
@@ -24,13 +22,13 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import com.fpf.smartscan.R
 import com.fpf.smartscan.lib.clip.ModelType
+import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.CoroutineScope
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
-    private val workTag = "ImageBatchWorker"
 
     private val _progress = MutableLiveData(0f)
     val progress: LiveData<Float> = _progress
@@ -60,7 +58,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     init {
         observeWorkProgress()
         CoroutineScope(Dispatchers.Default).launch {
-            val indexWorkScheduled = isIndexWorkScheduled("ImageIndexWorker")
+            val indexWorkScheduled = isIndexWorkScheduled(WorkerConstants.IMAGE_INDEXER_WORKER)
             if (!indexWorkScheduled) {
                 _isFirstIndex.postValue(true)
             }
@@ -69,7 +67,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     private fun observeWorkProgress() {
-        workManager.getWorkInfosByTagLiveData(workTag).observeForever { infos ->
+        workManager.getWorkInfosByTagLiveData(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER).observeForever { infos ->
             if (infos.isNullOrEmpty()) {
                 _progress.postValue(0f)
                 return@observeForever

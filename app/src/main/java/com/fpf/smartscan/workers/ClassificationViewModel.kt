@@ -11,7 +11,6 @@ class ClassificationViewModel(
      application: Application) : AndroidViewModel(application
 ) {
     private val workManager = WorkManager.getInstance(application)
-    private val workTag = "ClassificationBatchWorker"
     private val _organisationActive = MutableLiveData(false)
     val organisationActive: LiveData<Boolean> = _organisationActive
 
@@ -20,7 +19,7 @@ class ClassificationViewModel(
     }
 
     private fun observeWorkStatus() {
-        workManager.getWorkInfosByTagLiveData(workTag).observeForever { infos ->
+        workManager.getWorkInfosByTagLiveData(WorkerConstants.CLASSIFICATION_BATCH_WORKER).observeForever { infos ->
             if (infos.isNullOrEmpty()) {
                 _organisationActive.postValue(false)
                 return@observeForever
