@@ -1,20 +1,19 @@
 package com.fpf.smartscan.ui.screens.search
 
-import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.util.LruCache
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.runtime.Composable
@@ -30,48 +29,9 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.io.IOException
-
-/**
- * A simple LRU Cache to hold Bitmaps to avoid decoding them multiple times.
- */
-object BitmapCache {
-    private val cache: LruCache<Uri, Bitmap> = object : LruCache<Uri, Bitmap>(calculateMemoryCacheSize()) {
-        override fun sizeOf(key: Uri, value: Bitmap): Int {
-            return value.byteCount / 1024 // size in kilobytes
-        }
-    }
-
-    private fun calculateMemoryCacheSize(): Int {
-        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
-        return maxMemory / 8 // Use 1/8th of the available memory for cache
-    }
-
-    fun get(uri: Uri): Bitmap? = cache.get(uri)
-    fun put(uri: Uri, bitmap: Bitmap): Bitmap? = cache.put(uri, bitmap)
-}
-
-
-suspend fun loadBitmapFromUri(context: Context, uri: Uri, targetWidth: Int? = null, targetHeight: Int? = null
-): Bitmap? {
-    return withContext(Dispatchers.IO) {
-        BitmapCache.get(uri) ?: try {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                if (targetWidth != null && targetHeight != null) {
-                    decoder.setTargetSize(targetWidth, targetHeight)
-                }
-            }
-            BitmapCache.put(uri, bitmap)
-            bitmap
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
-        }
-    }
-}
+import androidx.compose.ui.window.Dialog
+import com.fpf.smartscan.lib.loadBitmapFromUri
+import com.fpf.smartscan.lib.openImageInGallery
 
 @Composable
 fun MediaStoreImage(
@@ -98,53 +58,46 @@ fun MediaStoreImage(
     }
 }
 
-fun openImageInGallery(context: Context, uri: Uri) {
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "image/*")
-        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-    }
-    context.startActivity(intent)
-}
-
 @Composable
 fun SearchResults(
     initialMainResult: Uri,
-    similarResults: List<Uri>
+    similarResults: List<Uri>,
+    onClear: () -> Unit
 ) {
     val context = LocalContext.current
     var mainResult by remember { mutableStateOf(initialMainResult) }
+    var isExpanded by remember { mutableStateOf(false) }  // State to track full-screen mode
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(
-                onClick = { openImageInGallery(context, mainResult) },
+            TextButton(
+                onClick = {onClear() },
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Image,
-                    contentDescription = "Open in Gallery",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Text("Clear Results")
             }
 
-            IconButton(
-                onClick = { mainResult = initialMainResult },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.RestartAlt,
-                    contentDescription = "Reset Image",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+            Row {
+                IconButton(onClick = { openImageInGallery(context, mainResult) }) {
+                    Icon(Icons.Filled.Image, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.primary)
+                }
+
+                IconButton(onClick = { mainResult = initialMainResult }) {
+                    Icon(Icons.Filled.RestartAlt, contentDescription = "Reset Image", tint = MaterialTheme.colorScheme.primary)
+                }
+
+                IconButton(onClick = { isExpanded = true }) {
+                    Icon(Icons.Filled.Fullscreen, contentDescription = "Expand Image", tint = MaterialTheme.colorScheme.primary)
+                }
             }
         }
+
 
         Card(
             modifier = Modifier
@@ -169,23 +122,60 @@ fun SearchResults(
         )
         Spacer(modifier = Modifier.height(8.dp))
 
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 16.dp)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(600.dp)  //  fixed height required to bounds the grid's maximum height.
         ) {
-            items(similarResults) { uri ->
-                Card(
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(3),
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(similarResults) { uri ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clickable { mainResult = uri },
+                        shape = MaterialTheme.shapes.small,
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    ) {
+                        MediaStoreImage(
+                            uri = uri,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+        if (isExpanded) {
+        Dialog(onDismissRequest = { isExpanded = false }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+            ) {
+                MediaStoreImage(
+                    uri = mainResult,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit
+                )
+                IconButton(
+                    onClick = { isExpanded = false },
                     modifier = Modifier
-                        .size(150.dp)
-                        .clickable { mainResult = uri },
-                    shape = MaterialTheme.shapes.small,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                        .align(Alignment.TopEnd)
+                        .padding(16.dp)
                 ) {
-                    MediaStoreImage(
-                        uri = uri,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "Minimize Image",
+                        tint = Color.White
                     )
                 }
             }

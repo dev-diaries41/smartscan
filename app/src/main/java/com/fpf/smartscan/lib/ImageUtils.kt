@@ -2,15 +2,18 @@ package com.fpf.smartscan.lib
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.graphics.*
 import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
+import android.util.LruCache
 import java.nio.FloatBuffer
 import androidx.core.graphics.scale
 import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.util.Locale
 
 const val DIM_BATCH_SIZE = 1
@@ -108,5 +111,62 @@ fun hasImageAccess(context: Context, uri: Uri): Boolean {
         true
     } catch (e: Exception) {
         false
+    }
+}
+
+fun openImageInGallery(context: Context, uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "image/*")
+        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+    }
+    context.startActivity(intent)
+}
+
+/**
+ * A simple LRU Cache to hold Bitmaps to avoid decoding them multiple times.
+ */
+object BitmapCache {
+    private val cache: LruCache<Uri, Bitmap> = object : LruCache<Uri, Bitmap>(calculateMemoryCacheSize()) {
+        override fun sizeOf(key: Uri, value: Bitmap): Int {
+            return value.byteCount / 1024 // in KB
+        }
+    }
+
+    private fun calculateMemoryCacheSize(): Int {
+        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt() // in KB
+        val calculatedCacheSize = maxMemory / 8
+        val maxAllowedCacheSize = 50 * 1024
+
+        return if (calculatedCacheSize > maxAllowedCacheSize) {
+            maxAllowedCacheSize
+        } else {
+            calculatedCacheSize
+        }
+    }
+
+    fun get(uri: Uri): Bitmap? = cache.get(uri)
+    fun put(uri: Uri, bitmap: Bitmap): Bitmap? = cache.put(uri, bitmap)
+}
+
+suspend fun loadBitmapFromUri(
+    context: Context,
+    uri: Uri,
+    targetWidth: Int? = null,
+    targetHeight: Int? = null
+): Bitmap? {
+    return withContext(Dispatchers.IO) {
+        BitmapCache.get(uri) ?: try {
+            val source = ImageDecoder.createSource(context.contentResolver, uri)
+            val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+                if (targetWidth != null && targetHeight != null) {
+                    decoder.setTargetSize(targetWidth, targetHeight)
+                }
+            }
+            BitmapCache.put(uri, bitmap)
+            bitmap
+        } catch (e: IOException) {
+            e.printStackTrace()
+            null
+        }
     }
 }

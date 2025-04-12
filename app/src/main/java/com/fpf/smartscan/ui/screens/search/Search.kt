@@ -9,6 +9,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ImageSearch
@@ -27,11 +29,14 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.permissions.RequestPermissions
@@ -44,20 +49,23 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
-    val context = LocalContext.current
+    val progress by searchViewModel.progress.observeAsState(0f)
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
+    val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
     val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val isFirstIndex by searchViewModel.isFirstIndex.observeAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
     val scrollState = rememberScrollState()
+    val dataReady = hasAnyIndexedImages == true && imageEmbeddings.isNotEmpty()
+    val isEmpty = hasAnyIndexedImages == false
+    val showLoader = isLoading || (!dataReady && !isEmpty)
 
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showFirstIndexDialog by remember { mutableStateOf(isFirstIndex) }
-    var hasScheduledIndexing by remember { mutableStateOf(false) }
 
     RequestPermissions { notificationGranted, storageGranted ->
         hasNotificationPermission = notificationGranted
@@ -66,9 +74,8 @@ fun SearchScreen(
 
     LaunchedEffect(isFirstIndex, hasStoragePermission) {
         showFirstIndexDialog = isFirstIndex && hasStoragePermission
-        if(hasStoragePermission && isFirstIndex && !hasScheduledIndexing){
-            scheduleImageIndexWorker(context, "1 Week")
-            hasScheduledIndexing = true
+        if(hasStoragePermission && isFirstIndex){
+            searchViewModel.scheduleIndexing()
         }
     }
 
@@ -92,6 +99,7 @@ fun SearchScreen(
             .fillMaxSize()
             .padding(16.dp)
     ) {
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,21 +107,46 @@ fun SearchScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-
+            if (progress > 0f) {
+                Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                    Text(
+                        text = "Indexing ${"%.0f".format(progress * 100)}%",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    LinearProgressIndicator(
+                        progress = { progress},
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        strokeCap = StrokeCap.Round,
+                    )
+                }
+            }
 
             OutlinedTextField(
-                enabled = !isLoading && hasStoragePermission,
+                enabled = dataReady && hasStoragePermission,
                 value = searchQuery,
                 onValueChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
                 },
-                label = { Text("Search images...", color = Color.White) },
-                textStyle = TextStyle(color = Color.White),
+                label = { Text("Search images...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
+                keyboardActions = KeyboardActions (
+                    onSearch = {
+                        if (dataReady && hasStoragePermission && searchQuery.isNotEmpty()) {
+                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
+                        }
+                    }
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Search
+                ),
                 trailingIcon = {
                     IconButton(
-                        enabled = !isLoading && hasStoragePermission && searchQuery.isNotEmpty(),
+                        enabled = dataReady && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
                             searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
                         }
@@ -126,10 +159,11 @@ fun SearchScreen(
                     }
                 }
             )
+
             Spacer(modifier = Modifier.height(24.dp))
 
             AnimatedVisibility(
-                visible = isLoading,
+                visible = showLoader,
                 enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
                 exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
             ) {
@@ -139,10 +173,13 @@ fun SearchScreen(
                 ) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(48.dp),
-                        color = Color.White,
                         strokeWidth = 4.dp
                     )
                 }
+            }
+            if(!dataReady && !isEmpty && hasStoragePermission){
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Loading indexed images...")
             }
 
             error?.let {
@@ -166,7 +203,8 @@ fun SearchScreen(
                 val similarResults = if (searchResults.size > 1) searchResults.drop(1).take(appSettings.numberSimilarResults) else emptyList()
                 SearchResults(
                     initialMainResult = mainResult,
-                    similarResults = similarResults
+                    similarResults = similarResults,
+                    onClear = { searchViewModel.clearResults() }
                 )
             }
         }

@@ -139,6 +139,8 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
     fun closeSession() {
         imageSession?.close()
         textSession?.close()
+        imageSession = null
+        textSession = null
     }
 
     private fun getVocab(resources: Resources): Map<String, Int> {

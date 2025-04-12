@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 
 class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
     val allImageEmbeddings: LiveData<List<ImageEmbedding>> = dao.getAllImageEmbeddings()
+    val hasAnyEmbedding: LiveData<Boolean> = dao.hasAnyImageEmbedding()
 
     suspend fun getAllEmbeddingsSync(): List<ImageEmbedding> {
         return dao.getAllEmbeddingsSync()

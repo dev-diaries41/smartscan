@@ -11,6 +11,12 @@ fun toDateString(timestamp: Long): String {
     return sdf.format(Date(timestamp))
 }
 
+fun getTimeInMinutesAndSeconds(milliseconds: Long): Pair<Long, Long> {
+    val seconds = milliseconds / 1000
+    val minutes = seconds / 60
+    return Pair(minutes, seconds % 60)
+}
+
 fun generatePlaceholderScanHistory(n: Int): List<ScanData> {
     val generatedItems = mutableListOf<ScanData>()
 
