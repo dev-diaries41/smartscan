@@ -1,4 +1,4 @@
-package com.fpf.smartscan.workers
+package com.fpf.smartscan.lib
 
 import android.app.Application
 import android.content.Context
@@ -8,8 +8,6 @@ import com.fpf.smartscan.data.jobResults.*
 import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
-import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
-import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
