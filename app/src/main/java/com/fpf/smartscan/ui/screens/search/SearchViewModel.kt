@@ -105,6 +105,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
+    fun clearResults(){
+        _searchResults.value = emptyList()
+    }
+
     fun searchImages(n: Int, embeddings: List<ImageEmbedding>) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
