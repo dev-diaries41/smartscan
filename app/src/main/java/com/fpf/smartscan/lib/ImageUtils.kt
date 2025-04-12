@@ -128,13 +128,20 @@ fun openImageInGallery(context: Context, uri: Uri) {
 object BitmapCache {
     private val cache: LruCache<Uri, Bitmap> = object : LruCache<Uri, Bitmap>(calculateMemoryCacheSize()) {
         override fun sizeOf(key: Uri, value: Bitmap): Int {
-            return value.byteCount / 1024 // size in kilobytes
+            return value.byteCount / 1024 // in KB
         }
     }
 
     private fun calculateMemoryCacheSize(): Int {
-        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt()
-        return maxMemory / 8 // Use 1/8th of the available memory for cache
+        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt() // in KB
+        val calculatedCacheSize = maxMemory / 8
+        val maxAllowedCacheSize = 50 * 1024
+
+        return if (calculatedCacheSize > maxAllowedCacheSize) {
+            maxAllowedCacheSize
+        } else {
+            calculatedCacheSize
+        }
     }
 
     fun get(uri: Uri): Bitmap? = cache.get(uri)
