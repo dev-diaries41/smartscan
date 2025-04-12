@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
 import kotlinx.coroutines.Dispatchers

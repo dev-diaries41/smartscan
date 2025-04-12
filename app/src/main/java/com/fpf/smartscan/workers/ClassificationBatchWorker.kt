@@ -6,6 +6,7 @@ import android.util.Log
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.processors.Organiser
 import kotlinx.coroutines.Dispatchers
