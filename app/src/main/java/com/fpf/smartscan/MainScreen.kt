@@ -27,6 +27,7 @@ import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryViewModel
 import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryScreen
 import com.fpf.smartscan.ui.screens.search.SearchScreen
+import com.fpf.smartscan.ui.screens.search.SearchViewModel
 import com.fpf.smartscan.ui.screens.settings.SettingsDetailScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
@@ -41,6 +42,7 @@ fun MainScreen() {
     val currentRoute = navBackStackEntry?.destination?.route
     val typeVal = navBackStackEntry?.arguments?.getString("type")
     val settingsViewModel: SettingsViewModel = viewModel()
+    val searchViewModel: SearchViewModel = viewModel()
     val classificationViewModel: ClassificationViewModel = viewModel()
     val isOrganiseActive by classificationViewModel.organisationActive.observeAsState(false)
 
@@ -119,7 +121,10 @@ fun MainScreen() {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("search") {
-                SearchScreen()
+                SearchScreen(
+                    searchViewModel=searchViewModel,
+                    settingsViewModel=settingsViewModel
+                )
             }
             composable("scanhistory") {
                 val scanHistoryViewModel: ScanHistoryViewModel = viewModel()
