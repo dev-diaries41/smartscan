@@ -19,3 +19,20 @@
 
 ## v1.0.4 – 03/04/2025
 - Chanied image index workers
+
+## v1.0.5 – 12/04/2025
+
+### Added
+- Progress bar for indexing
+- Indicator shown when background auto-organisation is running
+- Expandable main search result
+- Grid column layout for search results
+- Enter key to search
+
+### Changed
+- Dynamic concurrency for memory management
+- Batching implemented for organisation
+
+### Fixed
+- Text visibility in light mode on search screen
+- Fixed scan history not updating
