@@ -24,6 +24,7 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import com.fpf.smartscan.R
 import com.fpf.smartscan.lib.clip.ModelType
+import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.CoroutineScope
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -170,7 +171,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-        override fun onCleared() {
+    fun scheduleIndexing(){
+        scheduleImageIndexWorker(application, "1 Week")
+        _isFirstIndex.value = false
+    }
+
+
+    override fun onCleared() {
         super.onCleared()
         embeddingsHandler?.closeSession()
     }

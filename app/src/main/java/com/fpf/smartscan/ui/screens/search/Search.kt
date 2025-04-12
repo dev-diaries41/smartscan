@@ -50,7 +50,6 @@ fun SearchScreen(
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val progress by searchViewModel.progress.observeAsState(0f)
-    val context = LocalContext.current
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
@@ -64,11 +63,9 @@ fun SearchScreen(
     val isEmpty = hasAnyIndexedImages == false
     val showLoader = isLoading || (!dataReady && !isEmpty)
 
-
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showFirstIndexDialog by remember { mutableStateOf(isFirstIndex) }
-    var hasScheduledIndexing by remember { mutableStateOf(false) }
 
     RequestPermissions { notificationGranted, storageGranted ->
         hasNotificationPermission = notificationGranted
@@ -77,9 +74,8 @@ fun SearchScreen(
 
     LaunchedEffect(isFirstIndex, hasStoragePermission) {
         showFirstIndexDialog = isFirstIndex && hasStoragePermission
-        if(hasStoragePermission && isFirstIndex && !hasScheduledIndexing){
-            scheduleImageIndexWorker(context, "1 Week")
-            hasScheduledIndexing = true
+        if(hasStoragePermission && isFirstIndex){
+            searchViewModel.scheduleIndexing()
         }
     }
 
