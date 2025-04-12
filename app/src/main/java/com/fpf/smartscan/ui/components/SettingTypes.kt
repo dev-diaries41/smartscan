@@ -72,7 +72,7 @@ fun SettingsCard(
             }
         }
         if (description != null) {
-            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = textColor)
+            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = textColor, modifier = Modifier.fillMaxWidth(0.7f))
         }
     }
 }
