@@ -207,7 +207,8 @@ fun SearchScreen(
                 val similarResults = if (searchResults.size > 1) searchResults.drop(1).take(appSettings.numberSimilarResults) else emptyList()
                 SearchResults(
                     initialMainResult = mainResult,
-                    similarResults = similarResults
+                    similarResults = similarResults,
+                    onClear = { searchViewModel.clearResults() }
                 )
             }
         }

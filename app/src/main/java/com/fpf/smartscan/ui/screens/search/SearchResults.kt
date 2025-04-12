@@ -116,7 +116,8 @@ fun openImageInGallery(context: Context, uri: Uri) {
 @Composable
 fun SearchResults(
     initialMainResult: Uri,
-    similarResults: List<Uri>
+    similarResults: List<Uri>,
+    onClear: () -> Unit
 ) {
     val context = LocalContext.current
     var mainResult by remember { mutableStateOf(initialMainResult) }
@@ -124,44 +125,34 @@ fun SearchResults(
 
     Column(
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(
-                onClick = { openImageInGallery(context, mainResult) },
+            TextButton(
+                onClick = {onClear() },
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Image,
-                    contentDescription = "Open in Gallery",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Text("Clear Results")
             }
 
-            IconButton(
-                onClick = { mainResult = initialMainResult },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.RestartAlt,
-                    contentDescription = "Reset Image",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
+            Row {
+                IconButton(onClick = { openImageInGallery(context, mainResult) }) {
+                    Icon(Icons.Filled.Image, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.primary)
+                }
 
-            IconButton(
-                onClick = { isExpanded = true }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Fullscreen,
-                    contentDescription = "Expand Image",
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                IconButton(onClick = { mainResult = initialMainResult }) {
+                    Icon(Icons.Filled.RestartAlt, contentDescription = "Reset Image", tint = MaterialTheme.colorScheme.primary)
+                }
+
+                IconButton(onClick = { isExpanded = true }) {
+                    Icon(Icons.Filled.Fullscreen, contentDescription = "Expand Image", tint = MaterialTheme.colorScheme.primary)
+                }
             }
         }
+
 
         Card(
             modifier = Modifier
