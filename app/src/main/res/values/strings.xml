@@ -7,10 +7,17 @@
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
     <string name="title_scan_history">Scan History</string>
+    <string name="title_test_organisation">Test SmartScan</string>
 
+
+    <!-- Notifications -->
     <string name="worker_channel_id">Background Tasks</string>
     <string name="worker_channel_name">Background Tasks Notifications</string>
     <string name="worker_channel_description">Notifications for background tasks</string>
+
+    <string name="notif_title_smart_scan_complete">Smart Scan Complete</string>
+    <string name="notif_title_index_complete">Indexing Complete</string>
+
 
     <!-- Search screen -->
     <string name="first_index">
@@ -34,7 +41,6 @@
     <!-- Test screen -->
     <string name="test_no_prototype_embeddings">Missing destination folders or their embeddings</string>
 
-
     <!-- Scan history screen -->
     <string name="no_scan_history">No Scan History</string>
     <string name="no_scan_history_description">"Enable scan in settings to allow smart folder organisation"</string>
@@ -55,7 +61,6 @@
     <string name="setting_destination_folders_description">Select destination folders for new images. Each folder must contain at least 10 images to ensure accurate matching.</string>
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
-    <string name="setting_test_model">Test SmartScan</string>
     <string name="setting_test_model_description">Upload an image to see the classification result</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
     <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>

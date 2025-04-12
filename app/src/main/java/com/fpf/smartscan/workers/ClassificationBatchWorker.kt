@@ -66,10 +66,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         val endIndex = kotlin.math.min(startIndex + batchSize, totalImages)
         if (startIndex >= endIndex) {
             Log.i(TAG, "No images to process in this batch ($batchIndex).")
-            if (isLastBatch) {
-                jobManager.clearJobs(JOB_NAME)
-                jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
-            }
             return@withContext Result.success()
         }
 
@@ -112,7 +108,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         } finally {
             organiser.close()
             if (isLastBatch) {
-                jobManager.notifyAllJobsComplete(applicationContext, JOB_NAME)
+                jobManager.onAllClassificationJobsComplete(applicationContext, JOB_NAME)
                 jobManager.clearJobs(JOB_NAME)
                 deleteLocalFile(applicationContext, imageUriFilePath)
             }
