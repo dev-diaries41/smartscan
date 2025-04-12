@@ -159,14 +159,19 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun updateWorker(delayInMinutes: Long? = null) {
+    fun updateWorker() {
         if (_appSettings.value.targetDirectories.isNotEmpty() &&
             _appSettings.value.enableScan &&
             _appSettings.value.frequency.isNotEmpty() &&
             _appSettings.value.destinationDirectories.isNotEmpty()) {
 
             val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
-            scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
+            viewModelScope.launch {
+                val (_, count) = isBatchWorkScheduled(IMAGE_INDEXER_BATCH_WORKER)
+                // This delay prevents indexing and classification workers running at the same time to limit resource usage.
+                val delayInMinutes = if (count > 0) 5L * count else null
+                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
+            }
         }
     }
 
@@ -193,18 +198,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
 
             if (destinationChanged || targetChanged) {
-                val workerTag = IMAGE_INDEXER_BATCH_WORKER
-                val workManager = WorkManager.getInstance(getApplication())
-                val workInfoList = workManager.getWorkInfosByTag(workerTag).get()
-                val runningOrEnqueuedWorkersCount = workInfoList.count {
-                    it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED
-                }
-                // This delay prevents indexing and classification workers running at the same time to limit resource usage.
-                val delayInMinutes = if (runningOrEnqueuedWorkersCount > 0) 5L * runningOrEnqueuedWorkersCount else null
-
-                updateWorker(delayInMinutes)
+                updateWorker()
             }
-
         }
     }
 
@@ -257,6 +252,16 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             val jsonSettings = Json.encodeToString(_appSettings.value)
             storage.setItem("app_settings", jsonSettings)
         }
+    }
+
+    private suspend fun isBatchWorkScheduled(workerTag: String): Pair<Boolean, Int> = withContext(Dispatchers.IO) {
+        val workManager = WorkManager.getInstance(getApplication())
+        val workInfoList = workManager.getWorkInfosByTag(workerTag).get()
+        val count = workInfoList.count {
+            it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED
+        }
+        val isScheduled = count > 0
+        Pair(isScheduled, count)
     }
 
     private suspend fun isWorkScheduled(context: Context, workName: String): Boolean {
