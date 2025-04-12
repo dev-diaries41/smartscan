@@ -5,6 +5,7 @@ import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import androidx.work.*
+import com.fpf.smartscan.lib.JobManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
@@ -15,6 +16,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
     companion object {
         private const val TAG = "ImageIndexWorker"
         private const val BATCH_SIZE = 500
+        private const val JOB_NAME = "index"
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -24,6 +26,10 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                 Log.i(TAG, "No images found to index.")
                 return@withContext Result.success()
             }
+
+            // This prevents stale data between chained workers
+            val jobManager = JobManager.getInstance(applicationContext)
+            jobManager.clearJobs(JOB_NAME)
 
             // Calculate total number of batches.
             val totalBatches = (allImageIds.size + BATCH_SIZE - 1) / BATCH_SIZE
