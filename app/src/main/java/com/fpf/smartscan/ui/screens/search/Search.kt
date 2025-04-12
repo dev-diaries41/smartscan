@@ -54,11 +54,16 @@ fun SearchScreen(
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
+    val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
     val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val isFirstIndex by searchViewModel.isFirstIndex.observeAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
     val scrollState = rememberScrollState()
+    val dataReady = hasAnyIndexedImages == true && imageEmbeddings.isNotEmpty()
+    val isEmpty = hasAnyIndexedImages == false
+    val showLoader = isLoading || (!dataReady && !isEmpty)
+
 
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
@@ -125,7 +130,7 @@ fun SearchScreen(
             }
 
             OutlinedTextField(
-                enabled = !isLoading && hasStoragePermission,
+                enabled = dataReady && hasStoragePermission,
                 value = searchQuery,
                 onValueChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
@@ -135,17 +140,17 @@ fun SearchScreen(
                 shape = RoundedCornerShape(8.dp),
                 keyboardActions = KeyboardActions (
                     onSearch = {
-                        if (!isLoading && hasStoragePermission && searchQuery.isNotEmpty()) {
+                        if (dataReady && hasStoragePermission && searchQuery.isNotEmpty()) {
                             searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
                         }
                     }
                 ),
                 keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Search // This sets the Enter key to trigger the search action
+                    imeAction = ImeAction.Search
                 ),
                 trailingIcon = {
                     IconButton(
-                        enabled = !isLoading && hasStoragePermission && searchQuery.isNotEmpty(),
+                        enabled = dataReady && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
                             searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
                         }
@@ -162,7 +167,7 @@ fun SearchScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             AnimatedVisibility(
-                visible = isLoading,
+                visible = showLoader,
                 enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
                 exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
             ) {
@@ -175,6 +180,10 @@ fun SearchScreen(
                         strokeWidth = 4.dp
                     )
                 }
+            }
+            if(!dataReady && !isEmpty){
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Loading indexed images...")
             }
 
             error?.let {
