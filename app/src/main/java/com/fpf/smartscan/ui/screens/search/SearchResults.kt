@@ -1,11 +1,7 @@
 package com.fpf.smartscan.ui.screens.search
 
-import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.util.LruCache
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -35,6 +31,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fpf.smartscan.lib.loadBitmapFromUri
+import com.fpf.smartscan.lib.openImageInGallery
 
 @Composable
 fun MediaStoreImage(
@@ -59,14 +56,6 @@ fun MediaStoreImage(
     } else {
         Box(modifier = modifier.background(Color.Gray))
     }
-}
-
-fun openImageInGallery(context: Context, uri: Uri) {
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "image/*")
-        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-    }
-    context.startActivity(intent)
 }
 
 @Composable

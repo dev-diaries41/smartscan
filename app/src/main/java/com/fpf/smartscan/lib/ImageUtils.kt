@@ -2,6 +2,7 @@ package com.fpf.smartscan.lib
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.graphics.*
 import android.net.Uri
 import android.provider.MediaStore
@@ -111,6 +112,14 @@ fun hasImageAccess(context: Context, uri: Uri): Boolean {
     } catch (e: Exception) {
         false
     }
+}
+
+fun openImageInGallery(context: Context, uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "image/*")
+        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+    }
+    context.startActivity(intent)
 }
 
 /**
