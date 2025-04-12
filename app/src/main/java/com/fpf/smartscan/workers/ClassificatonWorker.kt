@@ -10,6 +10,7 @@ import org.json.JSONArray
 import java.io.File
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
+import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.getFilesFromDir
 
 
@@ -68,6 +69,11 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
             val workManager = WorkManager.getInstance(applicationContext)
             var continuation: WorkContinuation? = null
+
+            // This prevents stale data between chained workers
+            val jobManager = JobManager.getInstance(applicationContext)
+            jobManager.clearJobs(WorkerConstants.JOB_NAME_CLASSIFICATION)
+
 
             // Chain ClassificationBatchWorker requests sequentially.
             for (batchIndex in 0 until totalBatches) {

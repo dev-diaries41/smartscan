@@ -16,7 +16,6 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
     companion object {
         private const val TAG = WorkerConstants.IMAGE_INDEXER_WORKER
         private const val BATCH_SIZE = 500
-        private const val JOB_NAME = WorkerConstants.JOB_NAME_INDEX
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -29,7 +28,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
 
             // This prevents stale data between chained workers
             val jobManager = JobManager.getInstance(applicationContext)
-            jobManager.clearJobs(JOB_NAME)
+            jobManager.clearJobs(WorkerConstants.JOB_NAME_INDEX)
 
             // Calculate total number of batches.
             val totalBatches = (allImageIds.size + BATCH_SIZE - 1) / BATCH_SIZE
