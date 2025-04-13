@@ -33,16 +33,10 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        val imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
         val startResult = jobManager.onStart(JOB_NAME)
         startTime = startResult.startTime
         previousProcessingCount = startResult.initialProcessedCount
-
-        if (batchIds.isEmpty()) {
-            Log.i(TAG, "No image IDs provided for this batch.")
-            return@withContext Result.success()
-        }
-
-        val imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
 
         try {
             Log.i(TAG, "Processing batch of ${batchIds.size} images.")
