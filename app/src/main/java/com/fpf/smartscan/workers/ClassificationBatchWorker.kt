@@ -105,7 +105,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 processedCount = 0
             )
 
-            return@withContext Result.failure()
+            return@withContext Result.retry()
         } finally {
             organiser.close()
             if (isLastBatch) {
