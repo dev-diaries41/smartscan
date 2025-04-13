@@ -43,6 +43,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     private val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
     private val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
     private val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: ""
+    private val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val startResult = jobManager.onStart(JOB_NAME)
@@ -111,6 +112,17 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 finishTime = failTime,
                 processedCount = 0
             )
+            val results = jobManager.getJobResults(JOB_NAME)
+            if(results.errorCount >= 3){
+                // Temporary workaround to avoid modifying db schema:
+                // If totalProcessedCount > 0 it indicates some batches were successful.
+                // ERROR_RESULT (-1) is used to indicate a failure with no reliable result.
+                val count = if(results.totalProcessedCount > 0) results.totalProcessedCount else ScanData.ERROR_RESULT
+                repository.insert(ScanData(result=count, date = System.currentTimeMillis()))
+                // Do not continually retry unlike indexing, because this does not have a super critical impact on usability
+                showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_issue), applicationContext.getString(R.string.notif_title_smart_scan_issue_description), 1003)
+                return@withContext Result.failure()
+            }
 
             return@withContext Result.retry()
         } finally {
@@ -128,7 +140,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         if (results.totalProcessedCount == 0) return
 
         try {
-            val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
             repository.insert(ScanData(result=results.totalProcessedCount, date = System.currentTimeMillis()))
 
             val totalProcessingTime = results.finishTime - results.startTime
