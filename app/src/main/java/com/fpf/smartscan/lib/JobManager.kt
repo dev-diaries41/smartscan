@@ -1,20 +1,19 @@
 package com.fpf.smartscan.lib
 
-import android.app.Application
 import android.content.Context
 import android.util.Log
-import com.fpf.smartscan.R
 import com.fpf.smartscan.data.jobResults.*
-import com.fpf.smartscan.data.scans.AppDatabase
-import com.fpf.smartscan.data.scans.ScanData
-import com.fpf.smartscan.data.scans.ScanDataRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
 data class StartResult(
     val startTime: Long,
     val initialProcessedCount: Int
+)
+
+data class JobResults(
+    val totalProcessedCount: Int,
+    val startTime: Long,
+    val finishTime: Long,
+    val errorCount: Int
 )
 
 class JobManager private constructor(context: Context) {
@@ -38,7 +37,7 @@ class JobManager private constructor(context: Context) {
         return StartResult(startTime, previousProcessedCount)
     }
 
-    fun onComplete(jobName: String, startTime: Long, finishTime: Long, processedCount: Int) {
+    suspend fun onComplete(jobName: String, startTime: Long, finishTime: Long, processedCount: Int) {
         val result = JobResult(
             jobName = jobName,
             startTime = startTime,
@@ -49,7 +48,7 @@ class JobManager private constructor(context: Context) {
         insert(result)
     }
 
-    fun onError(jobName: String, startTime: Long, finishTime: Long, processedCount: Int) {
+    suspend fun onError(jobName: String, startTime: Long, finishTime: Long, processedCount: Int) {
         val result = JobResult(
             jobName = jobName,
             startTime = startTime,
@@ -60,64 +59,24 @@ class JobManager private constructor(context: Context) {
         insert(result)
     }
 
-    fun clearJobs(jobName: String) {
-        CoroutineScope(Dispatchers.IO).launch {
+    suspend fun clearJobs(jobName: String) {
             repository.clearResultsByJobName(jobName)
             Log.i(TAG, "Jobs successfully cleared for: $jobName")
-        }
     }
 
-    suspend fun onAllIndexJobsComplete(context: Context, jobName: String) {
-        val (totalProcessedCount, timePair) = getProcessingInfo(jobName)
-        if (totalProcessedCount == 0) return
-
-        val totalProcessingTime = timePair.second - timePair.first
-        val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
-        val notificationText = "Total images indexed: $totalProcessedCount, Time: ${minutes}m ${seconds}s"
-
-        showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1002)
-    }
-
-    suspend fun onAllClassificationJobsComplete(context: Context, jobName: String) {
-        val (totalProcessedCount, timePair) = getProcessingInfo(jobName)
-        if (totalProcessedCount == 0) return
-
-        val totalProcessingTime = timePair.second - timePair.first
-        val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
-        val notificationText = "Total images moved: $totalProcessedCount, Time: ${minutes}m ${seconds}s"
-
-        insertScanData(context, totalProcessedCount)
-        showNotification(context, context.getString(R.string.notif_title_smart_scan_complete), notificationText, 1003)
-    }
-
-    private suspend fun insertScanData(context: Context, processedImages: Int){
-        // Load in function since only needed on time and only for classification
-        val repository = ScanDataRepository(AppDatabase.getDatabase(context.applicationContext as Application).scanDataDao())
-        try {
-            repository.insert(
-                ScanData(result=processedImages, date = System.currentTimeMillis())
-            )
-        }
-        catch (e: Exception){
-            Log.e(TAG, "Error inserting scan data: ${e.message}", e)
-        }
-    }
-
-    private suspend fun getProcessingInfo(jobName: String): Pair<Int, Pair<Long, Long>> {
+    suspend fun getJobResults(jobName: String): JobResults {
         val totalProcessedCount = repository.getTotalProcessedCount(jobName)
         val results = repository.getAllResultsByJobName(jobName)
 
-        if (results.isEmpty()) return Pair(0, Pair(0L, 0L))
+        if (results.isEmpty()) return JobResults(0, 0L, 0L, 0)
 
         val startTime = results.minOf { it.startTime }
         val finishTime = results.maxOf { it.finishTime }
-
-        return Pair(totalProcessedCount, Pair(startTime, finishTime))
+        val errorCount = results.count { !it.isSuccess }
+        return JobResults(totalProcessedCount, startTime, finishTime, errorCount)
     }
 
-    private fun insert(jobResult: JobResult) {
-        CoroutineScope(Dispatchers.IO).launch {
-            repository.insertJobResult(jobResult)
-        }
+    private suspend fun insert(jobResult: JobResult) {
+        repository.insertJobResult(jobResult)
     }
 }

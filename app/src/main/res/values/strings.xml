@@ -15,8 +15,12 @@
     <string name="worker_channel_name">Background Tasks Notifications</string>
     <string name="worker_channel_description">Notifications for background tasks</string>
 
-    <string name="notif_title_smart_scan_complete">Smart Scan Complete</string>
-    <string name="notif_title_index_complete">Indexing Complete</string>
+    <string name="notif_title_smart_scan_complete">Smart scan complete</string>
+    <string name="notif_title_index_complete">Indexing complete</string>
+    <string name="notif_title_index_issue">Indexing issue detected</string>
+    <string name="notif_title_index_issue_description">It will automatically try to resume. If the problem does not resolve within a few minutes, you can restart indexing manually from Settings.</string>
+    <string name="notif_title_smart_scan_issue">Smart scan issue detected</string>
+    <string name="notif_title_smart_scan_issue_description">You can manually restart it by toggling `Enable scan` in settings or leave it to run at the next scheduled time.</string>
 
 
     <!-- Search screen -->

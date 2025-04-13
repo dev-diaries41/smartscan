@@ -21,12 +21,15 @@ import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
+import androidx.core.content.edit
+import com.fpf.smartscan.workers.WorkerConstants
 
 class Organiser(private val context: Context) {
     var embeddingHandler: Embeddings? = null
 
     companion object {
-        private const val TAG = "ClassificationProcessor"
+        private const val TAG = "Organiser"
+        private const val PREF_KEY_LAST_USED_CLASSIFICATION_DIRS = "last_used_destinations"
     }
 
     private val prototypeRepository: PrototypeEmbeddingRepository =
@@ -52,32 +55,38 @@ class Organiser(private val context: Context) {
             Log.e(TAG, "No prototype embeddings available.")
             return@withContext 0
         }
+        val lastUsedDestinationDirectories = prototypeList.map { it.id }
 
         var totalProcessed = 0
 
-        for (chunk in imageUris.chunked(10)) {
-            val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
-            Log.i(
-                TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${
-                    memoryUtils.getFreeMemory() / (1024 * 1024)
-                } MB"
-            )
-            val semaphore = Semaphore(currentConcurrency)
+        try {
+            for (chunk in imageUris.chunked(10)) {
+                val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
+                Log.i(
+                    TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${
+                        memoryUtils.getFreeMemory() / (1024 * 1024)
+                    } MB"
+                )
+                val semaphore = Semaphore(currentConcurrency)
 
-            val deferredResults = chunk.map { imageUri ->
-                async {
-                    semaphore.withPermit {
-                        processImage(imageUri, prototypeList)
+                val deferredResults = chunk.map { imageUri ->
+                    async {
+                        semaphore.withPermit {
+                            processImage(imageUri, prototypeList)
+                        }
                     }
                 }
+
+                // Wait for all processing in this chunk to complete
+                val results = deferredResults.awaitAll()
+                totalProcessed += results.count { it }
             }
 
-            // Wait for all processing in this chunk to complete
-            val results = deferredResults.awaitAll()
-            totalProcessed += results.count { it }
+            return@withContext totalProcessed
         }
-
-        return@withContext totalProcessed
+        finally {
+            saveLastUsedDestinations(context, lastUsedDestinationDirectories)
+        }
     }
 
     private suspend fun processImage(
@@ -107,6 +116,14 @@ class Organiser(private val context: Context) {
             false
         }
     }
+
+    private fun saveLastUsedDestinations(context: Context, files: List<String>) {
+        val prefs = context.getSharedPreferences(WorkerConstants.JOB_NAME_CLASSIFICATION, Context.MODE_PRIVATE)
+        prefs.edit() {
+            putStringSet(PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, files.toSet())
+        }
+    }
+
 
     fun close() {
         embeddingHandler?.closeSession()

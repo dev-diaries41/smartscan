@@ -177,8 +177,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             val imageRepository = ImageEmbeddingRepository(
                 ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao()
             )
-            imageRepository.deleteAllEmbeddings()
             cancelImageIndexWorker()
+            imageRepository.deleteAllEmbeddings()
             scheduleImageIndexWorker(getApplication(), "1 Week")
         }
     }

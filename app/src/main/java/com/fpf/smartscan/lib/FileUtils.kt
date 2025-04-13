@@ -3,7 +3,10 @@ package com.fpf.smartscan.lib
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import org.json.JSONArray
+import org.json.JSONException
 import java.io.File
 
 fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Boolean {
@@ -73,4 +76,29 @@ fun deleteLocalFile(context: Context, fileName: String): Boolean {
     } else {
         false
     }
+}
+
+fun readUriListFromFile(path: String): List<Uri> {
+    val file = File(path)
+    if (!file.exists()) {
+        Log.e("UriReader", "File not found: $path")
+        return emptyList()
+    }
+
+    val content = file.readText()
+    val jsonArray = try {
+        JSONArray(content)
+    } catch (e: JSONException) {
+        Log.e("UriReader", "Invalid JSON in file: $path", e)
+        return emptyList()
+    }
+
+    val uriList = mutableListOf<Uri>()
+    for (i in 0 until jsonArray.length()) {
+        jsonArray.optString(i, null)?.let {
+            uriList.add(it.toUri())
+        }
+    }
+
+    return uriList
 }
