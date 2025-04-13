@@ -1,14 +1,21 @@
 package com.fpf.smartscan.workers
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.fpf.smartscan.R
+import com.fpf.smartscan.data.scans.AppDatabase
+import com.fpf.smartscan.data.scans.ScanData
+import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
+import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.processors.Organiser
+import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -109,10 +116,29 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         } finally {
             organiser.close()
             if (isLastBatch) {
-                jobManager.onAllClassificationJobsComplete(applicationContext, JOB_NAME)
-                jobManager.clearJobs(JOB_NAME)
+                onAllJobsComplete()
                 deleteLocalFile(applicationContext, imageUriFilePath)
+                jobManager.clearJobs(JOB_NAME)
             }
+        }
+    }
+
+    private suspend fun onAllJobsComplete(){
+        val (totalProcessedCount, timePair) = jobManager.getJobResults(JOB_NAME)
+        if (totalProcessedCount == 0) return
+
+        try {
+            val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
+            repository.insert(ScanData(result=totalProcessedCount, date = System.currentTimeMillis()))
+
+            val totalProcessingTime = timePair.second - timePair.first
+            val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
+            val notificationText = "Total images moved: $totalProcessedCount, Time: ${minutes}m ${seconds}s"
+
+            showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_complete), notificationText, 1003)
+        }
+        catch (e: Exception){
+            Log.e(TAG, "Error finalising $JOB_NAME jobs: ${e.message}", e)
         }
     }
 }
