@@ -9,4 +9,8 @@ data class ScanData(
     val id: Int = 0,  // Auto-generated primary key
     val date: Long,
     val result: Int,
-)
+){
+    companion object {
+        const val ERROR_RESULT = -1
+    }
+}
