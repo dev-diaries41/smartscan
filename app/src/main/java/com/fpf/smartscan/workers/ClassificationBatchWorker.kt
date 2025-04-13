@@ -15,6 +15,7 @@ import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.processors.Organiser
+import com.fpf.smartscan.lib.readUriListFromFile
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -46,52 +47,26 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     private val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        val organiser = Organiser(applicationContext)
         val startResult = jobManager.onStart(JOB_NAME)
         startTime = startResult.startTime
         previousProcessingCount = startResult.initialProcessedCount
 
-        if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
-            Log.e(TAG, "Invalid batch parameters provided")
-            return@withContext Result.failure()
-        }
-        if (imageUriFilePath.isEmpty()) {
-            Log.e(TAG, "IMAGE_URI_FILE not provided")
-            return@withContext Result.failure()
-        }
-
-        val file = File(imageUriFilePath)
-        if (!file.exists()) {
-            Log.e(TAG, "Persisted image URI file not found: $imageUriFilePath")
-            return@withContext Result.failure()
-        }
-
-        val jsonArray = JSONArray(file.readText())
-        if (jsonArray.length() != totalImages) {
-            Log.w(TAG, "Mismatch between expected totalImages ($totalImages) and file contents (${jsonArray.length()})")
-        }
-
-        // Calculate start and end indices for the batch.
-        val startIndex = batchIndex * batchSize
-        val endIndex = kotlin.math.min(startIndex + batchSize, totalImages)
-        if (startIndex >= endIndex) {
-            Log.i(TAG, "No images to process in this batch ($batchIndex).")
-            return@withContext Result.success()
-        }
-
-        // Build the list of image URIs for this batch.
-        val batchUriList = mutableListOf<Uri>()
-        for (i in startIndex until endIndex) {
-            jsonArray.optString(i, null)?.let { uriString ->
-                batchUriList.add(uriString.toUri())
-            }
-        }
-
-        val organiser = Organiser(applicationContext)
-
         try {
+            if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
+                throw IllegalArgumentException("Invalid batch parameters: BATCH_INDEX=$batchIndex, BATCH_SIZE=$batchSize, TOTAL_IMAGES=$totalImages")
+            }
+            if (imageUriFilePath.isEmpty()) {
+                throw IllegalArgumentException("IMAGE_URI_FILE not provided")
+            }
+
+            val uriList = readUriListFromFile(imageUriFilePath)
+            val startIndex = batchIndex * batchSize
+            val endIndex = kotlin.math.min(startIndex + batchSize, uriList.size)
+            val batchUriList = uriList.subList(startIndex, endIndex)
+
             Log.i(TAG, "Processing classification batch $batchIndex with ${batchUriList.size} images.")
             val processedCount = organiser.processBatch(batchUriList)
-
             val finishTime = System.currentTimeMillis()
 
             jobManager.onComplete(
@@ -129,7 +104,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             organiser.close()
             if (isLastBatch) {
                 onAllJobsComplete()
-                deleteLocalFile(applicationContext, imageUriFilePath)
                 jobManager.clearJobs(JOB_NAME)
             }
         }

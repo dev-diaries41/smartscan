@@ -1,5 +1,6 @@
 package com.fpf.smartscan.workers
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.util.Log
@@ -10,20 +11,13 @@ import org.json.JSONArray
 import java.io.File
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
+import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.JobManager
+import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getFilesFromDir
-
-
-fun persistImageUriList(context: Context, fileUris: List<Uri>): String {
-    val jsonArray = JSONArray()
-    fileUris.forEach { uri ->
-        jsonArray.put(uri.toString())
-    }
-    val fileName = "classification_image_uris_${System.currentTimeMillis()}.json"
-    val file = File(context.filesDir, fileName)
-    file.writeText(jsonArray.toString())
-    return file.absolutePath
-}
+import com.fpf.smartscan.lib.readUriListFromFile
 
 /**
  * Orchestrator worker that scans directory URIs for image files,
@@ -43,7 +37,15 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     companion object {
         private const val TAG = WorkerConstants.CLASSIFICATION_WORKER
         private const val BATCH_SIZE = 500
+        private const val PREF_KEY_LAST_USED_CLASSIFICATION_DIRS = "last_used_destinations"
+        private const val IMAGE_URI_FILE_PREFIX = "classification_image_uris"
     }
+
+    private val prototypeRepository: PrototypeEmbeddingRepository =
+        PrototypeEmbeddingRepository(
+            PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
+                .prototypeEmbeddingDao()
+        )
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
@@ -51,20 +53,24 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 Log.e(TAG, "No URIs provided to classify.")
                 return@withContext Result.failure()
             }
-            val directoryUris = uriStrings.map { it.toUri() }
 
+            val targetDirectories = uriStrings.map { it.toUri() }
             val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
-            val fileUriList = getFilesFromDir(applicationContext, directoryUris, imageExtensions)
-            if (fileUriList.isEmpty()) {
+            val fileUriList = getFilesFromDir(applicationContext, targetDirectories, imageExtensions)
+            val prototypeList: List<PrototypeEmbedding> = prototypeRepository.getAllEmbeddingsSync()
+            val currentDestinationDirectories = prototypeList.map { it.id }
+            val  filteredFileUriList = getFilteredUriList(applicationContext, fileUriList, currentDestinationDirectories)
+            if (filteredFileUriList.isEmpty()) {
                 Log.i(TAG, "No image files found for classification.")
                 return@withContext Result.success()
             }
-            Log.i(TAG, "Found ${fileUriList.size} image files for classification.")
 
-            val imageUriFilePath = persistImageUriList(applicationContext, fileUriList)
+            Log.i(TAG, "Found ${filteredFileUriList.size} image files for classification.")
 
-            val totalImages = fileUriList.size
+            val imageUriFilePath = persistImageUriList(applicationContext, filteredFileUriList)
+            val totalImages = filteredFileUriList.size
             val totalBatches = (totalImages + BATCH_SIZE - 1) / BATCH_SIZE
+
             Log.i(TAG, "Will schedule $totalBatches batch workers (batch size: $BATCH_SIZE).")
 
             val workManager = WorkManager.getInstance(applicationContext)
@@ -107,7 +113,62 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             return@withContext Result.failure()
         }
     }
+
+    private fun persistImageUriList(context: Context, fileUris: List<Uri>): String {
+        val jsonArray = JSONArray()
+        fileUris.forEach { uri ->
+            jsonArray.put(uri.toString())
+        }
+        val fileName = "${IMAGE_URI_FILE_PREFIX}_${System.currentTimeMillis()}.json"
+        val file = File(context.filesDir, fileName)
+        file.writeText(jsonArray.toString())
+        return file.absolutePath
+    }
+
+    private fun retrieveWorkFiles(context: Context): List<String> {
+        val filesDir = context.filesDir
+        val targetFiles = filesDir.listFiles { file ->
+            file.isFile && file.name.contains(IMAGE_URI_FILE_PREFIX)
+        }?.toList() ?: emptyList()
+
+        return targetFiles
+            .sortedByDescending { it.lastModified() }
+            .map { it.absolutePath }
+    }
+
+
+    private fun getLastUsedDestinations(context: Context): List<String> {
+        val prefs = context.getSharedPreferences(
+            WorkerConstants.JOB_NAME_CLASSIFICATION,
+            Context.MODE_PRIVATE
+        )
+        val uriSet =
+            prefs.getStringSet(PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, emptySet()) ?: emptySet()
+        return uriSet.toList()
+    }
+
+    // must be called before new file path generated
+    private fun getFilteredUriList(context: Context, currentFileUriList: List<Uri>, currentDestinationDirectories: List<String>): List<Uri> {
+        return try {
+            val workFiles = retrieveWorkFiles(context)
+            if (workFiles.isNotEmpty()) {
+                val previousWorkPath = workFiles[0]
+                val previousUriList = readUriListFromFile(previousWorkPath)
+                val lastUsedDestinationsDirectories = getLastUsedDestinations(context)
+                if (lastUsedDestinationsDirectories.isEmpty()) return currentFileUriList
+                val isSameDestinations = currentDestinationDirectories.toSet() == lastUsedDestinationsDirectories.toSet()
+                workFiles.map{deleteLocalFile(context, it)} // cleanup old files
+                if (isSameDestinations) {
+                    return currentFileUriList.filterNot { it in previousUriList.toSet() }
+                }
+            }
+            currentFileUriList
+        } catch (e: Exception) {
+            currentFileUriList
+        }
+    }
 }
+
 
 fun scheduleClassificationWorker(
     context: Context,
