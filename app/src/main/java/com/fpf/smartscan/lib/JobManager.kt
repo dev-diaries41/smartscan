@@ -9,6 +9,13 @@ data class StartResult(
     val initialProcessedCount: Int
 )
 
+data class JobResults(
+    val totalProcessedCount: Int,
+    val startTime: Long,
+    val finishTime: Long,
+    val errorCount: Int
+)
+
 class JobManager private constructor(context: Context) {
 
     private val db = JobsDatabase.getInstance(context.applicationContext)
@@ -57,15 +64,16 @@ class JobManager private constructor(context: Context) {
             Log.i(TAG, "Jobs successfully cleared for: $jobName")
     }
 
-    suspend fun getJobResults(jobName: String): Pair<Int, Pair<Long, Long>> {
+    suspend fun getJobResults(jobName: String): JobResults {
         val totalProcessedCount = repository.getTotalProcessedCount(jobName)
         val results = repository.getAllResultsByJobName(jobName)
 
-        if (results.isEmpty()) return Pair(0, Pair(0L, 0L))
+        if (results.isEmpty()) return JobResults(0, 0L, 0L, 0)
 
         val startTime = results.minOf { it.startTime }
         val finishTime = results.maxOf { it.finishTime }
-        return Pair(totalProcessedCount, Pair(startTime, finishTime))
+        val errorCount = results.count { !it.isSuccess }
+        return JobResults(totalProcessedCount, startTime, finishTime, errorCount)
     }
 
     private suspend fun insert(jobResult: JobResult) {
