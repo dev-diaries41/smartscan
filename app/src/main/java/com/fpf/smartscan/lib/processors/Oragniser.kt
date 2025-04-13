@@ -26,7 +26,7 @@ class Organiser(private val context: Context) {
     var embeddingHandler: Embeddings? = null
 
     companion object {
-        private const val TAG = "ClassificationProcessor"
+        private const val TAG = "Organiser"
     }
 
     private val prototypeRepository: PrototypeEmbeddingRepository =
