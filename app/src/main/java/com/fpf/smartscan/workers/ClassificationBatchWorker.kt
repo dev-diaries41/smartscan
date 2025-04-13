@@ -124,16 +124,16 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     }
 
     private suspend fun onAllJobsComplete(){
-        val (totalProcessedCount, timePair) = jobManager.getJobResults(JOB_NAME)
-        if (totalProcessedCount == 0) return
+        val results = jobManager.getJobResults(JOB_NAME)
+        if (results.totalProcessedCount == 0) return
 
         try {
             val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
-            repository.insert(ScanData(result=totalProcessedCount, date = System.currentTimeMillis()))
+            repository.insert(ScanData(result=results.totalProcessedCount, date = System.currentTimeMillis()))
 
-            val totalProcessingTime = timePair.second - timePair.first
+            val totalProcessingTime = results.finishTime - results.startTime
             val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
-            val notificationText = "Total images moved: $totalProcessedCount, Time: ${minutes}m ${seconds}s"
+            val notificationText = "Total images moved: ${results.totalProcessedCount}, Time: ${minutes}m ${seconds}s"
 
             showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_complete), notificationText, 1003)
         }

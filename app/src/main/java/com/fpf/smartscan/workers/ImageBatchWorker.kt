@@ -93,13 +93,13 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     private suspend fun onAllJobsComplete(){
-        val (totalProcessedCount, timePair) = jobManager.getJobResults(JOB_NAME)
-        if (totalProcessedCount == 0) return
+        val results = jobManager.getJobResults(JOB_NAME)
+        if (results.totalProcessedCount == 0) return
 
         try {
-            val totalProcessingTime = timePair.second - timePair.first
+            val totalProcessingTime = results.finishTime - results.startTime
             val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
-            val notificationText = "Total images indexed: $totalProcessedCount, Time: ${minutes}m ${seconds}s"
+            val notificationText = "Total images indexed: ${results.totalProcessedCount}, Time: ${minutes}m ${seconds}s"
             showNotification(applicationContext, applicationContext.getString(R.string.notif_title_index_complete), notificationText, 1002)
         }
         catch (e: Exception){
