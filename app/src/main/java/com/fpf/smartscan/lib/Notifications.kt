@@ -24,6 +24,7 @@ fun showNotification(context: Context, title: String, text: String, id: Int = 10
         .setSmallIcon(R.drawable.smartscan_logo)
         .setContentTitle(title)
         .setContentText(text)
+        .setStyle(NotificationCompat.BigTextStyle().bigText(text))
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .setAutoCancel(true)
 
