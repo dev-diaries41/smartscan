@@ -20,7 +20,7 @@
 ## v1.0.4 – 03/04/2025
 - Chanied image index workers
 
-## v1.0.5 – 12/04/2025
+## v1.0.5 – 13/04/2025
 
 ### Added
 - Progress bar for indexing
@@ -32,6 +32,8 @@
 ### Changed
 - Dynamic concurrency for memory management
 - Batching implemented for organisation
+- Skip images that have already been processed when organizing
+- More robust and user-friendly error handling for background jobs
 
 ### Fixed
 - Text visibility in light mode on search screen
