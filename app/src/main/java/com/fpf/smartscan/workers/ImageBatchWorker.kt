@@ -68,7 +68,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
                 processedCount = 0
             )
 
-            Result.failure()
+            Result.retry()
         } finally {
             imageIndexer.close()
             if(isLastBatch){

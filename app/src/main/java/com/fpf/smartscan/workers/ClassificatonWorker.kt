@@ -90,6 +90,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ClassificationBatchWorker>()
                     .setInputData(workData)
                     .addTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
+                    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
                     .build()
 
                 continuation = continuation?.then(batchWorkerRequest)
