@@ -6,9 +6,12 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.fpf.smartscan.R
 import com.fpf.smartscan.lib.JobManager
+import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
+import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -72,7 +75,7 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
         } finally {
             imageIndexer.close()
             if(isLastBatch){
-                jobManager.onAllIndexJobsComplete(applicationContext, JOB_NAME)
+                onAllJobsComplete()
                 jobManager.clearJobs(JOB_NAME)
             }
         }
@@ -86,6 +89,21 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             lastPercentage = currentPercentage
             setProgressAsync(workDataOf("processed_count" to count, "total_count" to totalImageIds))
 //            Log.i(TAG, "Progress: $count/$totalImageIds images processed ($currentPercentage%)")
+        }
+    }
+
+    private suspend fun onAllJobsComplete(){
+        val (totalProcessedCount, timePair) = jobManager.getJobResults(JOB_NAME)
+        if (totalProcessedCount == 0) return
+
+        try {
+            val totalProcessingTime = timePair.second - timePair.first
+            val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
+            val notificationText = "Total images indexed: $totalProcessedCount, Time: ${minutes}m ${seconds}s"
+            showNotification(applicationContext, applicationContext.getString(R.string.notif_title_index_complete), notificationText, 1002)
+        }
+        catch (e: Exception){
+            Log.e(TAG, "Error finalising $JOB_NAME jobs: ${e.message}", e)
         }
     }
 }
