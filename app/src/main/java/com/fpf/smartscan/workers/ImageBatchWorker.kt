@@ -71,6 +71,11 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
                 processedCount = 0
             )
 
+            val errorCount = jobManager.getJobResults(JOB_NAME).errorCount
+            if(errorCount == 3){
+                showNotification(applicationContext, applicationContext.getString(R.string.notif_title_index_issue), applicationContext.getString(R.string.notif_title_index_issue_description), 1002)
+            }
+
             Result.retry()
         } finally {
             imageIndexer.close()
