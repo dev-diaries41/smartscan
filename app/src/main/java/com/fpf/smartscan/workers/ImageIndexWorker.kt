@@ -52,6 +52,7 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ImageBatchWorker>()
                     .setInputData(workData)
                     .addTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
+                    .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
                     .build()
 
                 continuation = continuation?.then(batchWorkerRequest) ?: workManager.beginWith(batchWorkerRequest)

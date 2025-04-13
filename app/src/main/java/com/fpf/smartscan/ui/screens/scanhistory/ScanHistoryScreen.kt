@@ -85,12 +85,33 @@ fun ScanHistoryItemCard(data: ScanData) {
                     modifier = Modifier.alpha(0.8f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Images moved: ${data.result}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.alpha(0.8f)
-                )
+                if (data.result == ScanData.ERROR_RESULT) {
+                    Text(
+                        text = "Images moved: unknown",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.alpha(0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Status: failed",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                } else {
+                    Text(
+                        text = "Images moved: ${data.result}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.alpha(0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Status: success",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
+
         }
     }
 

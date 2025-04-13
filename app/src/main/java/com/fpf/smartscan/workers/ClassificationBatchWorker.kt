@@ -1,14 +1,22 @@
 package com.fpf.smartscan.workers
 
+import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.fpf.smartscan.R
+import com.fpf.smartscan.data.scans.AppDatabase
+import com.fpf.smartscan.data.scans.ScanData
+import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
+import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.processors.Organiser
+import com.fpf.smartscan.lib.readUriListFromFile
+import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
@@ -36,54 +44,29 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     private val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
     private val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
     private val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: ""
+    private val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        val organiser = Organiser(applicationContext)
         val startResult = jobManager.onStart(JOB_NAME)
         startTime = startResult.startTime
         previousProcessingCount = startResult.initialProcessedCount
 
-        if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
-            Log.e(TAG, "Invalid batch parameters provided")
-            return@withContext Result.failure()
-        }
-        if (imageUriFilePath.isEmpty()) {
-            Log.e(TAG, "IMAGE_URI_FILE not provided")
-            return@withContext Result.failure()
-        }
-
-        val file = File(imageUriFilePath)
-        if (!file.exists()) {
-            Log.e(TAG, "Persisted image URI file not found: $imageUriFilePath")
-            return@withContext Result.failure()
-        }
-
-        val jsonArray = JSONArray(file.readText())
-        if (jsonArray.length() != totalImages) {
-            Log.w(TAG, "Mismatch between expected totalImages ($totalImages) and file contents (${jsonArray.length()})")
-        }
-
-        // Calculate start and end indices for the batch.
-        val startIndex = batchIndex * batchSize
-        val endIndex = kotlin.math.min(startIndex + batchSize, totalImages)
-        if (startIndex >= endIndex) {
-            Log.i(TAG, "No images to process in this batch ($batchIndex).")
-            return@withContext Result.success()
-        }
-
-        // Build the list of image URIs for this batch.
-        val batchUriList = mutableListOf<Uri>()
-        for (i in startIndex until endIndex) {
-            jsonArray.optString(i, null)?.let { uriString ->
-                batchUriList.add(uriString.toUri())
-            }
-        }
-
-        val organiser = Organiser(applicationContext)
-
         try {
+            if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
+                throw IllegalArgumentException("Invalid batch parameters: BATCH_INDEX=$batchIndex, BATCH_SIZE=$batchSize, TOTAL_IMAGES=$totalImages")
+            }
+            if (imageUriFilePath.isEmpty()) {
+                throw IllegalArgumentException("IMAGE_URI_FILE not provided")
+            }
+
+            val uriList = readUriListFromFile(imageUriFilePath)
+            val startIndex = batchIndex * batchSize
+            val endIndex = kotlin.math.min(startIndex + batchSize, uriList.size)
+            val batchUriList = uriList.subList(startIndex, endIndex)
+
             Log.i(TAG, "Processing classification batch $batchIndex with ${batchUriList.size} images.")
             val processedCount = organiser.processBatch(batchUriList)
-
             val finishTime = System.currentTimeMillis()
 
             jobManager.onComplete(
@@ -104,15 +87,43 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 finishTime = failTime,
                 processedCount = 0
             )
+            val results = jobManager.getJobResults(JOB_NAME)
+            if(results.errorCount >= 3){
+                // Temporary workaround to avoid modifying db schema:
+                // If totalProcessedCount > 0 it indicates some batches were successful.
+                // ERROR_RESULT (-1) is used to indicate a failure with no reliable result.
+                val count = if(results.totalProcessedCount > 0) results.totalProcessedCount else ScanData.ERROR_RESULT
+                repository.insert(ScanData(result=count, date = System.currentTimeMillis()))
+                // Do not continually retry unlike indexing, because this does not have a super critical impact on usability
+                showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_issue), applicationContext.getString(R.string.notif_title_smart_scan_issue_description), 1003)
+                return@withContext Result.failure()
+            }
 
-            return@withContext Result.failure()
+            return@withContext Result.retry()
         } finally {
             organiser.close()
             if (isLastBatch) {
-                jobManager.onAllClassificationJobsComplete(applicationContext, JOB_NAME)
+                onAllJobsComplete()
                 jobManager.clearJobs(JOB_NAME)
-                deleteLocalFile(applicationContext, imageUriFilePath)
             }
+        }
+    }
+
+    private suspend fun onAllJobsComplete(){
+        val results = jobManager.getJobResults(JOB_NAME)
+        if (results.totalProcessedCount == 0) return
+
+        try {
+            repository.insert(ScanData(result=results.totalProcessedCount, date = System.currentTimeMillis()))
+
+            val totalProcessingTime = results.finishTime - results.startTime
+            val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
+            val notificationText = "Total images moved: ${results.totalProcessedCount}, Time: ${minutes}m ${seconds}s"
+
+            showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_complete), notificationText, 1003)
+        }
+        catch (e: Exception){
+            Log.e(TAG, "Error finalising $JOB_NAME jobs: ${e.message}", e)
         }
     }
 }

@@ -6,9 +6,12 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
+import com.fpf.smartscan.R
 import com.fpf.smartscan.lib.JobManager
+import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
+import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -30,16 +33,10 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
+        val imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
         val startResult = jobManager.onStart(JOB_NAME)
         startTime = startResult.startTime
         previousProcessingCount = startResult.initialProcessedCount
-
-        if (batchIds.isEmpty()) {
-            Log.i(TAG, "No image IDs provided for this batch.")
-            return@withContext Result.success()
-        }
-
-        val imageIndexer = ImageIndexer(applicationContext as Application, this@ImageBatchWorker)
 
         try {
             Log.i(TAG, "Processing batch of ${batchIds.size} images.")
@@ -68,11 +65,16 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
                 processedCount = 0
             )
 
-            Result.failure()
+            val errorCount = jobManager.getJobResults(JOB_NAME).errorCount
+            if(errorCount == 3){
+                showNotification(applicationContext, applicationContext.getString(R.string.notif_title_index_issue), applicationContext.getString(R.string.notif_title_index_issue_description), 1002)
+            }
+
+            Result.retry()
         } finally {
             imageIndexer.close()
             if(isLastBatch){
-                jobManager.onAllIndexJobsComplete(applicationContext, JOB_NAME)
+                onAllJobsComplete()
                 jobManager.clearJobs(JOB_NAME)
             }
         }
@@ -86,6 +88,21 @@ class ImageBatchWorker(context: Context, workerParams: WorkerParameters) :
             lastPercentage = currentPercentage
             setProgressAsync(workDataOf("processed_count" to count, "total_count" to totalImageIds))
 //            Log.i(TAG, "Progress: $count/$totalImageIds images processed ($currentPercentage%)")
+        }
+    }
+
+    private suspend fun onAllJobsComplete(){
+        val results = jobManager.getJobResults(JOB_NAME)
+        if (results.totalProcessedCount == 0) return
+
+        try {
+            val totalProcessingTime = results.finishTime - results.startTime
+            val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
+            val notificationText = "Total images indexed: ${results.totalProcessedCount}, Time: ${minutes}m ${seconds}s"
+            showNotification(applicationContext, applicationContext.getString(R.string.notif_title_index_complete), notificationText, 1002)
+        }
+        catch (e: Exception){
+            Log.e(TAG, "Error finalising $JOB_NAME jobs: ${e.message}", e)
         }
     }
 }
