@@ -148,6 +148,18 @@ fun SettingsScreen(
                     }
                 )
 
+                SettingsSelect(
+                    label = stringResource(id = R.string.setting_index_frequency),
+                    options = listOf(
+                        stringResource(id = R.string.scan_frequency_1d),
+                        stringResource(id = R.string.scan_frequency_1w)
+                    ),
+                    selectedOption = appSettings.indexFrequency,
+                    onOptionSelected = { selected ->
+                        viewModel.updateIndexFrequency(selected)
+                    }
+                )
+
                 SettingsIncrementor(
                     minValue = 1,
                     maxValue = 20,
