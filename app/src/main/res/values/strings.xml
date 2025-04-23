@@ -57,7 +57,7 @@
 
     <string name="setting_donate">Donate</string>
     <string name="setting_source_code">Source code</string>
-    <string name="setting_enable_scan">Enable scanning</string>
+    <string name="setting_enable_scan">Enable auto-organisation</string>
     <string name="setting_enable_scan_description">Enable periodic scanning of the folder you want to organise.</string>
     <string name="setting_target_folders">Target folders</string>
     <string name="setting_target_folders_description">Select which folders should be monitored for new images to organize automatically.</string>
