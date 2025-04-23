@@ -75,7 +75,7 @@ fun SearchScreen(
     LaunchedEffect(isFirstIndex, hasStoragePermission) {
         showFirstIndexDialog = isFirstIndex && hasStoragePermission
         if(hasStoragePermission && isFirstIndex){
-            searchViewModel.scheduleIndexing()
+            searchViewModel.scheduleIndexing(appSettings.indexFrequency)
         }
     }
 

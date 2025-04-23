@@ -169,8 +169,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun scheduleIndexing(){
-        scheduleImageIndexWorker(application, "1 Week")
+    fun scheduleIndexing(frequency: String){
+        scheduleImageIndexWorker(application, frequency)
         _isFirstIndex.value = false
     }
 
