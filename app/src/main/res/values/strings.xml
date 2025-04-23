@@ -65,6 +65,7 @@
     <string name="setting_destination_folders_description">Select destination folders for new images. Each folder must contain at least 10 images to ensure accurate matching.</string>
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
+    <string name="setting_index_frequency">Index frequency</string>
     <string name="setting_test_model_description">Upload an image to see the classification result</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
     <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
