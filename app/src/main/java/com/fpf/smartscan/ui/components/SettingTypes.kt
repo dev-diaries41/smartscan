@@ -2,6 +2,7 @@ package com.fpf.smartscan.ui.components
 
 
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +12,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
@@ -36,10 +36,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.*
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlin.Boolean
 
@@ -148,7 +152,7 @@ fun SettingsIncrementor(
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
-                    .width(120.dp)
+                    .width(140.dp)
                     .height(40.dp)
                     .clip(RoundedCornerShape(percent = 50))
                     .border(
@@ -252,72 +256,96 @@ fun SettingsSelect(
     description: String? = null,
     enabled: Boolean = true
 ) {
-    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
-    var expanded by remember { mutableStateOf(false) }
+    val textColor = if (enabled)
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+    else
+        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+    var showDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
     ) {
-        Column (
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 8.dp)
-        )
-
-        {
-            // Row is used for design consistency
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .fillMaxWidth()
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelLarge,
+                color = textColor
+            )
+            OutlinedButton(
+                onClick = { showDialog = true },
+                enabled = enabled,
+                modifier = Modifier.widthIn(max = 140.dp)
             ) {
-                Text(text = label, style = MaterialTheme.typography.labelLarge, color = textColor)
-                OutlinedButton(
-                    onClick = { expanded = true },
-                    enabled=enabled
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        if(selectedOption.isEmpty()){
-                            Text("Select option", color = Color.Gray)
-                        }else{
-                            Text(selectedOption)
-                        }
-                        Row {
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Dropdown")
-                        }
-                    }
-                }
-            }
-
-            if (description != null) {
-                Text(text = description, style = MaterialTheme.typography.bodyMedium, color = textColor)
-            }
-        }
-
-        Box(modifier = Modifier.fillMaxWidth()) {
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                options.forEach { option ->
-                    DropdownMenuItem(
-                        text = { Text(option) },
-                        onClick = {
-                            onOptionSelected(option)
-                            expanded = false
-                        }
+                    Text(
+                        text = if (selectedOption.isEmpty()) "Select option" else selectedOption,
+                        color = if (selectedOption.isEmpty()) Color.Gray else textColor,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Icon(
+                        imageVector = Icons.Default.ArrowDropDown,
+                        contentDescription = "Dropdown",
                     )
                 }
             }
+
         }
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor,
+                fontSize = 12.sp,
+                modifier = Modifier.fillMaxWidth(0.6f)
+            )
+        }
+    }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text(text = label) },
+            text = {
+                Column {
+                    options.forEach { option ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onOptionSelected(option)
+                                    showDialog = false
+                                }
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = option == selectedOption,
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = option)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton (onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

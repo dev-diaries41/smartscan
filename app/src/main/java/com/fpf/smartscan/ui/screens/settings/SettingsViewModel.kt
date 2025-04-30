@@ -39,7 +39,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
-
 @Serializable
 data class AppSettings(
     val enableScan: Boolean = false,
@@ -48,6 +47,7 @@ data class AppSettings(
     val destinationDirectories: List<String> = emptyList(),
     val similarityThreshold: Float = 0.2f,
     val numberSimilarResults: Int = 5,
+    val indexFrequency: String = "1 Week",
     )
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -89,6 +89,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         updateWorker()
     }
 
+    fun updateIndexFrequency(frequency: String) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(indexFrequency = frequency)
+        saveSettings()
+        updateIndexWorker()
+    }
+
     fun updateTargetDirectories(directories: List<String>) {
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(targetDirectories = directories)
@@ -121,6 +128,16 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             val existingEmbeddings = repository.getAllEmbeddingsSync()
             val existingIds = existingEmbeddings.map { it.id }.toSet()
             val missingUris = uris.filterNot { it in existingIds }
+            val extraEmbeddings = existingEmbeddings.filter { it.id !in uris }
+
+            extraEmbeddings.forEach { prototype ->
+                try {
+                    repository.delete(prototype)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to delete prototype for URI: ${prototype.id}", e)
+                }
+            }
+
             if (missingUris.isEmpty()) return@launch
 
             val embeddingsHandler = Embeddings(context.resources, ModelType.IMAGE)
@@ -172,6 +189,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
+    private fun updateIndexWorker() {
+            viewModelScope.launch {
+                cancelImageIndexWorker() //must explicitly cancel because of batched work
+                scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
+            }
+    }
+
     fun refreshImageIndex() {
         viewModelScope.launch {
             val imageRepository = ImageEmbeddingRepository(
@@ -219,13 +243,15 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     private fun cancelClassificationWorker(){
-        WorkManager.getInstance(getApplication()).cancelUniqueWork(WorkerConstants.CLASSIFICATION_WORKER)
-        WorkManager.getInstance(application).cancelAllWorkByTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
+        val workManager = WorkManager.getInstance(getApplication())
+        workManager.cancelUniqueWork(WorkerConstants.CLASSIFICATION_WORKER)
+        workManager.cancelAllWorkByTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
     }
 
     private fun cancelImageIndexWorker(){
-        WorkManager.getInstance(getApplication()).cancelUniqueWork(WorkerConstants.IMAGE_INDEXER_WORKER)
-        WorkManager.getInstance(application).cancelAllWorkByTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
+        val workManager = WorkManager.getInstance(getApplication())
+        workManager.cancelUniqueWork(WorkerConstants.IMAGE_INDEXER_WORKER)
+        workManager.cancelAllWorkByTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
     }
 
     private fun loadSettings() {

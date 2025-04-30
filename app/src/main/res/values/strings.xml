@@ -57,7 +57,7 @@
 
     <string name="setting_donate">Donate</string>
     <string name="setting_source_code">Source code</string>
-    <string name="setting_enable_scan">Enable scanning</string>
+    <string name="setting_enable_scan">Enable auto-organisation</string>
     <string name="setting_enable_scan_description">Enable periodic scanning of the folder you want to organise.</string>
     <string name="setting_target_folders">Target folders</string>
     <string name="setting_target_folders_description">Select which folders should be monitored for new images to organize automatically.</string>
@@ -65,6 +65,7 @@
     <string name="setting_destination_folders_description">Select destination folders for new images. Each folder must contain at least 10 images to ensure accurate matching.</string>
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
+    <string name="setting_index_frequency">Index frequency</string>
     <string name="setting_test_model_description">Upload an image to see the classification result</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
     <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
@@ -72,7 +73,7 @@
 
     <!-- Refresh image index -->
     <string name="setting_refresh_image_index">Refresh image index</string>
-    <string name="setting_refresh_image_index_description_warning">The image index updates weekly. Only refresh manually if needed — it performs a full reset.</string>
+    <string name="setting_refresh_image_index_description_warning">Auto-updates based on the index frequency setting. Refresh manually only if necessary — it performs a full reset.</string>
 
     <string name="setting_refresh_image_index_description_full">
         Manually refresh image index. This can take up to a few minutes. Make sure notifications are enabled to be notified upon completion.

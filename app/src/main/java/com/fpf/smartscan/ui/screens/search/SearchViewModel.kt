@@ -108,7 +108,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    fun searchImages(n: Int, embeddings: List<ImageEmbedding>) {
+    fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -139,7 +139,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     return@launch
                 }
 
-                val results = getTopN(similarities, n, 0.2f)
+                val results = getTopN(similarities, n, threshold)
 
                 if (results.isEmpty()) {
                     _error.postValue(application.getString(R.string.search_error_no_results))
@@ -169,8 +169,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun scheduleIndexing(){
-        scheduleImageIndexWorker(application, "1 Week")
+    fun scheduleIndexing(frequency: String){
+        scheduleImageIndexWorker(application, frequency)
         _isFirstIndex.value = false
     }
 
