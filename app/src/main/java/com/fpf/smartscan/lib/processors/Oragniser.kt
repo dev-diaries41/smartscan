@@ -102,7 +102,7 @@ class Organiser(private val context: Context) {
 
             val similarities =
                 getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-            val bestIndex = getTopN(similarities, 1, 0.2f).firstOrNull() ?: -1
+            val bestIndex = getTopN(similarities, 1, 0.4f).firstOrNull() ?: -1
             val destinationIdentifier = prototypeEmbeddings.getOrNull(bestIndex)?.id
 
             if (destinationIdentifier == null) {
