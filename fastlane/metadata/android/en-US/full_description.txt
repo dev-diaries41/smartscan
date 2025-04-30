@@ -16,3 +16,6 @@ automatically organizes your images by <b>content similarity</b> and enables
 <li><b>Result Display:</b> Show the top result plus up to 20 similar images.</li>
 <li><b>Weekly Updates:</b> Automatically refresh the image index for new images.</li>
 </ul>
+
+<b>Fully On-Device</b>  
+All processing including both image organisation and text-based search is handled entirely on-device, ensuring privacy, speed, and offline functionality.
