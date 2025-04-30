@@ -128,6 +128,16 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             val existingEmbeddings = repository.getAllEmbeddingsSync()
             val existingIds = existingEmbeddings.map { it.id }.toSet()
             val missingUris = uris.filterNot { it in existingIds }
+            val extraEmbeddings = existingEmbeddings.filter { it.id !in uris }
+
+            extraEmbeddings.forEach { prototype ->
+                try {
+                    repository.delete(prototype)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to delete prototype for URI: ${prototype.id}", e)
+                }
+            }
+
             if (missingUris.isEmpty()) return@launch
 
             val embeddingsHandler = Embeddings(context.resources, ModelType.IMAGE)
