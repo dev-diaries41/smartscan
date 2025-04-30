@@ -1,3 +1,16 @@
+## v1.0.6 – 30/04/2025
+
+### Added
+- Option to configure index frequency (daily or weekly) in Settings  
+- Option to configure similarity threshold for search in Settings  
+
+### Changed
+- "Enable scanning" renamed to "Enable auto-organisation" for clarity
+- Minor UI updates
+
+### Removed
+- Unnecessary network info permission  
+
 ## v1.0.5 – 13/04/2025
 
 ### Added
