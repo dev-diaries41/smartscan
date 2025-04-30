@@ -148,11 +148,6 @@ fun SettingsScreen(
                     }
                 )
 
-                SettingsCard(
-                    text = stringResource(id = R.string.setting_similarity_threshold),
-                    onClick = { onNavigate("settingsDetail/threshold") }
-                )
-
                 SettingsSelect(
                     label = stringResource(id = R.string.setting_index_frequency),
                     options = listOf(
@@ -164,6 +159,12 @@ fun SettingsScreen(
                         viewModel.updateIndexFrequency(selected)
                     }
                 )
+
+                SettingsCard(
+                    text = stringResource(id = R.string.setting_similarity_threshold),
+                    onClick = { onNavigate("settingsDetail/threshold") }
+                )
+
 
                 SettingsIncrementor(
                     minValue = 1,
