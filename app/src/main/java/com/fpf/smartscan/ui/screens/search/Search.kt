@@ -137,7 +137,7 @@ fun SearchScreen(
                 keyboardActions = KeyboardActions (
                     onSearch = {
                         if (dataReady && hasStoragePermission && searchQuery.isNotEmpty()) {
-                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
+                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold)
                         }
                     }
                 ),
@@ -148,7 +148,7 @@ fun SearchScreen(
                     IconButton(
                         enabled = dataReady && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
-                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings)
+                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold)
                         }
                     ) {
                         Icon(
