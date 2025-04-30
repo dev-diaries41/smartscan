@@ -57,7 +57,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
                 val bitmap = getBitmapFromUri(context, uri)
                 val imageEmbedding = embeddingsHandler?.generateImageEmbedding(bitmap) ?: return@launch
                 val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-                val bestIndex = getTopN(similarities, 1, 0.2f).firstOrNull() ?: -1
+                val bestIndex = getTopN(similarities, 1, 0.4f).firstOrNull() ?: -1
                 val result = prototypeEmbeddings.getOrNull(bestIndex)?.id?.let {
                     DocumentFile.fromTreeUri(context, it.toUri())?.name ?: "Unknown"
                 } ?: "Unknown"
