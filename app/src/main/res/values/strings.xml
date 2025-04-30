@@ -73,7 +73,7 @@
 
     <!-- Refresh image index -->
     <string name="setting_refresh_image_index">Refresh image index</string>
-    <string name="setting_refresh_image_index_description_warning">The image index updates weekly. Only refresh manually if needed — it performs a full reset.</string>
+    <string name="setting_refresh_image_index_description_warning">Auto-updates based on the index frequency setting. Refresh manually only if necessary — it performs a full reset.</string>
 
     <string name="setting_refresh_image_index_description_full">
         Manually refresh image index. This can take up to a few minutes. Make sure notifications are enabled to be notified upon completion.
