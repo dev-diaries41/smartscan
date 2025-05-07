@@ -1,7 +1,5 @@
 package com.fpf.smartscan.ui.screens.search
 
-import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -28,6 +26,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.fpf.smartscan.lib.loadVideoThumbnailFromUri
+import com.fpf.smartscan.lib.openVideoInGallery
 
 @Composable
 fun VideoSearchResults(
