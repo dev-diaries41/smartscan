@@ -21,10 +21,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.videos.VideoEmbedding
+import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
+import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.CoroutineScope
+
+enum class SearchMode {
+    IMAGE, VIDEO
+}
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
 
@@ -37,7 +44,12 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
+    private val videoRepository: VideoEmbeddingRepository = VideoEmbeddingRepository(
+        VideoEmbeddingDatabase.getDatabase(application).videoEmbeddingDao()
+    )
     val imageEmbeddings: LiveData<List<ImageEmbedding>> = repository.allImageEmbeddings
+    val videoEmbeddings: LiveData<List<VideoEmbedding>> = videoRepository.allVideoEmbeddings
+
     val hasAnyImages: LiveData<Boolean> = repository.hasAnyEmbedding
 
     private val _query = MutableLiveData<String>("")
@@ -54,6 +66,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _isFirstIndex = MutableLiveData<Boolean>(false)
     val isFirstIndex: LiveData<Boolean> = _isFirstIndex
+
+    private val _mode = MutableLiveData<SearchMode>(SearchMode.IMAGE)
+    val mode: LiveData<SearchMode> = _mode
 
     init {
         observeWorkProgress()
@@ -108,7 +123,20 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
+    fun setMode(newMode: SearchMode) {
+        _mode.value = newMode
+        _error.value = null
+        _searchResults.value = emptyList()
+    }
+
+    // Temp workaround
+    sealed interface MediaEmbedding {
+        val id: Long
+        val date: Long
+        val embeddings: FloatArray
+    }
+
+    fun searchMedia(n: Int, embeddings: List<MediaEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -122,6 +150,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         _isLoading.value = true
         _error.value = null
+
+        val currentMode = _mode.value ?: SearchMode.IMAGE
 
         CoroutineScope(Dispatchers.Default).launch {
             try {
@@ -147,7 +177,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     return@launch
                 }
 
-                val searchResultsUris = results.map { idx -> getImageUriFromId(embeddings[idx].id) }
+                val searchResultsUris = when (currentMode) {
+                    SearchMode.IMAGE -> results.map { idx ->
+                        getImageUriFromId(embeddings[idx].id)
+                    }
+                    SearchMode.VIDEO -> results.map { idx ->
+                        getVideoUriFromId(embeddings[idx].id)
+                    }
+                }
+
+//                val searchResultsUris = results.map { idx -> getImageUriFromId(embeddings[idx].id) }
                 val filteredSearchResultsUris = searchResultsUris.filter { uri ->
                     hasImageAccess(application, uri)
                 }
