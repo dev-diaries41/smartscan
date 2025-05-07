@@ -20,7 +20,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.CircularProgressIndicator
@@ -34,7 +33,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -42,7 +40,6 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
-import com.fpf.smartscan.workers.scheduleImageIndexWorker
 
 @Composable
 fun SearchScreen(
@@ -55,7 +52,9 @@ fun SearchScreen(
     val error by searchViewModel.error.observeAsState(null)
     val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
     val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
+    val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
+    val mode by searchViewModel.mode.observeAsState(SearchMode.IMAGE)
     val isFirstIndex by searchViewModel.isFirstIndex.observeAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
     val scrollState = rememberScrollState()
@@ -136,8 +135,14 @@ fun SearchScreen(
                 shape = RoundedCornerShape(8.dp),
                 keyboardActions = KeyboardActions (
                     onSearch = {
-                        if (dataReady && hasStoragePermission && searchQuery.isNotEmpty()) {
-                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold)
+                        when (mode) {
+                            SearchMode.IMAGE ->
+                                searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold
+                                )
+
+                            SearchMode.VIDEO ->
+                                searchViewModel.searchVideos(appSettings.numberSimilarResults, videoEmbeddings, appSettings.similarityThreshold
+                                )
                         }
                     }
                 ),
@@ -148,7 +153,15 @@ fun SearchScreen(
                     IconButton(
                         enabled = dataReady && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
-                            searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold)
+                            when (mode) {
+                                SearchMode.IMAGE ->
+                                    searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold
+                                    )
+
+                                SearchMode.VIDEO ->
+                                    searchViewModel.searchVideos(appSettings.numberSimilarResults, videoEmbeddings, appSettings.similarityThreshold
+                                    )
+                            }
                         }
                     ) {
                         Icon(

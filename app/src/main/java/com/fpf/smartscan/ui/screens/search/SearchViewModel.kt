@@ -130,14 +130,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    // Temp workaround
-    sealed interface MediaEmbedding {
-        val id: Long
-        val date: Long
-        val embeddings: FloatArray
-    }
-
-    fun searchMedia(n: Int, embeddings: List<MediaEmbedding>, threshold: Float = 0.2f) {
+    fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -151,8 +144,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         _isLoading.value = true
         _error.value = null
-
-        val currentMode = _mode.value ?: SearchMode.IMAGE
 
         CoroutineScope(Dispatchers.Default).launch {
             try {
@@ -178,15 +169,68 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     return@launch
                 }
 
-                val searchResultsUris = when (currentMode) {
-                    SearchMode.IMAGE -> results.map { idx ->
-                        getImageUriFromId(embeddings[idx].id)
-                    }
-                    SearchMode.VIDEO -> results.map { idx ->
-                        getVideoUriFromId(embeddings[idx].id)
-                    }
+                val searchResultsUris = results.map { idx -> getImageUriFromId(embeddings[idx].id) }
+                val filteredSearchResultsUris = searchResultsUris.filter { uri ->
+                    canOpenUri(application, uri)
                 }
 
+                if (filteredSearchResultsUris.isEmpty()) {
+                    _error.postValue(application.getString(R.string.search_error_no_results))
+                    _searchResults.postValue(emptyList())
+                    return@launch
+                }
+
+                _searchResults.postValue(filteredSearchResultsUris)
+
+            } catch (e: Exception) {
+                Log.e("SearchViewModel", "$e")
+                _error.postValue(application.getString(R.string.search_error_unknown))
+            } finally {
+                _isLoading.postValue(false)
+            }
+        }
+    }
+
+    fun searchVideos(n: Int, embeddings: List<VideoEmbedding>, threshold: Float = 0.2f) {
+        val currentQuery = _query.value
+        if (currentQuery.isNullOrBlank()) {
+            _error.value = application.getString(R.string.search_error_empty_query)
+            return
+        }
+
+        if (embeddings.isEmpty()) {
+            _error.value = application.getString(R.string.search_error_images_not_indexed)
+            return
+        }
+
+        _isLoading.value = true
+        _error.value = null
+
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                if (embeddingsHandler == null) {
+                    embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
+                }
+                val textEmbedding = embeddingsHandler?.generateTextEmbedding(currentQuery)
+                    ?: throw IllegalArgumentException("Failed to generate text embedding.")
+
+                val similarities = getSimilarities(textEmbedding, embeddings.map { it.embeddings })
+
+                if (similarities.isEmpty()) {
+                    _error.postValue(application.getString(R.string.search_error_no_results))
+                    _searchResults.postValue(emptyList())
+                    return@launch
+                }
+
+                val results = getTopN(similarities, n, threshold)
+
+                if (results.isEmpty()) {
+                    _error.postValue(application.getString(R.string.search_error_no_results))
+                    _searchResults.postValue(emptyList())
+                    return@launch
+                }
+
+                val searchResultsUris = results.map { idx -> getVideoUriFromId(embeddings[idx].id) }
                 val filteredSearchResultsUris = searchResultsUris.filter { uri ->
                     canOpenUri(application, uri)
                 }
