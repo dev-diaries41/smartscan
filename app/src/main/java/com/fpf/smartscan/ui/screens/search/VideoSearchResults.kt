@@ -189,12 +189,3 @@ fun MediaStoreVideoThumbnail(
         Box(modifier = modifier.background(Color.Gray))
     }
 }
-
-
-fun openVideoInGallery(context: Context, uri: Uri) {
-    val intent = Intent(Intent.ACTION_VIEW).apply {
-        setDataAndType(uri, "video/*")
-        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-    }
-    context.startActivity(intent)
-}

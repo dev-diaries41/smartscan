@@ -2,6 +2,7 @@ package com.fpf.smartscan.lib
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -83,4 +84,12 @@ suspend fun loadVideoThumbnailFromUri(
             null
         }
     }
+}
+
+fun openVideoInGallery(context: Context, uri: Uri) {
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        setDataAndType(uri, "video/*")
+        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+    }
+    context.startActivity(intent)
 }
