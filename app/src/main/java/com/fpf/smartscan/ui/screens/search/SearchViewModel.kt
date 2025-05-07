@@ -16,7 +16,6 @@ import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getImageUriFromId
-import com.fpf.smartscan.lib.hasImageAccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.collections.any
@@ -24,7 +23,9 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.data.videos.VideoEmbedding
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
+import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.clip.ModelType
+import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.CoroutineScope
@@ -186,9 +187,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     }
                 }
 
-//                val searchResultsUris = results.map { idx -> getImageUriFromId(embeddings[idx].id) }
                 val filteredSearchResultsUris = searchResultsUris.filter { uri ->
-                    hasImageAccess(application, uri)
+                    canOpenUri(application, uri)
                 }
 
                 if (filteredSearchResultsUris.isEmpty()) {
