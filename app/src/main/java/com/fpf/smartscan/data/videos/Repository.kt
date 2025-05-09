@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 
 class VideoEmbeddingRepository(private val dao: VideoEmbeddingDao) {
     val allVideoEmbeddings: LiveData<List<VideoEmbedding>> = dao.getAllVideoEmbeddings()
+    val hasAnyVideoEmbeddings: LiveData<Boolean> = dao.hasAnyVideoEmbeddings()
 
     suspend fun getAllEmbeddingsSync(): List<VideoEmbedding> {
         return dao.getAllEmbeddingsSync()

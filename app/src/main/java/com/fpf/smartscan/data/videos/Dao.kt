@@ -21,4 +21,7 @@ interface VideoEmbeddingDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM video_embeddings WHERE id = :id)")
     suspend fun isVideoIndexed(id: Long): Boolean
+
+    @Query("SELECT EXISTS(SELECT 1 FROM video_embeddings)")
+    fun hasAnyVideoEmbeddings(): LiveData<Boolean>
 }
