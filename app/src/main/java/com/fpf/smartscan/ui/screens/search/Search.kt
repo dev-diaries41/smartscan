@@ -58,9 +58,11 @@ fun SearchScreen(
     val isFirstIndex by searchViewModel.isFirstIndex.observeAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
     val scrollState = rememberScrollState()
-    val dataReady = hasAnyIndexedImages == true && imageEmbeddings.isNotEmpty()
-    val isEmpty = hasAnyIndexedImages == false
-    val showLoader = isLoading || (!dataReady && !isEmpty)
+
+    // Search state
+    val canSearch = hasAnyIndexedImages == true && imageEmbeddings.isNotEmpty()
+    val isLoadingImages = !canSearch && hasAnyIndexedImages == true
+    val showLoader = isLoading || isLoadingImages
 
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
@@ -125,7 +127,7 @@ fun SearchScreen(
             }
 
             OutlinedTextField(
-                enabled = dataReady && hasStoragePermission,
+                enabled = canSearch && hasStoragePermission,
                 value = searchQuery,
                 onValueChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
@@ -151,7 +153,7 @@ fun SearchScreen(
                 ),
                 trailingIcon = {
                     IconButton(
-                        enabled = dataReady && hasStoragePermission && searchQuery.isNotEmpty(),
+                        enabled = canSearch && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
                             when (mode) {
                                 SearchMode.IMAGE ->
@@ -190,7 +192,8 @@ fun SearchScreen(
                     )
                 }
             }
-            if(!dataReady && !isEmpty && hasStoragePermission){
+
+            if(isLoadingImages && hasStoragePermission){
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = "Loading indexed images...")
             }
