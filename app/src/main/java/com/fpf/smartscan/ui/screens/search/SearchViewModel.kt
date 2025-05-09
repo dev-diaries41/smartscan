@@ -144,7 +144,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
 
         if (embeddings.isEmpty()) {
-            _error.value = application.getString(R.string.search_error_images_not_indexed)
+            _error.value = application.getString(R.string.search_error_not_indexed)
             return
         }
 
@@ -205,7 +205,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
 
         if (embeddings.isEmpty()) {
-            _error.value = application.getString(R.string.search_error_images_not_indexed)
+            _error.value = application.getString(R.string.search_error_not_indexed)
             return
         }
 
