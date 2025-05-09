@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
+import com.fpf.smartscan.ui.components.SettingsSelect
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
@@ -131,6 +132,18 @@ fun SearchScreen(
                     )
                 }
             }
+
+            SettingsSelect(
+                label = "Mode",
+                options = searchModeOptions.values.toList(),
+                selectedOption = searchModeOptions[mode]!!,
+                onOptionSelected = { selected ->
+                    val newMode = searchModeOptions.entries
+                        .find { it.value == selected }
+                        ?.key ?: SearchMode.IMAGE
+                    searchViewModel.setMode(newMode)
+                }
+            )
 
             OutlinedTextField(
                 enabled = canSearch && hasStoragePermission,

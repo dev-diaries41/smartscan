@@ -34,6 +34,11 @@ enum class SearchMode {
     IMAGE, VIDEO
 }
 
+val searchModeOptions = mapOf(
+    SearchMode.IMAGE to "Images",
+    SearchMode.VIDEO to "Videos",
+)
+
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
 
     private val workManager = WorkManager.getInstance(application)
