@@ -51,6 +51,7 @@ fun SearchScreen(
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
     val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
+    val hasAnyIndexedVideos by searchViewModel.hasAnyVideos.observeAsState(null)
     val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
     val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
@@ -60,9 +61,14 @@ fun SearchScreen(
     val scrollState = rememberScrollState()
 
     // Search state
-    val canSearch = hasAnyIndexedImages == true && imageEmbeddings.isNotEmpty()
-    val isLoadingImages = !canSearch && hasAnyIndexedImages == true
-    val showLoader = isLoading || isLoadingImages
+    val hasIndexed = when(mode) {
+        SearchMode.IMAGE -> hasAnyIndexedImages == true
+        SearchMode.VIDEO -> hasAnyIndexedVideos == true
+    }
+    val embeddings = if (mode == SearchMode.IMAGE) imageEmbeddings else videoEmbeddings
+    val canSearch = hasIndexed && embeddings.isNotEmpty()
+    val loadingIndexData = hasIndexed && embeddings.isEmpty()
+    val showLoader = isLoading || loadingIndexData
 
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
@@ -132,7 +138,10 @@ fun SearchScreen(
                 onValueChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
                 },
-                label = { Text("Search images...") },
+                label = { Text(text=when(mode){
+                    SearchMode.IMAGE -> "Search images..."
+                    SearchMode.VIDEO -> "Search videos..."
+                }) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 keyboardActions = KeyboardActions (
@@ -193,9 +202,12 @@ fun SearchScreen(
                 }
             }
 
-            if(isLoadingImages && hasStoragePermission){
+            if(loadingIndexData && hasStoragePermission){
                 Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Loading indexed images...")
+                Text(text = when(mode){
+                    SearchMode.IMAGE -> "Loading indexed images..."
+                    SearchMode.VIDEO -> "Loading indexed videos..."
+                })
             }
 
             error?.let {

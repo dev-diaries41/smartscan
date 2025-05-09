@@ -52,6 +52,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoEmbeddings: LiveData<List<VideoEmbedding>> = videoRepository.allVideoEmbeddings
 
     val hasAnyImages: LiveData<Boolean> = repository.hasAnyEmbedding
+    val hasAnyVideos: LiveData<Boolean> = videoRepository.hasAnyVideoEmbeddings
 
     private val _query = MutableLiveData<String>("")
     val query: LiveData<String> = _query
