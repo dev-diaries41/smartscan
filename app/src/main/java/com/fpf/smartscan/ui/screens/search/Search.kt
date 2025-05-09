@@ -229,11 +229,19 @@ fun SearchScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 val mainResult = searchResults.first()
                 val similarResults = if (searchResults.size > 1) searchResults.drop(1).take(appSettings.numberSimilarResults) else emptyList()
-                SearchResults(
-                    initialMainResult = mainResult,
-                    similarResults = similarResults,
-                    onClear = { searchViewModel.clearResults() }
-                )
+
+                when(mode){
+                    SearchMode.IMAGE -> SearchResults(
+                        initialMainResult = mainResult,
+                        similarResults = similarResults,
+                        onClear = { searchViewModel.clearResults() }
+                    )
+                    SearchMode.VIDEO -> VideoSearchResults(
+                        initialMainResult = mainResult,
+                        similarResults = similarResults,
+                        onClear = { searchViewModel.clearResults() }
+                    )
+                }
             }
         }
     }
