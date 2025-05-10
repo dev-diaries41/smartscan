@@ -12,7 +12,7 @@ import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-fun extractFramesFromVideo(context: Context, videoUri: Uri): List<Bitmap>? {
+fun extractFramesFromVideo(context: Context, videoUri: Uri, frameCount: Int = 10): List<Bitmap>? {
     val retriever = MediaMetadataRetriever()
     return try {
         retriever.setDataSource(context, videoUri)
@@ -20,7 +20,6 @@ fun extractFramesFromVideo(context: Context, videoUri: Uri): List<Bitmap>? {
         val durationUs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()?.times(1000)
             ?: return null
 
-        val frameCount = 10
         val frameList = mutableListOf<Bitmap>()
 
         for (i in 0 until frameCount) {
