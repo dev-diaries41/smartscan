@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.images.ImageEmbedding
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
@@ -12,9 +13,16 @@ import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.MemoryUtils
+import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
+import com.fpf.smartscan.lib.showNotification
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -22,7 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class ImageIndexer(
     private val application: Application,
-    private val listener: ImageIndexListener? = null
+    private val listener: IIndexListener? = null
 ) {
     var embeddingHandler: Embeddings? = null
 
@@ -42,6 +50,8 @@ class ImageIndexer(
 
     suspend fun indexImages(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
+        val startTime = System.currentTimeMillis()
+
         try {
             if (imageIds.isEmpty()) {
                 Log.i(TAG, "No images found.")
@@ -68,8 +78,11 @@ class ImageIndexer(
                                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
                                 )
                                 val bitmap = getBitmapFromUri(application, contentUri)
-                                val embedding: FloatArray? =
+                                val embedding = withContext(NonCancellable) {
                                     embeddingHandler?.generateImageEmbedding(bitmap)
+                                }
+
+                                ensureActive()
                                 bitmap.recycle()
                                 if (embedding != null) {
                                     repository.insert(
@@ -80,7 +93,7 @@ class ImageIndexer(
                                         )
                                     )
                                     val current = processedCount.incrementAndGet()
-                                    listener?.onProgress(current)
+                                    listener?.onProgress(current, imagesToProcess.size)
                                     return@async 1
                                 }
                             } catch (e: Exception) {
@@ -92,8 +105,15 @@ class ImageIndexer(
                 }
                 totalProcessed += deferredResults.awaitAll().sum()
             }
+            val endTime = System.currentTimeMillis()
+            val completionTime = endTime - startTime
+            listener?.onComplete(application, totalProcessed, completionTime)
             totalProcessed
-        } catch (e: Exception) {
+        }
+        catch (e: CancellationException) {
+            throw e
+        }
+        catch (e: Exception) {
             Log.e(TAG, "Error indexing images: ${e.message}", e)
             0
         }
@@ -106,9 +126,27 @@ class ImageIndexer(
     }
 }
 
-interface ImageIndexListener {
-    fun onProgress(processedCount: Int)
-    // Additional callbacks can be added as needed:
-    // fun onError(imageId: Long, exception: Exception)
-    // fun onComplete(totalProcessed: Int)
+object ImageIndexListener : IIndexListener {
+    private val _progress = MutableStateFlow(0f)
+    val progress: StateFlow<Float> = _progress
+
+    override fun onProgress(processedCount: Int, total: Int) {
+        val currentProgress = processedCount.toFloat() / total.toFloat()
+        if(currentProgress > 0f){
+            _progress.value = currentProgress
+        }
+    }
+
+    override fun onComplete(context: Context, totalProcessed: Int, processingTime: Long) {
+        if (totalProcessed == 0) return
+
+        try {
+            val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
+            val notificationText = "Total images indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
+            showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1002)
+        }
+        catch (e: Exception){
+            Log.e("ImageIndexListener", "Error in onComplete ${e.message}", e)
+        }
+    }
 }

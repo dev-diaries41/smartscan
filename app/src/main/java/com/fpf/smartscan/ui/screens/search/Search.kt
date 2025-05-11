@@ -47,7 +47,7 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
-    val progress by searchViewModel.progress.observeAsState(0f)
+    val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
@@ -119,14 +119,14 @@ fun SearchScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            if (progress > 0f) {
+            if (imageIndexProgress > 0f && imageIndexProgress < 1f) {
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
                     Text(
-                        text = "Indexing ${"%.0f".format(progress * 100)}%",
+                        text = "Indexing ${"%.0f".format(imageIndexProgress * 100)}%",
                         style = MaterialTheme.typography.bodySmall
                     )
                     LinearProgressIndicator(
-                        progress = { progress},
+                        progress = { imageIndexProgress},
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(4.dp),

@@ -23,6 +23,10 @@
             android:name="com.fpf.smartscan.services.VideoIndexForegroundService"
             android:exported="false"
             android:foregroundServiceType="dataSync"/>
+        <service
+            android:name="com.fpf.smartscan.services.ImageIndexForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
         <activity
             android:name="com.fpf.smartscan.MainActivity"
             android:exported="true"

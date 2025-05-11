@@ -1,7 +1,11 @@
 package com.fpf.smartscan.ui.screens.settings
 
+import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Application
+import android.app.Service
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -28,6 +32,7 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.services.ImageIndexForegroundService
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.Dispatchers
@@ -172,6 +177,14 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
+    fun isServiceRunning(context: Context, serviceClass: Class<out Service>): Boolean {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        @Suppress("DEPRECATION")
+        return am.getRunningServices(Int.MAX_VALUE).any {
+            it.service.className == serviceClass.name
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun updateWorker() {
         if (_appSettings.value.targetDirectories.isNotEmpty() &&
@@ -189,21 +202,28 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
+    @SuppressLint("ImplicitSamInstance")
     private fun updateIndexWorker() {
             viewModelScope.launch {
-                cancelImageIndexWorker() //must explicitly cancel because of batched work
+                val running = isServiceRunning(application, ImageIndexForegroundService::class.java)
+                if(running){
+                    getApplication<Application>().stopService(Intent(getApplication<Application>(), ImageIndexForegroundService::class.java))
+                }
                 scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
             }
     }
 
+    @SuppressLint("ImplicitSamInstance")
     fun refreshImageIndex() {
         viewModelScope.launch {
-            val imageRepository = ImageEmbeddingRepository(
-                ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao()
-            )
-            cancelImageIndexWorker()
+            val imageRepository = ImageEmbeddingRepository(ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao())
+            val running = isServiceRunning(application, ImageIndexForegroundService::class.java)
+            if(running){
+                getApplication<Application>().stopService(Intent(getApplication<Application>(),
+                    ImageIndexForegroundService::class.java))
+            }
             imageRepository.deleteAllEmbeddings()
-            scheduleImageIndexWorker(getApplication(), "1 Week")
+            scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
         }
     }
 
