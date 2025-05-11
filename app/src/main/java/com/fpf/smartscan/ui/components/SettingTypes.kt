@@ -272,11 +272,14 @@ fun SettingsSelect(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = textColor
-            )
+            if(label.isNotEmpty()){
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = textColor
+                )
+            }
+
             OutlinedButton(
                 onClick = { showDialog = true },
                 enabled = enabled,
