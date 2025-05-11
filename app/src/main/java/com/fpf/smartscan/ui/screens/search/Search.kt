@@ -1,6 +1,5 @@
 package com.fpf.smartscan.ui.screens.search
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -76,7 +75,8 @@ fun SearchScreen(
 
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
-    var showFirstIndexDialog by remember { mutableStateOf(isFirstIndex) }
+    var showFirstIndexImageDialog by remember { mutableStateOf(false) }
+    var showFirstIndexVideoDialog by remember { mutableStateOf(false) }
 
     RequestPermissions { notificationGranted, storageGranted ->
         hasNotificationPermission = notificationGranted
@@ -84,23 +84,38 @@ fun SearchScreen(
     }
 
     LaunchedEffect(isFirstIndex, hasStoragePermission, isFirstVideoIndex, mode) {
-        showFirstIndexDialog = isFirstIndex && hasStoragePermission
-        if(hasStoragePermission && isFirstIndex && mode == SearchMode.IMAGE){
+        if(hasStoragePermission && isFirstIndex && (mode == SearchMode.IMAGE)){
+            showFirstIndexImageDialog = true
             searchViewModel.scheduleIndexing(appSettings.indexFrequency)
-        }else if(hasStoragePermission && isFirstVideoIndex && mode == SearchMode.VIDEO){
+        }else if(hasStoragePermission && isFirstVideoIndex && (mode == SearchMode.VIDEO)){
+            showFirstIndexVideoDialog = true
             searchViewModel.scheduleVideoIndexing(appSettings.indexFrequency)
         }
     }
 
-    if (isFirstIndex && showFirstIndexDialog) {
+    val label = if (mode == SearchMode.IMAGE) "image" else "video"
+    val message = stringResource(R.string.first_indexing, label)
+
+    if ( showFirstIndexImageDialog) {
         AlertDialog(
             onDismissRequest = { },
             title = { Text("Indexing Images") },
-            text = {
-                Text(stringResource(R.string.first_index))
-            },
+            text = { Text(message) },
             confirmButton = {
-                TextButton(onClick = { showFirstIndexDialog = false }) {
+                TextButton(onClick = { showFirstIndexImageDialog = false }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if ( showFirstIndexVideoDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Indexing Videos") },
+            text = { Text(message) },
+            confirmButton = {
+                TextButton(onClick = { showFirstIndexVideoDialog = false }) {
                     Text("OK")
                 }
             }
