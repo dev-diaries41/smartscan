@@ -205,11 +205,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     @SuppressLint("ImplicitSamInstance")
     private fun updateIndexWorker() {
             viewModelScope.launch {
-                val running = isServiceRunning(application, ImageIndexForegroundService::class.java)
-                if(running){
-                    getApplication<Application>().stopService(Intent(getApplication<Application>(), ImageIndexForegroundService::class.java))
-                }
-                scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
+                scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency, startImmediately = false)
             }
     }
 
