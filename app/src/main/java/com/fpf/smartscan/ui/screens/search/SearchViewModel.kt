@@ -26,7 +26,8 @@ import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getVideoUriFromId
-import com.fpf.smartscan.services.VideoIndexRepository
+import com.fpf.smartscan.lib.processors.ImageIndexListener
+import com.fpf.smartscan.lib.processors.VideoIndexListener
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import com.fpf.smartscan.workers.scheduleVideoIndexWorker
@@ -48,7 +49,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _progress = MutableLiveData(0f)
     val progress: LiveData<Float> = _progress
 
-    val videoIndexProgress = VideoIndexRepository.progress
+    val videoIndexProgress = VideoIndexListener.progress
+    val imageIndexProgress = ImageIndexListener.progress
 
     private var embeddingsHandler: Embeddings? = null
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(

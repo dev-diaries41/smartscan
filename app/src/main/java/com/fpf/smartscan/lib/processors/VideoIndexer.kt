@@ -2,8 +2,10 @@ package com.fpf.smartscan.lib.processors
 
 import android.app.Application
 import android.content.ContentUris
+import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.videos.VideoEmbedding
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
@@ -11,9 +13,13 @@ import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.MemoryUtils
 import com.fpf.smartscan.lib.extractFramesFromVideo
+import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
+import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
@@ -21,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class VideoIndexer(
     private val application: Application,
-    private val listener: IVideoIndexListener? = null
+    private val listener: IIndexListener? = null
 ) {
     var embeddingHandler: Embeddings? = null
 
@@ -41,6 +47,8 @@ class VideoIndexer(
 
     suspend fun indexVideos(ids: List<Long>): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
+        val startTime = System.currentTimeMillis()
+
         try {
             if (ids.isEmpty()) {
                 Log.d(TAG, "No videos to index.")
@@ -93,6 +101,9 @@ class VideoIndexer(
                 }
                 totalProcessed += deferredResults.awaitAll().sum()
             }
+            val endTime = System.currentTimeMillis()
+            val completionTime = endTime - startTime
+            listener?.onComplete(application, totalProcessed, completionTime)
             totalProcessed
         } catch (e: Exception) {
             Log.e(TAG, "Error indexing videos: ${e.message}", e)
@@ -107,9 +118,27 @@ class VideoIndexer(
     }
 }
 
-interface IVideoIndexListener {
-    fun onProgress(processedCount: Int, total:Int)
-    // Additional callbacks can be added as needed:
-    // fun onError(imageId: Long, exception: Exception)
-    // fun onComplete(totalProcessed: Int)
+object VideoIndexListener : IIndexListener {
+    private val _progress = MutableStateFlow(0f)
+    val progress: StateFlow<Float> = _progress
+
+    override fun onProgress(processedCount: Int, total: Int) {
+        val currentProgress = processedCount.toFloat() / total.toFloat()
+        if(currentProgress > 0f){
+            _progress.value = currentProgress
+        }
+    }
+
+    override fun onComplete(context: Context, totalProcessed: Int, processingTime: Long) {
+        if (totalProcessed == 0) return
+
+        try {
+            val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
+            val notificationText = "Total videos indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
+            showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1003)
+        }
+        catch (e: Exception){
+            Log.e("VideoIndexListener", "Error in onComplete ${e.message}", e)
+        }
+    }
 }

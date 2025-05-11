@@ -45,7 +45,7 @@ fun scheduleVideoIndexWorker(context: Context, frequency: String) {
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        WorkerConstants.IMAGE_INDEXER_WORKER,
+        "VideoIndexWorker",
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )

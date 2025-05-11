@@ -12,22 +12,21 @@ import androidx.core.app.NotificationCompat
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.processors.IIndexListener
-import com.fpf.smartscan.lib.processors.VideoIndexListener
-import com.fpf.smartscan.lib.processors.VideoIndexer
+import com.fpf.smartscan.lib.processors.ImageIndexListener
+import com.fpf.smartscan.lib.processors.ImageIndexer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-
-class VideoIndexForegroundService : Service() {
+class ImageIndexForegroundService : Service() {
     companion object {
-        private const val NOTIFICATION_ID = 103
+        private const val NOTIFICATION_ID = 102
     }
 
-    var videoIndexer: VideoIndexer? = null
-    private val listener: IIndexListener = VideoIndexListener
+    var imageIndexer: ImageIndexer? = null
+    private val listener: IIndexListener = ImageIndexListener
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
 
@@ -35,7 +34,7 @@ class VideoIndexForegroundService : Service() {
         super.onCreate()
         createNotificationChannel()
         startForegroundServiceNotification()
-        videoIndexer = VideoIndexer(application, listener)
+        imageIndexer = ImageIndexer(application, listener)
     }
 
     private fun startForegroundServiceNotification() {
@@ -44,9 +43,9 @@ class VideoIndexForegroundService : Service() {
             this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, "video_foreground_service")
-            .setContentTitle("Video Foreground Service")
-            .setContentText("Indexing videos")
+        val notification = NotificationCompat.Builder(this, "image_foreground_service")
+            .setContentTitle("Indexing images")
+            .setContentText("Indexing in progress, this can take a few minutes.")
             .setSmallIcon(R.drawable.smartscan_logo)
             .setContentIntent(activityPendingIntent)
             .build()
@@ -56,8 +55,8 @@ class VideoIndexForegroundService : Service() {
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            "video_foreground_service",
-            "Video Foreground Service",
+            "image_foreground_service",
+            "Image Foreground Service",
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)
@@ -67,11 +66,11 @@ class VideoIndexForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         serviceScope.launch {
             try {
-                val ids = queryAllVideoIds()
-                videoIndexer?.indexVideos(ids)
+                val ids = queryAllImageIds()
+                imageIndexer?.indexImages(ids)
             } catch (e: CancellationException) {
             } catch (t: Throwable) {
-                Log.e("VideoIndexForegroundService", "Indexing failed", t)
+                Log.e("ImageIndexService", "Indexing failed", t)
             }
         }
         return START_NOT_STICKY
@@ -79,30 +78,27 @@ class VideoIndexForegroundService : Service() {
 
     override fun onDestroy() {
         serviceJob.cancel()
-        videoIndexer?.close()
+        imageIndexer?.close()
         super.onDestroy()
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun queryAllVideoIds(): List<Long> {
-        val videoIds = mutableListOf<Long>()
-        val projection = arrayOf(MediaStore.Video.Media._ID)
-        val sortOrder = "${MediaStore.Video.Media.DATE_MODIFIED} DESC"
+    private fun queryAllImageIds(): List<Long> {
+        val imageIds = mutableListOf<Long>()
+        val projection = arrayOf(MediaStore.Images.Media._ID)
+        val sortOrder = "${MediaStore.Images.Media.DATE_MODIFIED} DESC"
 
         applicationContext.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection,
-            null,
-            null,
-            sortOrder
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            projection, null, null, sortOrder
         )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
             while (cursor.moveToNext()) {
-                videoIds.add(cursor.getLong(idColumn))
+                imageIds.add(cursor.getLong(idColumn))
             }
         }
-        return videoIds
+        return imageIds
     }
 
 }
