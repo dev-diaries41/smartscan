@@ -59,6 +59,7 @@ fun SearchScreen(
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val mode by searchViewModel.mode.observeAsState(SearchMode.IMAGE)
     val isFirstIndex by searchViewModel.isFirstIndex.observeAsState(false)
+    val isFirstVideoIndex by searchViewModel.isFirstVideoIndex.observeAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
     val scrollState = rememberScrollState()
 
@@ -81,10 +82,12 @@ fun SearchScreen(
         hasStoragePermission = storageGranted
     }
 
-    LaunchedEffect(isFirstIndex, hasStoragePermission) {
+    LaunchedEffect(isFirstIndex, hasStoragePermission, isFirstVideoIndex, mode) {
         showFirstIndexDialog = isFirstIndex && hasStoragePermission
         if(hasStoragePermission && isFirstIndex){
             searchViewModel.scheduleIndexing(appSettings.indexFrequency)
+        }else if(hasStoragePermission && isFirstVideoIndex && mode == SearchMode.VIDEO){
+            searchViewModel.scheduleVideoIndexing(appSettings.indexFrequency)
         }
     }
 
@@ -134,7 +137,7 @@ fun SearchScreen(
                 }
             }
 
-            if (videoIndexProgress > 0f) {
+            if (videoIndexProgress > 0f && videoIndexProgress <1f) {
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
                     Text(
                         text = "Indexing video ${"%.0f".format(videoIndexProgress * 100)}%",

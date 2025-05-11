@@ -29,6 +29,7 @@ import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.services.VideoIndexRepository
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
+import com.fpf.smartscan.workers.scheduleVideoIndexWorker
 import kotlinx.coroutines.CoroutineScope
 
 enum class SearchMode {
@@ -77,6 +78,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _isFirstIndex = MutableLiveData<Boolean>(false)
     val isFirstIndex: LiveData<Boolean> = _isFirstIndex
 
+    private val _isFirstVideoIndex = MutableLiveData<Boolean>(false)
+    val isFirstVideoIndex: LiveData<Boolean> = _isFirstVideoIndex
+
     private val _mode = MutableLiveData<SearchMode>(SearchMode.IMAGE)
     val mode: LiveData<SearchMode> = _mode
 
@@ -84,8 +88,12 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         observeWorkProgress()
         CoroutineScope(Dispatchers.Default).launch {
             val indexWorkScheduled = isIndexWorkScheduled(WorkerConstants.IMAGE_INDEXER_WORKER)
+            val videoIndexWorkScheduled = isIndexWorkScheduled("VideoIndexWorker")
             if (!indexWorkScheduled) {
                 _isFirstIndex.postValue(true)
+            }
+            if (!videoIndexWorkScheduled) {
+                _isFirstVideoIndex.postValue(true)
             }
             _isLoading.postValue(false)
         }
@@ -264,6 +272,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     fun scheduleIndexing(frequency: String){
         scheduleImageIndexWorker(application, frequency)
         _isFirstIndex.value = false
+    }
+
+    fun scheduleVideoIndexing(frequency: String){
+        scheduleVideoIndexWorker(application, frequency)
+        _isFirstVideoIndex.value = false
     }
 
 
