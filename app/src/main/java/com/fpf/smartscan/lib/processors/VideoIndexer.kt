@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class VideoIndexer(
     private val application: Application,
-    private val listener: VideoIndexListener? = null
+    private val listener: IVideoIndexListener? = null
 ) {
     var embeddingHandler: Embeddings? = null
 
@@ -81,7 +81,7 @@ class VideoIndexer(
                                         )
                                     )
                                     val current = processedCount.incrementAndGet()
-                                    listener?.onProgress(current)
+                                    listener?.onProgress(current, videosToProcess.size)
                                     return@async 1
                                 }
                             } catch (e: Exception) {
@@ -107,8 +107,8 @@ class VideoIndexer(
     }
 }
 
-interface VideoIndexListener {
-    fun onProgress(processedCount: Int)
+interface IVideoIndexListener {
+    fun onProgress(processedCount: Int, total:Int)
     // Additional callbacks can be added as needed:
     // fun onError(imageId: Long, exception: Exception)
     // fun onComplete(totalProcessed: Int)
