@@ -15,6 +15,7 @@ import com.fpf.smartscan.lib.MemoryUtils
 import com.fpf.smartscan.lib.extractFramesFromVideo
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.showNotification
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -105,7 +106,11 @@ class VideoIndexer(
             val completionTime = endTime - startTime
             listener?.onComplete(application, totalProcessed, completionTime)
             totalProcessed
-        } catch (e: Exception) {
+        }
+        catch (e: CancellationException) {
+            throw e
+        }
+        catch (e: Exception) {
             Log.e(TAG, "Error indexing videos: ${e.message}", e)
             0
         }
