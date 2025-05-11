@@ -1,5 +1,6 @@
 package com.fpf.smartscan.ui.screens.search
 
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -84,7 +85,7 @@ fun SearchScreen(
 
     LaunchedEffect(isFirstIndex, hasStoragePermission, isFirstVideoIndex, mode) {
         showFirstIndexDialog = isFirstIndex && hasStoragePermission
-        if(hasStoragePermission && isFirstIndex){
+        if(hasStoragePermission && isFirstIndex && mode == SearchMode.IMAGE){
             searchViewModel.scheduleIndexing(appSettings.indexFrequency)
         }else if(hasStoragePermission && isFirstVideoIndex && mode == SearchMode.VIDEO){
             searchViewModel.scheduleVideoIndexing(appSettings.indexFrequency)
