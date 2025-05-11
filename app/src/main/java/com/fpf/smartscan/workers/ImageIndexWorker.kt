@@ -34,8 +34,9 @@ class ImageIndexWorker(context: Context, workerParams: WorkerParameters) :
     }
 }
 
-fun scheduleImageIndexWorker(context: Context, frequency: String) {
-    val duration = when (frequency) {
+fun scheduleImageIndexWorker(context: Context, frequency: String, startImmediately: Boolean = true
+) {
+    val (interval, unit) = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
@@ -44,14 +45,20 @@ fun scheduleImageIndexWorker(context: Context, frequency: String) {
         }
     }
 
-    val workRequest = PeriodicWorkRequestBuilder<ImageIndexWorker>(duration.first, duration.second)
-        .build()
+    val builder = PeriodicWorkRequestBuilder<ImageIndexWorker>(interval, unit)
+
+    // if editing settings, skip the immediate run
+    if (!startImmediately) {
+        builder.setInitialDelay(interval, unit)
+    }
+
+    val workRequest = builder.build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        WorkerConstants.IMAGE_INDEXER_WORKER,
-        ExistingPeriodicWorkPolicy.REPLACE,
-        workRequest
-    )
+            WorkerConstants.IMAGE_INDEXER_WORKER,
+            ExistingPeriodicWorkPolicy.REPLACE,
+            workRequest
+        )
 }
 
 

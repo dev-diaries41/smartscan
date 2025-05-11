@@ -14,7 +14,7 @@ class VideoIndexWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private const val TAG = "VideoIndexWorker"
+        private const val TAG = WorkerConstants.VIDEO_INDEXER_WORKER
     }
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
@@ -31,8 +31,8 @@ class VideoIndexWorker(context: Context, workerParams: WorkerParameters) :
 }
 
 
-fun scheduleVideoIndexWorker(context: Context, frequency: String) {
-    val duration = when (frequency) {
+fun scheduleVideoIndexWorker(context: Context, frequency: String, startImmediately: Boolean = true) {
+    val (interval, unit) = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
         "1 Week" -> 7L to TimeUnit.DAYS
         else -> {
@@ -41,11 +41,16 @@ fun scheduleVideoIndexWorker(context: Context, frequency: String) {
         }
     }
 
-    val workRequest = PeriodicWorkRequestBuilder<VideoIndexWorker>(duration.first, duration.second)
-        .build()
+    val builder = PeriodicWorkRequestBuilder<VideoIndexWorker>(interval, unit)
+
+    if (!startImmediately) {
+        builder.setInitialDelay(interval, unit)
+    }
+
+    val workRequest = builder.build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        "VideoIndexWorker",
+        WorkerConstants.VIDEO_INDEXER_WORKER,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )
