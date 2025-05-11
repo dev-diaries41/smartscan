@@ -33,6 +33,7 @@ import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.services.ImageIndexForegroundService
+import com.fpf.smartscan.services.VideoIndexForegroundService
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +107,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         _appSettings.value = currentSettings.copy(targetDirectories = directories)
         saveSettings()
     }
-
 
     fun updateDestinationDirectories(directories: List<String>) {
         val currentSettings = _appSettings.value
@@ -194,9 +194,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
             viewModelScope.launch {
-                val (_, count) = isBatchWorkScheduled(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
+                val indexingInProgress = isServiceRunning(application, ImageIndexForegroundService::class.java) || isServiceRunning(application,
+                    VideoIndexForegroundService::class.java)
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
-                val delayInMinutes = if (count > 0) 5L * count else null
+                val delayInMinutes = if (indexingInProgress) 60L else null
                 scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
             }
         }
@@ -262,12 +263,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val workManager = WorkManager.getInstance(getApplication())
         workManager.cancelUniqueWork(WorkerConstants.CLASSIFICATION_WORKER)
         workManager.cancelAllWorkByTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
-    }
-
-    private fun cancelImageIndexWorker(){
-        val workManager = WorkManager.getInstance(getApplication())
-        workManager.cancelUniqueWork(WorkerConstants.IMAGE_INDEXER_WORKER)
-        workManager.cancelAllWorkByTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
     }
 
     private fun loadSettings() {
