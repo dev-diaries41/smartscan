@@ -48,6 +48,7 @@ fun SearchScreen(
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val progress by searchViewModel.progress.observeAsState(0f)
+    val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
@@ -123,6 +124,24 @@ fun SearchScreen(
                     )
                     LinearProgressIndicator(
                         progress = { progress},
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(4.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
+                        strokeCap = StrokeCap.Round,
+                    )
+                }
+            }
+
+            if (videoIndexProgress > 0f) {
+                Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                    Text(
+                        text = "Indexing video ${"%.0f".format(videoIndexProgress * 100)}%",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    LinearProgressIndicator(
+                        progress = { videoIndexProgress},
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(4.dp),
