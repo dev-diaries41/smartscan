@@ -18,7 +18,9 @@ enum class StorageAccess {
 
 fun getStorageAccess(context: Context): StorageAccess {
     return if (
-        checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PERMISSION_GRANTED
+        checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PERMISSION_GRANTED &&
+        checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) == PERMISSION_GRANTED
+
     ) {
         StorageAccess.Full
     } else if (
