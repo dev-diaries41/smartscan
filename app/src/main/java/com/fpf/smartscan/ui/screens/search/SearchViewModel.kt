@@ -46,9 +46,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val workManager = WorkManager.getInstance(application)
 
-    private val _progress = MutableLiveData(0f)
-    val progress: LiveData<Float> = _progress
-
     val videoIndexProgress = VideoIndexListener.progress
     val imageIndexProgress = ImageIndexListener.progress
 
@@ -87,10 +84,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val mode: LiveData<SearchMode> = _mode
 
     init {
-        observeWorkProgress()
         CoroutineScope(Dispatchers.Default).launch {
             val indexWorkScheduled = isIndexWorkScheduled(WorkerConstants.IMAGE_INDEXER_WORKER)
-            val videoIndexWorkScheduled = isIndexWorkScheduled("VideoIndexWorker")
+            val videoIndexWorkScheduled = isIndexWorkScheduled(WorkerConstants.VIDEO_INDEXER_WORKER)
             if (!indexWorkScheduled) {
                 _isFirstIndex.postValue(true)
             }
@@ -98,29 +94,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 _isFirstVideoIndex.postValue(true)
             }
             _isLoading.postValue(false)
-        }
-    }
-
-    private fun observeWorkProgress() {
-        workManager.getWorkInfosByTagLiveData(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER).observeForever { infos ->
-            if (infos.isNullOrEmpty()) {
-                _progress.postValue(0f)
-                return@observeForever
-            }
-
-            val runningWorker = infos.firstOrNull { it.state == WorkInfo.State.RUNNING }
-            if (runningWorker != null) {
-                val processedCount = runningWorker.progress.getInt("processed_count", 0)
-                if (processedCount == 0) return@observeForever
-                val totalCount = runningWorker.progress.getInt("total_count", 1).takeIf { it > 0 } ?: 1
-                val normalizedProgress = processedCount.toFloat() / totalCount.toFloat()
-                _progress.postValue(normalizedProgress)
-            } else {
-                val enqueued = infos.any { it.state == WorkInfo.State.ENQUEUED }
-                if (!enqueued) {
-                    _progress.postValue(0f)
-                }
-            }
         }
     }
 
@@ -283,7 +256,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
 
     override fun onCleared() {
-        super.onCleared()
         embeddingsHandler?.closeSession()
+        super.onCleared()
     }
 }
