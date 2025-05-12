@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -167,24 +168,26 @@ fun SettingsIncrementor(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = {
+                    IconButton(
+                        modifier = Modifier.size(24.dp).weight(1f),
+                        onClick = {
                         if ((value.toIntOrNull() ?: 0) > minValue) onDecrement()
                     }) {
-                        Icon(Icons.Default.Remove,
-                            contentDescription = "Decrement",
-                        )
+                        Icon(Icons.Default.Remove, contentDescription = "Decrement",)
                     }
 
                     Text(
                         text = value,
-                        style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = textColor,
+                        fontSize = 12.sp,
                         modifier = Modifier
                             .padding(horizontal = 4.dp)
                     )
 
-                    IconButton(onClick = {
+                    IconButton(
+                        modifier = Modifier.size(24.dp).weight(1f),
+                        onClick = {
                         if ((value.toIntOrNull() ?: 0) < maxValue) onIncrement()
                     }) {
                         Icon(Icons.Default.Add, contentDescription = "Increment")
