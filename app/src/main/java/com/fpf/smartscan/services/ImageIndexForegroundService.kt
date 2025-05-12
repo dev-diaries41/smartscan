@@ -74,6 +74,7 @@ class ImageIndexForegroundService : Service() {
             } catch (t: Throwable) {
                 Log.e(TAG, "Indexing failed", t)
             }finally {
+                stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
         }
