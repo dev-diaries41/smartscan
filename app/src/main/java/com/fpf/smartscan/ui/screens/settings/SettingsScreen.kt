@@ -30,7 +30,6 @@ import com.fpf.smartscan.ui.components.SettingsIncrementor
 import androidx.core.net.toUri
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
-import com.fpf.smartscan.workers.scheduleImageIndexWorker
 
 @Composable
 fun SettingsScreen(
@@ -48,27 +47,46 @@ fun SettingsScreen(
         null
     }
 
-    val refreshMessageFull = stringResource(R.string.setting_refresh_image_index_description_full)
-    val refreshMessagePartial = stringResource(R.string.setting_refresh_image_index_description_partial)
-    val refreshMessageDenied = stringResource(R.string.setting_refresh_image_index_description_denied)
+    val refreshMessageFull = stringResource(R.string.setting_refresh_index_description_full)
+    val refreshMessagePartial = stringResource(R.string.setting_refresh_index_description_partial)
+    val refreshMessageDenied = stringResource(R.string.setting_refresh_index_description_denied)
 
-    var showRefreshDialog by remember { mutableStateOf(false) }
+    var showRefreshImageIndexDialog by remember { mutableStateOf(false) }
+    var showRefreshVideoIndexDialog by remember { mutableStateOf(false) }
     var refreshDialogMessage by remember { mutableStateOf("") }
     var currentStorageAccess by remember { mutableStateOf(StorageAccess.Full) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (showRefreshDialog) {
+        if (showRefreshImageIndexDialog || showRefreshVideoIndexDialog) {
             AlertDialog(
-                onDismissRequest = { showRefreshDialog = false },
-                title = { Text(text = stringResource(id = R.string.setting_refresh_image_index)) },
+                onDismissRequest = {
+                    if(showRefreshImageIndexDialog) {
+                    showRefreshImageIndexDialog = false
+                }else{
+                        showRefreshVideoIndexDialog = false
+                    }
+                                   },
+                title = { Text(text = if (showRefreshImageIndexDialog) {
+                    stringResource(id = R.string.setting_refresh_image_index)
+                } else {
+                    stringResource(id = R.string.setting_refresh_video_index)
+                }) },
                 text = { Text(text = refreshDialogMessage) },
                 confirmButton = {
                     TextButton(
                         onClick = {
                             if (currentStorageAccess != StorageAccess.Denied) {
-                                viewModel.refreshImageIndex()
+                                if(showRefreshImageIndexDialog){
+                                    viewModel.refreshImageIndex()
+                                }else{
+                                    viewModel.refreshVideoIndex()
+                                }
                             }
-                            showRefreshDialog = false
+                            if(showRefreshImageIndexDialog){
+                                showRefreshImageIndexDialog = false
+                            }else{
+                                showRefreshVideoIndexDialog = false
+                            }
                         }
                     ) {
                         Text(text = "Confirm")
@@ -76,7 +94,12 @@ fun SettingsScreen(
                 },
                 dismissButton = {
                     TextButton(
-                        onClick = { showRefreshDialog = false }
+                        onClick = {
+                            if(showRefreshImageIndexDialog){
+                            showRefreshImageIndexDialog = false
+                        }else{
+                            showRefreshVideoIndexDialog = false
+                        } }
                     ) {
                         Text(text = "Cancel")
                     }
@@ -133,20 +156,20 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
 
-                SettingsCard(
-                    text = stringResource(id = R.string.setting_refresh_image_index),
-                    description = stringResource(id = R.string.setting_refresh_image_index_description_warning),
-                    onClick = {
-                        val storageAccess = getStorageAccess(context)
-                        currentStorageAccess = storageAccess
-                        refreshDialogMessage = when (storageAccess) {
-                            StorageAccess.Full -> refreshMessageFull
-                            StorageAccess.Partial -> refreshMessagePartial
-                            StorageAccess.Denied -> refreshMessageDenied
-                        }
-                        showRefreshDialog = true
-                    }
+                SettingsIncrementor(
+                    minValue = 1,
+                    maxValue = 20,
+                    onDecrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults - 1).toString())},
+                    onIncrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults + 1).toString())},
+                    value = appSettings.numberSimilarResults.toString(),
+                    label = stringResource(id = R.string.setting_number_similar_results),
                 )
+
+                SettingsCard(
+                    text = stringResource(id = R.string.setting_similarity_threshold),
+                    onClick = { onNavigate("settingsDetail/threshold") }
+                )
+
 
                 SettingsSelect(
                     label = stringResource(id = R.string.setting_index_frequency),
@@ -157,22 +180,38 @@ fun SettingsScreen(
                     selectedOption = appSettings.indexFrequency,
                     onOptionSelected = { selected ->
                         viewModel.updateIndexFrequency(selected)
+                    },
+                    description = stringResource(id = R.string.setting_index_frequency_description)
+                )
+
+                SettingsCard(
+                    text = stringResource(id = R.string.setting_refresh_image_index),
+                    description = stringResource(id = R.string.setting_refresh_media_index_description_warning),
+                    onClick = {
+                        val storageAccess = getStorageAccess(context)
+                        currentStorageAccess = storageAccess
+                        refreshDialogMessage = when (storageAccess) {
+                            StorageAccess.Full -> refreshMessageFull
+                            StorageAccess.Partial -> refreshMessagePartial
+                            StorageAccess.Denied -> refreshMessageDenied
+                        }
+                        showRefreshImageIndexDialog = true
                     }
                 )
 
                 SettingsCard(
-                    text = stringResource(id = R.string.setting_similarity_threshold),
-                    onClick = { onNavigate("settingsDetail/threshold") }
-                )
-
-
-                SettingsIncrementor(
-                    minValue = 1,
-                    maxValue = 20,
-                    onDecrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults - 1).toString())},
-                    onIncrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults + 1).toString())},
-                    value = appSettings.numberSimilarResults.toString(),
-                    label = stringResource(id = R.string.setting_number_similar_results),
+                    text = stringResource(id = R.string.setting_refresh_video_index),
+                    description = stringResource(id = R.string.setting_refresh_media_index_description_warning),
+                    onClick = {
+                        val storageAccess = getStorageAccess(context)
+                        currentStorageAccess = storageAccess
+                        refreshDialogMessage = when (storageAccess) {
+                            StorageAccess.Full -> refreshMessageFull
+                            StorageAccess.Partial -> refreshMessagePartial
+                            StorageAccess.Denied -> refreshMessageDenied
+                        }
+                        showRefreshVideoIndexDialog = true
+                    }
                 )
 
 
