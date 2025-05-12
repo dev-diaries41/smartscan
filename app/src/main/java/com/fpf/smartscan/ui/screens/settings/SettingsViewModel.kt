@@ -29,6 +29,8 @@ import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
+import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
@@ -36,6 +38,7 @@ import com.fpf.smartscan.services.ImageIndexForegroundService
 import com.fpf.smartscan.services.VideoIndexForegroundService
 import com.fpf.smartscan.workers.WorkerConstants
 import com.fpf.smartscan.workers.scheduleImageIndexWorker
+import com.fpf.smartscan.workers.scheduleVideoIndexWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -221,6 +224,20 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
             imageRepository.deleteAllEmbeddings()
             scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
+        }
+    }
+
+    @SuppressLint("ImplicitSamInstance")
+    fun refreshVideoIndex() {
+        viewModelScope.launch {
+            val videoRepository = VideoEmbeddingRepository(VideoEmbeddingDatabase.getDatabase(getApplication()).videoEmbeddingDao())
+            val running = isServiceRunning(application, VideoIndexForegroundService::class.java)
+            if(running){
+                getApplication<Application>().stopService(Intent(getApplication<Application>(),
+                    VideoIndexForegroundService::class.java))
+            }
+            videoRepository.deleteAllEmbeddings()
+            scheduleVideoIndexWorker(getApplication(), _appSettings.value.indexFrequency)
         }
     }
 

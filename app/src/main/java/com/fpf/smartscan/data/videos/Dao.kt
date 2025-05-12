@@ -19,6 +19,9 @@ interface VideoEmbeddingDao {
     @Delete
     suspend fun deleteVideoEmbedding(videoEmbedding: VideoEmbedding)
 
+    @Query("DELETE FROM video_embeddings")
+    suspend fun deleteAll()
+
     @Query("SELECT EXISTS(SELECT 1 FROM video_embeddings WHERE id = :id)")
     suspend fun isVideoIndexed(id: Long): Boolean
 

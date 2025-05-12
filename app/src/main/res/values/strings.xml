@@ -69,6 +69,7 @@
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
     <string name="setting_index_frequency">Index frequency</string>
+    <string name="setting_index_frequency_description">Schedule for auto-updates of video and image indexes.</string>
     <string name="setting_test_model_description">Upload an image to see the classification result</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
     <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
@@ -76,16 +77,17 @@
 
     <!-- Refresh image index -->
     <string name="setting_refresh_image_index">Refresh image index</string>
-    <string name="setting_refresh_image_index_description_warning">Auto-updates based on the index frequency setting. Refresh manually only if necessary — it performs a full reset.</string>
+    <string name="setting_refresh_video_index">Refresh video index</string>
+    <string name="setting_refresh_media_index_description_warning">Refresh manually only if necessary — it performs a full reset.</string>
 
-    <string name="setting_refresh_image_index_description_full">
-        Manually refresh image index. This can take up to a few minutes.
+    <string name="setting_refresh_index_description_full">
+        Manually refresh index. This can take up to a few minutes.
     </string>
 
-    <string name="setting_refresh_image_index_description_partial">
-        Manually refresh image index. This can take up to a few minutes, but only the selected images will be indexed.
+    <string name="setting_refresh_index_description_partial">
+        Manually refresh index. This can take up to a few minutes, but only the selected images will be indexed.
     </string>
-    <string name="setting_refresh_image_index_description_denied">
+    <string name="setting_refresh_index_description_denied">
         Missing storage permissions. Please grant storage permissions.
     </string>
 
