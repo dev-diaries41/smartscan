@@ -50,7 +50,7 @@
 
     <!-- Scan history screen -->
     <string name="no_scan_history">No Scan History</string>
-    <string name="no_scan_history_description">"Enable scan in settings to allow smart folder organisation"</string>
+    <string name="no_scan_history_description">"Enable auto-organisation in settings to allow smart folder organisation"</string>
 
     <!-- Settings-related strings -->
     <string name="image_management_settings">Image Management</string>
