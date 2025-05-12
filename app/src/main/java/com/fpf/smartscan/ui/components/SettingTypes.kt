@@ -59,7 +59,7 @@ fun SettingsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -94,7 +94,7 @@ fun SettingsSwitch(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -136,7 +136,7 @@ fun SettingsIncrementor(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -265,7 +265,7 @@ fun SettingsSelect(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
