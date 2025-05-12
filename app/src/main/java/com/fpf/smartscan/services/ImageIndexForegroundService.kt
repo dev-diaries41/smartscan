@@ -23,6 +23,8 @@ import kotlinx.coroutines.launch
 class ImageIndexForegroundService : Service() {
     companion object {
         private const val NOTIFICATION_ID = 102
+        private const val TAG = "ImageIndexForegroundService"
+
     }
 
     var imageIndexer: ImageIndexer? = null
@@ -43,9 +45,9 @@ class ImageIndexForegroundService : Service() {
             this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, "image_foreground_service")
-            .setContentTitle("Indexing images")
-            .setContentText("Indexing in progress, this can take a few minutes.")
+        val notification = NotificationCompat.Builder(this, getString(R.string.service_image_index_notification_channel_id))
+            .setContentTitle(getString(R.string.notif_title_image_index_service))
+            .setContentText(getString(R.string.notif_content_index_service))
             .setSmallIcon(R.drawable.smartscan_logo)
             .setContentIntent(activityPendingIntent)
             .build()
@@ -55,8 +57,8 @@ class ImageIndexForegroundService : Service() {
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            "image_foreground_service",
-            "Image Foreground Service",
+            getString(R.string.service_image_index_notification_channel_id),
+            getString(R.string.service_image_index_notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)
@@ -70,7 +72,9 @@ class ImageIndexForegroundService : Service() {
                 imageIndexer?.indexImages(ids)
             } catch (e: CancellationException) {
             } catch (t: Throwable) {
-                Log.e("ImageIndexService", "Indexing failed", t)
+                Log.e(TAG, "Indexing failed", t)
+            }finally {
+                stopSelf()
             }
         }
         return START_NOT_STICKY

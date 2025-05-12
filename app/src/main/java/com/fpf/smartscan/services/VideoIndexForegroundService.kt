@@ -24,6 +24,7 @@ import kotlinx.coroutines.launch
 class VideoIndexForegroundService : Service() {
     companion object {
         private const val NOTIFICATION_ID = 103
+        private const val TAG = "VideoIndexForegroundService"
     }
 
     var videoIndexer: VideoIndexer? = null
@@ -44,9 +45,9 @@ class VideoIndexForegroundService : Service() {
             this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, "video_foreground_service")
-            .setContentTitle("Video Foreground Service")
-            .setContentText("Indexing videos")
+        val notification = NotificationCompat.Builder(this, getString(R.string.service_video_index_notification_channel_id))
+            .setContentTitle(getString(R.string.notif_title_video_index_service))
+            .setContentText(getString(R.string.notif_content_index_service))
             .setSmallIcon(R.drawable.smartscan_logo)
             .setContentIntent(activityPendingIntent)
             .build()
@@ -56,8 +57,8 @@ class VideoIndexForegroundService : Service() {
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            "video_foreground_service",
-            "Video Foreground Service",
+            getString(R.string.service_video_index_notification_channel_id),
+            getString(R.string.service_video_index_notification_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)
@@ -71,7 +72,9 @@ class VideoIndexForegroundService : Service() {
                 videoIndexer?.indexVideos(ids)
             } catch (e: CancellationException) {
             } catch (t: Throwable) {
-                Log.e("VideoIndexForegroundService", "Indexing failed", t)
+                Log.e(TAG, "Indexing failed", t)
+            }finally {
+                stopSelf()
             }
         }
         return START_NOT_STICKY
