@@ -9,11 +9,18 @@
     <string name="title_scan_history">Scan History</string>
     <string name="title_test_organisation">Test SmartScan</string>
 
-
     <!-- Notifications -->
     <string name="worker_channel_id">Background Tasks</string>
     <string name="worker_channel_name">Background Tasks Notifications</string>
     <string name="worker_channel_description">Notifications for background tasks</string>
+    <string name="service_image_index_notification_channel_id">Image Index</string>
+    <string name="service_image_index_notification_channel_name">Image Index Notifications</string>
+    <string name="service_video_index_notification_channel_id">Video Index</string>
+    <string name="service_video_index_notification_channel_name">Video Index Notifications</string>
+
+    <string name="notif_title_image_index_service">Indexing images</string>
+    <string name="notif_title_video_index_service">Indexing videos</string>
+    <string name="notif_content_index_service">Indexing in progress, this can take a few minutes.</string>
 
     <string name="notif_title_smart_scan_complete">Smart scan complete</string>
     <string name="notif_title_index_complete">Indexing complete</string>
@@ -21,7 +28,6 @@
     <string name="notif_title_index_issue_description">It will automatically try to resume. If the problem does not resolve within a few minutes, you can restart indexing manually from Settings.</string>
     <string name="notif_title_smart_scan_issue">Smart scan issue detected</string>
     <string name="notif_title_smart_scan_issue_description">You can manually restart it by toggling `Enable scan` in settings or leave it to run at the next scheduled time.</string>
-
 
     <!-- Search screen -->
     <string name="first_indexing">
