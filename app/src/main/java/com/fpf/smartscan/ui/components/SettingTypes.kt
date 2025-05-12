@@ -1,6 +1,7 @@
 package com.fpf.smartscan.ui.components
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
@@ -155,6 +157,7 @@ fun SettingsIncrementor(
                     .width(140.dp)
                     .height(40.dp)
                     .clip(RoundedCornerShape(percent = 50))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outline,
@@ -254,7 +257,8 @@ fun SettingsSelect(
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
     description: String? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    showLabel: Boolean = true,
 ) {
     val textColor = if (enabled)
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
@@ -272,7 +276,7 @@ fun SettingsSelect(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            if(label.isNotEmpty()){
+            if(label.isNotEmpty() && showLabel){
                 Text(
                     text = label,
                     style = MaterialTheme.typography.labelLarge,
@@ -283,7 +287,10 @@ fun SettingsSelect(
             OutlinedButton(
                 onClick = { showDialog = true },
                 enabled = enabled,
-                modifier = Modifier.widthIn(max = 140.dp)
+                modifier = Modifier.widthIn(max = 140.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)  // 50% transparent red
+                )
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -300,6 +307,7 @@ fun SettingsSelect(
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Dropdown",
+                        tint = if(enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
             }
