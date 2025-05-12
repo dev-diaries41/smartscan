@@ -128,7 +128,7 @@ fun SettingsScreen(
                     }
                 )
                 Text(
-                    text = stringResource(id = R.string.image_search_settings),
+                    text = stringResource(id = R.string.media_search_settings),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp)
                 )
