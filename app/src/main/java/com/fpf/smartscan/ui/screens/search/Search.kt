@@ -172,7 +172,8 @@ fun SearchScreen(
             }
 
             SettingsSelect(
-                label = "",
+                showLabel = false,
+                label = "Search Mode",
                 options = searchModeOptions.values.toList(),
                 selectedOption = searchModeOptions[mode]!!,
                 onOptionSelected = { selected ->
