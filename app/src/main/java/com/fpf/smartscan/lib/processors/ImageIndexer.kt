@@ -82,7 +82,6 @@ class ImageIndexer(
                                     embeddingHandler?.generateImageEmbedding(bitmap)
                                 }
 
-                                ensureActive()
                                 bitmap.recycle()
                                 if (embedding != null) {
                                     repository.insert(
@@ -128,6 +127,8 @@ class ImageIndexer(
 }
 
 object ImageIndexListener : IIndexListener {
+    const val NOTIFICATION_ID = 1002
+    const val TAG = "ImageIndexListener"
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
@@ -152,21 +153,22 @@ object ImageIndexListener : IIndexListener {
             _indexingInProgress.value = false
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
             val notificationText = "Total images indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
-            showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1002)
+            showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, NOTIFICATION_ID)
         }
         catch (e: Exception){
-            Log.e("ImageIndexListener", "Error in onComplete ${e.message}", e)
+            Log.e(TAG, "Error in onComplete: ${e.message}", e)
         }
     }
 
     override fun onError(context: Context, error: Exception) {
         try {
             _indexingInProgress.value = false
-            val notificationText = "Error occurred during indexing"
-            showNotification(context, "Image indexing error", notificationText, 1002)
+            val title = context.getString(R.string.notif_title_index_error_service, "Image")
+            val content = context.getString(R.string.notif_content_index_error_service, "image")
+            showNotification(context, title, content, NOTIFICATION_ID)
         }
         catch (e: Exception){
-            Log.e("ImageIndexListener", "Error in onError ${e.message}", e)
+            Log.e(TAG, "Error in onError: ${e.message}", e)
         }
     }
 

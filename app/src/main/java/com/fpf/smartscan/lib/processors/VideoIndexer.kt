@@ -79,7 +79,7 @@ class VideoIndexer(
 
                                 if(frameBitmaps == null) return@async 0
 
-                                val embedding: FloatArray? = embeddingHandler?.generatePrototypeEmbedding(frameBitmaps)
+                                val embedding: FloatArray? = embeddingHandler?.generatePrototypeEmbedding(frameBitmaps!!)
 
                                 if (embedding != null) {
                                     repository.insert(
@@ -125,6 +125,8 @@ class VideoIndexer(
 }
 
 object VideoIndexListener : IIndexListener {
+    const val NOTIFICATION_ID = 1003
+    const val TAG = "VideoIndexListener"
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
@@ -148,21 +150,22 @@ object VideoIndexListener : IIndexListener {
             _indexingInProgress.value = false
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
             val notificationText = "Total videos indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
-            showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1003)
+            showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, NOTIFICATION_ID)
         }
         catch (e: Exception){
-            Log.e("VideoIndexListener", "Error in onComplete ${e.message}", e)
+            Log.e(TAG, "Error in onComplete: ${e.message}", e)
         }
     }
 
     override fun onError(context: Context, error: Exception) {
         try {
             _indexingInProgress.value = false
-            val notificationText = "Error occurred during indexing"
-            showNotification(context, "Video indexing error", notificationText, 1002)
+            val title = context.getString(R.string.notif_title_index_error_service, "Video")
+            val content = context.getString(R.string.notif_content_index_error_service, "video")
+            showNotification(context, title, content, NOTIFICATION_ID)
         }
         catch (e: Exception){
-            Log.e("ImageIndexListener", "Error in onError ${e.message}", e)
+            Log.e(TAG, "Error in onError: ${e.message}", e)
         }
     }
 }
