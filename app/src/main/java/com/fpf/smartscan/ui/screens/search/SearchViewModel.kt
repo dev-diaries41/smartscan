@@ -47,7 +47,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val workManager = WorkManager.getInstance(application)
 
     val videoIndexProgress = VideoIndexListener.progress
+    val isIndexingVideos = VideoIndexListener.indexingInProgress
     val imageIndexProgress = ImageIndexListener.progress
+    val isIndexingImages = ImageIndexListener.indexingInProgress
 
     private var embeddingsHandler: Embeddings? = null
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(

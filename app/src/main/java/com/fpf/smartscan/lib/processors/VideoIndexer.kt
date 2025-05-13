@@ -111,6 +111,7 @@ class VideoIndexer(
             throw e
         }
         catch (e: Exception) {
+            listener?.onError(application, e)
             Log.e(TAG, "Error indexing videos: ${e.message}", e)
             0
         }
@@ -127,9 +128,15 @@ object VideoIndexListener : IIndexListener {
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
+    private val _indexingInProgress = MutableStateFlow(false)
+    val indexingInProgress: StateFlow<Boolean> = _indexingInProgress
+
     override fun onProgress(processedCount: Int, total: Int) {
         val currentProgress = processedCount.toFloat() / total.toFloat()
         if(currentProgress > 0f){
+            if(!_indexingInProgress.value){
+                _indexingInProgress.value = true
+            }
             _progress.value = currentProgress
         }
     }
@@ -138,12 +145,24 @@ object VideoIndexListener : IIndexListener {
         if (totalProcessed == 0) return
 
         try {
+            _indexingInProgress.value = false
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
             val notificationText = "Total videos indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
             showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1003)
         }
         catch (e: Exception){
             Log.e("VideoIndexListener", "Error in onComplete ${e.message}", e)
+        }
+    }
+
+    override fun onError(context: Context, error: Exception) {
+        try {
+            _indexingInProgress.value = false
+            val notificationText = "Error occurred during indexing"
+            showNotification(context, "Video indexing error", notificationText, 1002)
+        }
+        catch (e: Exception){
+            Log.e("ImageIndexListener", "Error in onError ${e.message}", e)
         }
     }
 }
