@@ -49,6 +49,8 @@ fun SearchScreen(
 ) {
     val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
+    val isIndexingImages by searchViewModel.isIndexingImages.collectAsState()
+    val isIndexingVideos by searchViewModel.isIndexingVideos.collectAsState()
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
@@ -172,6 +174,7 @@ fun SearchScreen(
             }
 
             SettingsSelect(
+                enabled = (!isIndexingVideos && !isIndexingImages), // prevent switching modes when indexing in progress
                 showLabel = false,
                 label = "Search Mode",
                 options = searchModeOptions.values.toList(),

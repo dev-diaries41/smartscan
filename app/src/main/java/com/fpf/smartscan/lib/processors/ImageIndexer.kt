@@ -114,6 +114,7 @@ class ImageIndexer(
             throw e
         }
         catch (e: Exception) {
+            listener?.onError(application, e)
             Log.e(TAG, "Error indexing images: ${e.message}", e)
             0
         }
@@ -130,9 +131,16 @@ object ImageIndexListener : IIndexListener {
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
+    private val _indexingInProgress = MutableStateFlow(false)
+    val indexingInProgress: StateFlow<Boolean> = _indexingInProgress
+
     override fun onProgress(processedCount: Int, total: Int) {
         val currentProgress = processedCount.toFloat() / total.toFloat()
         if(currentProgress > 0f){
+            if(!_indexingInProgress.value){
+                _indexingInProgress.value = true
+            }
+
             _progress.value = currentProgress
         }
     }
@@ -141,6 +149,7 @@ object ImageIndexListener : IIndexListener {
         if (totalProcessed == 0) return
 
         try {
+            _indexingInProgress.value = false
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
             val notificationText = "Total images indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
             showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, 1002)
@@ -149,4 +158,16 @@ object ImageIndexListener : IIndexListener {
             Log.e("ImageIndexListener", "Error in onComplete ${e.message}", e)
         }
     }
+
+    override fun onError(context: Context, error: Exception) {
+        try {
+            _indexingInProgress.value = false
+            val notificationText = "Error occurred during indexing"
+            showNotification(context, "Image indexing error", notificationText, 1002)
+        }
+        catch (e: Exception){
+            Log.e("ImageIndexListener", "Error in onError ${e.message}", e)
+        }
+    }
+
 }
