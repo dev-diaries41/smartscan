@@ -138,7 +138,7 @@ fun SearchScreen(
             if (imageIndexProgress > 0f && imageIndexProgress < 1f) {
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
                     Text(
-                        text = "Indexing ${"%.0f".format(imageIndexProgress * 100)}%",
+                        text = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
                         style = MaterialTheme.typography.bodySmall
                     )
                     LinearProgressIndicator(
@@ -156,7 +156,7 @@ fun SearchScreen(
             if (videoIndexProgress > 0f && videoIndexProgress <1f) {
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
                     Text(
-                        text = "Indexing video ${"%.0f".format(videoIndexProgress * 100)}%",
+                        text = "Indexing videos ${"%.0f".format(videoIndexProgress * 100)}%",
                         style = MaterialTheme.typography.bodySmall
                     )
                     LinearProgressIndicator(
