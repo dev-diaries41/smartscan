@@ -37,8 +37,6 @@ import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.services.ImageIndexForegroundService
 import com.fpf.smartscan.services.VideoIndexForegroundService
 import com.fpf.smartscan.workers.WorkerConstants
-import com.fpf.smartscan.workers.scheduleImageIndexWorker
-import com.fpf.smartscan.workers.scheduleVideoIndexWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -102,7 +100,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(indexFrequency = frequency)
         saveSettings()
-        updateIndexWorker()
     }
 
     fun updateTargetDirectories(directories: List<String>) {
@@ -206,12 +203,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    @SuppressLint("ImplicitSamInstance")
-    private fun updateIndexWorker() {
-            viewModelScope.launch {
-                scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency, startImmediately = false)
-            }
-    }
 
     @SuppressLint("ImplicitSamInstance")
     fun refreshImageIndex() {
@@ -223,7 +214,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                     ImageIndexForegroundService::class.java))
             }
             imageRepository.deleteAllEmbeddings()
-            scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
+            startIndexing()
         }
     }
 
@@ -237,7 +228,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                     VideoIndexForegroundService::class.java))
             }
             videoRepository.deleteAllEmbeddings()
-            scheduleVideoIndexWorker(getApplication(), _appSettings.value.indexFrequency)
+            startVideoIndexing()
         }
     }
 
@@ -256,6 +247,18 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 updateWorker()
             }
         }
+    }
+
+    fun startIndexing(){
+        application.startForegroundService(
+            Intent(application, ImageIndexForegroundService::class.java)
+        )
+    }
+
+    fun startVideoIndexing(){
+        application.startForegroundService(
+            Intent(application, VideoIndexForegroundService::class.java)
+        )
     }
 
     fun verifyDir(uri: Uri, context: Context): Boolean {
@@ -303,16 +306,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             val jsonSettings = Json.encodeToString(_appSettings.value)
             storage.setItem("app_settings", jsonSettings)
         }
-    }
-
-    private suspend fun isBatchWorkScheduled(workerTag: String): Pair<Boolean, Int> = withContext(Dispatchers.IO) {
-        val workManager = WorkManager.getInstance(getApplication())
-        val workInfoList = workManager.getWorkInfosByTag(workerTag).get()
-        val count = workInfoList.count {
-            it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED
-        }
-        val isScheduled = count > 0
-        Pair(isScheduled, count)
     }
 
     private suspend fun isWorkScheduled(context: Context, workName: String): Boolean {
