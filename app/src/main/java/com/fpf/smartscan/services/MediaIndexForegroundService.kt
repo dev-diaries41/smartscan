@@ -14,7 +14,6 @@ import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
-import com.fpf.smartscan.lib.processors.IIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
 import com.fpf.smartscan.lib.processors.VideoIndexListener
@@ -39,7 +38,6 @@ class MediaIndexForegroundService : Service() {
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
 
     private var embeddingHandler: Embeddings? = null
-    private lateinit var listener: IIndexListener
 
     override fun onCreate() {
         super.onCreate()
@@ -86,15 +84,13 @@ class MediaIndexForegroundService : Service() {
                 if(embeddingHandler == null) throw IllegalStateException("Embedding handler not initialised")
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
-                    listener = ImageIndexListener
-                    val imageIndexer = ImageIndexer(application, listener)
+                    val imageIndexer = ImageIndexer(application, ImageIndexListener)
                     val ids = queryAllImageIds()
                     imageIndexer.indexImages(ids, embeddingHandler!!)
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
-                    listener = VideoIndexListener
-                    val videoIndexer = VideoIndexer(application, listener)
+                    val videoIndexer = VideoIndexer(application, VideoIndexListener)
                     val ids = queryAllVideoIds()
                     videoIndexer.indexVideos(ids, embeddingHandler!!)
                 }
@@ -104,6 +100,7 @@ class MediaIndexForegroundService : Service() {
                 Log.e(TAG, "Indexing failed:", t)
             } finally {
                 storage.setItem("lastIndexed", System.currentTimeMillis().toString())
+                embeddingHandler?.closeSession()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
@@ -113,7 +110,6 @@ class MediaIndexForegroundService : Service() {
 
     override fun onDestroy() {
         serviceJob.cancel()
-        embeddingHandler?.closeSession()
         super.onDestroy()
     }
 

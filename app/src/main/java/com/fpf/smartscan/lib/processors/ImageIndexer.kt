@@ -121,13 +121,15 @@ object ImageIndexListener : IIndexListener {
     val indexingInProgress: StateFlow<Boolean> = _indexingInProgress
 
     override fun onProgress(processedCount: Int, total: Int) {
+        if(!_indexingInProgress.value){
+            _indexingInProgress.value = true
+        }
         val currentProgress = processedCount.toFloat() / total.toFloat()
-        if(currentProgress > 0f){
-            if(!_indexingInProgress.value){
-                _indexingInProgress.value = true
-            }
-
+        if(currentProgress - _progress.value >= 0.01f){
             _progress.value = currentProgress
+        }
+        else if(processedCount == total){
+            _progress.value = 1f
         }
     }
 
@@ -136,6 +138,7 @@ object ImageIndexListener : IIndexListener {
 
         try {
             _indexingInProgress.value = false
+            _progress.value = 0f
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
             val notificationText = "Total images indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
             showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, NOTIFICATION_ID)
@@ -148,6 +151,7 @@ object ImageIndexListener : IIndexListener {
     override fun onError(context: Context, error: Exception) {
         try {
             _indexingInProgress.value = false
+            _progress.value = 0f
             val title = context.getString(R.string.notif_title_index_error_service, "Image")
             val content = context.getString(R.string.notif_content_index_error_service, "image")
             showNotification(context, title, content, NOTIFICATION_ID)
