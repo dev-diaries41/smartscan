@@ -3,12 +3,21 @@ package com.fpf.smartscan
 import android.os.Bundle
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.fpf.smartscan.lib.Storage
+import com.fpf.smartscan.services.ImageIndexForegroundService
+import com.fpf.smartscan.services.VideoIndexForegroundService
+import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.theme.MyAppTheme
+import kotlinx.serialization.json.Json
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
+    private var hasCheckedIndexThisSession = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -25,6 +34,43 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onResume(){
+        super.onResume()
+        if (hasCheckedIndexThisSession) return
+        hasCheckedIndexThisSession = true
+        val storage = Storage.getInstance(applicationContext)
+        val jsonSettings = storage.getItem("app_settings")
+        val appSettings = if (jsonSettings != null) {
+            try {
+                Json.decodeFromString<AppSettings>(jsonSettings)
+            } catch (e: Exception) {
+                AppSettings()
+            }
+        } else {
+            AppSettings()
+        }
+
+        val lastIndexed = storage.getItem("lastIndexed")?.toLongOrNull() ?: 0L
+        val now = System.currentTimeMillis()
+
+
+        val shouldIndex = when (appSettings.indexFrequency) {
+            "1 Day" -> (now - lastIndexed) > TimeUnit.DAYS.toMillis(1)
+            "1 Week" -> (now - lastIndexed) > TimeUnit.DAYS.toMillis(7)
+            else -> false
+        }
+
+        if (shouldIndex) {
+            applicationContext.startForegroundService(
+                Intent(applicationContext, ImageIndexForegroundService::class.java)
+            )
+            applicationContext.startForegroundService(
+                Intent(applicationContext, VideoIndexForegroundService::class.java)
+            )
+        }
+    }
+
     private fun createNotificationChannel(channelId: String, channelName: String, description: String) {
         val notificationManager = getSystemService(NotificationManager::class.java)
 

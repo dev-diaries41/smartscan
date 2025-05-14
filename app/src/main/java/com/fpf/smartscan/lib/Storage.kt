@@ -3,13 +3,11 @@ package com.fpf.smartscan.lib
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 /**
  * A Storage class similar to React Native's AsyncStorage.
  *
- * Provides asynchronous APIs for setItem, getItem, deleteItem, clear, and getAllKeys.
+ * Provides APIs for setItem, getItem, deleteItem, clear, and getAllKeys.
  */
 class Storage private constructor(context: Context) {
 
@@ -29,34 +27,29 @@ class Storage private constructor(context: Context) {
         }
     }
 
-
-    suspend fun setItem(key: String, value: String) {
-        withContext(Dispatchers.IO) {
-            sharedPreferences.edit() { putString(key, value) }
+    fun setItem(key: String, value: String) {
+        sharedPreferences.edit() {
+            putString(key, value)
         }
     }
 
-    suspend fun getItem(key: String): String? {
-        return withContext(Dispatchers.IO) {
-            sharedPreferences.getString(key, null)
+    fun getItem(key: String): String? {
+        return sharedPreferences.getString(key, null)
+    }
+
+    fun deleteItem(key: String) {
+        sharedPreferences.edit() {
+            remove(key)
         }
     }
 
-    suspend fun deleteItem(key: String) {
-        withContext(Dispatchers.IO) {
-            sharedPreferences.edit() { remove(key) }
+    fun clear() {
+        sharedPreferences.edit() {
+            clear()
         }
     }
 
-    suspend fun clear() {
-        withContext(Dispatchers.IO) {
-            sharedPreferences.edit() { clear() }
-        }
-    }
-
-    suspend fun getAllKeys(): Set<String> {
-        return withContext(Dispatchers.IO) {
-            sharedPreferences.all.keys
-        }
+    fun getAllKeys(): Set<String> {
+        return sharedPreferences.all.keys
     }
 }

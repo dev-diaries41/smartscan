@@ -1,14 +1,13 @@
 package com.fpf.smartscan.ui.screens.search
 
 import android.app.Application
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.launch
 import androidx.lifecycle.AndroidViewModel
-import androidx.work.WorkInfo
-import androidx.work.WorkManager
 import com.fpf.smartscan.data.images.ImageEmbedding
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
@@ -17,8 +16,6 @@ import com.fpf.smartscan.lib.clip.getSimilarities
 import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getImageUriFromId
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import kotlin.collections.any
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.videos.VideoEmbedding
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
@@ -28,9 +25,8 @@ import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.VideoIndexListener
-import com.fpf.smartscan.workers.WorkerConstants
-import com.fpf.smartscan.workers.scheduleImageIndexWorker
-import com.fpf.smartscan.workers.scheduleVideoIndexWorker
+import com.fpf.smartscan.services.ImageIndexForegroundService
+import com.fpf.smartscan.services.VideoIndexForegroundService
 import kotlinx.coroutines.CoroutineScope
 
 enum class SearchMode {
@@ -43,9 +39,6 @@ val searchModeOptions = mapOf(
 )
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
-
-    private val workManager = WorkManager.getInstance(application)
-
     val videoIndexProgress = VideoIndexListener.progress
     val isIndexingVideos = VideoIndexListener.indexingInProgress
     val imageIndexProgress = ImageIndexListener.progress
@@ -70,42 +63,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _searchResults = MutableLiveData<List<Uri>>(emptyList())
     val searchResults: LiveData<List<Uri>> = _searchResults
 
-    private val _isLoading = MutableLiveData<Boolean>(true)
+    private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    private val _isFirstIndex = MutableLiveData<Boolean>(false)
-    val isFirstIndex: LiveData<Boolean> = _isFirstIndex
-
-    private val _isFirstVideoIndex = MutableLiveData<Boolean>(false)
-    val isFirstVideoIndex: LiveData<Boolean> = _isFirstVideoIndex
-
     private val _mode = MutableLiveData<SearchMode>(SearchMode.IMAGE)
     val mode: LiveData<SearchMode> = _mode
-
-    init {
-        CoroutineScope(Dispatchers.Default).launch {
-            val indexWorkScheduled = isIndexWorkScheduled(WorkerConstants.IMAGE_INDEXER_WORKER)
-            val videoIndexWorkScheduled = isIndexWorkScheduled(WorkerConstants.VIDEO_INDEXER_WORKER)
-            if (!indexWorkScheduled) {
-                _isFirstIndex.postValue(true)
-            }
-            if (!videoIndexWorkScheduled) {
-                _isFirstVideoIndex.postValue(true)
-            }
-            _isLoading.postValue(false)
-        }
-    }
-
-    // Worker used to schedule Indexing of images every week. This allows new images to indexed frequently
-    private suspend fun isIndexWorkScheduled(workName: String): Boolean {
-        return withContext(Dispatchers.IO) {
-            val workInfoList = workManager.getWorkInfosForUniqueWork(workName).get()
-            workInfoList.any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }
-        }
-    }
 
     fun setQuery(newQuery: String) {
         _query.value = newQuery
@@ -246,14 +211,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun scheduleIndexing(frequency: String){
-        scheduleImageIndexWorker(application, frequency)
-        _isFirstIndex.value = false
+    fun startIndexing(){
+        application.startForegroundService(
+            Intent(application, ImageIndexForegroundService::class.java)
+        )
     }
 
-    fun scheduleVideoIndexing(frequency: String){
-        scheduleVideoIndexWorker(application, frequency)
-        _isFirstVideoIndex.value = false
+    fun startVideoIndexing(){
+        application.startForegroundService(
+            Intent(application, VideoIndexForegroundService::class.java)
+        )
     }
 
 
