@@ -11,32 +11,39 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
+import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.lib.processors.IIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
+import com.fpf.smartscan.lib.processors.VideoIndexListener
+import com.fpf.smartscan.lib.processors.VideoIndexer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-class ImageIndexForegroundService : Service() {
+class MediaIndexForegroundService : Service() {
     companion object {
-        private const val NOTIFICATION_ID = 102
-        private const val TAG = "ImageIndexForegroundService"
-
+        const val EXTRA_MEDIA_TYPE = "extra_media_type"
+        const val TYPE_IMAGE = "image"
+        const val TYPE_VIDEO = "video"
+        const val TYPE_BOTH = "both"
+        private const val NOTIFICATION_ID = 200
+        private const val TAG = "MediaIndexService"
     }
 
-    var imageIndexer: ImageIndexer? = null
-    private val listener: IIndexListener = ImageIndexListener
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
+
+    private var imageIndexer: ImageIndexer? = null
+    private var videoIndexer: VideoIndexer? = null
+    private lateinit var listener: IIndexListener
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
         startForegroundServiceNotification()
-        imageIndexer = ImageIndexer(application, listener)
     }
 
     private fun startForegroundServiceNotification() {
@@ -45,9 +52,11 @@ class ImageIndexForegroundService : Service() {
             this, 0, activityIntent, PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(this, getString(R.string.service_image_index_notification_channel_id))
-            .setContentTitle(getString(R.string.notif_title_image_index_service))
-            .setContentText(getString(R.string.notif_content_index_service))
+        val notification = NotificationCompat.Builder(
+            this, getString(R.string.service_media_index_channel_id)
+        )
+            .setContentTitle(getString(R.string.notif_title_media_index_service))
+            .setContentText(getString(R.string.notif_content_media_index_service))
             .setSmallIcon(R.drawable.smartscan_logo)
             .setContentIntent(activityPendingIntent)
             .build()
@@ -57,8 +66,8 @@ class ImageIndexForegroundService : Service() {
 
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            getString(R.string.service_image_index_notification_channel_id),
-            getString(R.string.service_image_index_notification_channel_name),
+            getString(R.string.service_media_index_channel_id),
+            getString(R.string.service_media_index_channel_name),
             NotificationManager.IMPORTANCE_LOW
         )
         val manager = getSystemService(NotificationManager::class.java)
@@ -66,14 +75,30 @@ class ImageIndexForegroundService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val mediaType = intent?.getStringExtra(EXTRA_MEDIA_TYPE) ?: TYPE_BOTH
+
         serviceScope.launch {
+            val storage = Storage.getInstance(application)
             try {
-                val ids = queryAllImageIds()
-                imageIndexer?.indexImages(ids)
+                if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
+                    listener = ImageIndexListener
+                    imageIndexer = ImageIndexer(application, listener)
+                    val ids = queryAllImageIds()
+                    imageIndexer?.indexImages(ids)
+                }
+
+                if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
+                    listener = VideoIndexListener
+                    videoIndexer = VideoIndexer(application, listener)
+                    val ids = queryAllVideoIds()
+                    videoIndexer?.indexVideos(ids)
+                }
             } catch (e: CancellationException) {
+                // cancelled
             } catch (t: Throwable) {
-                Log.e(TAG, "Indexing failed", t)
-            }finally {
+                Log.e(TAG, "Indexing failed:", t)
+            } finally {
+                storage.setItem("lastIndexed", System.currentTimeMillis().toString())
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
@@ -84,6 +109,7 @@ class ImageIndexForegroundService : Service() {
     override fun onDestroy() {
         serviceJob.cancel()
         imageIndexer?.close()
+        videoIndexer?.close()
         super.onDestroy()
     }
 
@@ -106,4 +132,20 @@ class ImageIndexForegroundService : Service() {
         return imageIds
     }
 
+    private fun queryAllVideoIds(): List<Long> {
+        val videoIds = mutableListOf<Long>()
+        val projection = arrayOf(MediaStore.Video.Media._ID)
+        val sortOrder = "${MediaStore.Video.Media.DATE_MODIFIED} DESC"
+
+        applicationContext.contentResolver.query(
+            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+            projection, null, null, sortOrder
+        )?.use { cursor ->
+            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+            while (cursor.moveToNext()) {
+                videoIds.add(cursor.getLong(idColumn))
+            }
+        }
+        return videoIds
+    }
 }

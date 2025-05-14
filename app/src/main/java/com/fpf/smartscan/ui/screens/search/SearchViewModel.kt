@@ -25,8 +25,7 @@ import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.VideoIndexListener
-import com.fpf.smartscan.services.ImageIndexForegroundService
-import com.fpf.smartscan.services.VideoIndexForegroundService
+import com.fpf.smartscan.services.MediaIndexForegroundService
 import kotlinx.coroutines.CoroutineScope
 
 enum class SearchMode {
@@ -211,17 +210,26 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun startIndexing(){
-        application.startForegroundService(
-            Intent(application, ImageIndexForegroundService::class.java)
-        )
+    fun startIndexing() {
+        Intent(application, MediaIndexForegroundService::class.java)
+            .putExtra(
+                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                MediaIndexForegroundService.TYPE_IMAGE
+            ).also { intent ->
+                application.startForegroundService(intent)
+            }
     }
 
-    fun startVideoIndexing(){
-        application.startForegroundService(
-            Intent(application, VideoIndexForegroundService::class.java)
-        )
+    fun startVideoIndexing() {
+        Intent(application, MediaIndexForegroundService::class.java)
+            .putExtra(
+                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                MediaIndexForegroundService.TYPE_VIDEO
+            ).also { intent ->
+                application.startForegroundService(intent)
+            }
     }
+
 
 
     override fun onCleared() {

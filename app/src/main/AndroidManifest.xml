@@ -20,11 +20,7 @@
         android:supportsRtl="true"
         tools:targetApi="33">
         <service
-            android:name="com.fpf.smartscan.services.VideoIndexForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync"/>
-        <service
-            android:name="com.fpf.smartscan.services.ImageIndexForegroundService"
+            android:name="com.fpf.smartscan.services.MediaIndexForegroundService"
             android:exported="false"
             android:foregroundServiceType="dataSync"/>
         <activity
