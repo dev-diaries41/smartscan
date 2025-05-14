@@ -40,7 +40,7 @@ class VideoIndexer(
 
     private val memoryUtils = MemoryUtils(application.applicationContext)
 
-    suspend fun indexVideos(ids: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
+    suspend fun run(ids: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
         val startTime = System.currentTimeMillis()
 

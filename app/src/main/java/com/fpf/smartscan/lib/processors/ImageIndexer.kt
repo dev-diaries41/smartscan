@@ -41,12 +41,12 @@ class ImageIndexer(
 
     private val memoryUtils = MemoryUtils(application.applicationContext)
 
-    suspend fun indexImages(imageIds: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
+    suspend fun run(ids: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
         val startTime = System.currentTimeMillis()
 
         try {
-            if (imageIds.isEmpty()) {
+            if (ids.isEmpty()) {
                 Log.i(TAG, "No images found.")
                 return@withContext 0
             }
@@ -54,7 +54,7 @@ class ImageIndexer(
             val indexedIds: Set<Long> = repository.getAllEmbeddingsSync()
                 .map { it.id }
                 .toSet()
-            val imagesToProcess = imageIds.filterNot { indexedIds.contains(it) }
+            val imagesToProcess = ids.filterNot { indexedIds.contains(it) }
             var totalProcessed = 0
 
             for (batch in imagesToProcess.chunked(10)) {
