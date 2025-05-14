@@ -86,13 +86,13 @@ class MediaIndexForegroundService : Service() {
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
                     val imageIndexer = ImageIndexer(application, ImageIndexListener)
                     val ids = queryAllImageIds()
-                    imageIndexer.indexImages(ids, embeddingHandler!!)
+                    imageIndexer.run(ids, embeddingHandler!!)
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
                     val videoIndexer = VideoIndexer(application, VideoIndexListener)
                     val ids = queryAllVideoIds()
-                    videoIndexer.indexVideos(ids, embeddingHandler!!)
+                    videoIndexer.run(ids, embeddingHandler!!)
                 }
             } catch (e: CancellationException) {
                 // cancelled
