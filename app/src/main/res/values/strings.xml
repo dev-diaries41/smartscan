@@ -13,14 +13,11 @@
     <string name="worker_channel_id">Background Tasks</string>
     <string name="worker_channel_name">Background Tasks Notifications</string>
     <string name="worker_channel_description">Notifications for background tasks</string>
-    <string name="service_image_index_notification_channel_id">Image Index</string>
-    <string name="service_image_index_notification_channel_name">Image Index Notifications</string>
-    <string name="service_video_index_notification_channel_id">Video Index</string>
-    <string name="service_video_index_notification_channel_name">Video Index Notifications</string>
+    <string name="service_media_index_channel_id">Media Index</string>
+    <string name="service_media_index_channel_name">Media Index Notifications</string>
 
-    <string name="notif_title_image_index_service">Indexing images</string>
-    <string name="notif_title_video_index_service">Indexing videos</string>
-    <string name="notif_content_index_service">Indexing in progress, this can take a few minutes.</string>
+    <string name="notif_title_media_index_service">Indexing images</string>
+    <string name="notif_content_media_index_service">Indexing in progress, this can take a few minutes.</string>
 
     <string name="notif_title_index_error_service">%1$s indexing error</string>
     <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index in settings by clicking the Refresh %1$s index option.</string>

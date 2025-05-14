@@ -8,8 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.fpf.smartscan.lib.Storage
-import com.fpf.smartscan.services.ImageIndexForegroundService
-import com.fpf.smartscan.services.VideoIndexForegroundService
+import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.theme.MyAppTheme
 import kotlinx.serialization.json.Json
@@ -62,12 +61,13 @@ class MainActivity : ComponentActivity() {
         }
 
         if (shouldIndex) {
-            applicationContext.startForegroundService(
-                Intent(applicationContext, ImageIndexForegroundService::class.java)
-            )
-            applicationContext.startForegroundService(
-                Intent(applicationContext, VideoIndexForegroundService::class.java)
-            )
+            Intent(application, MediaIndexForegroundService::class.java)
+                .putExtra(
+                    MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                    MediaIndexForegroundService.TYPE_BOTH
+                ).also { intent ->
+                    application.startForegroundService(intent)
+                }
         }
     }
 

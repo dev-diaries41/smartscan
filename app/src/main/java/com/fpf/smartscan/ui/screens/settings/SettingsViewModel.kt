@@ -34,8 +34,7 @@ import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
-import com.fpf.smartscan.services.ImageIndexForegroundService
-import com.fpf.smartscan.services.VideoIndexForegroundService
+import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.workers.WorkerConstants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -194,8 +193,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
             viewModelScope.launch {
-                val indexingInProgress = isServiceRunning(application, ImageIndexForegroundService::class.java) || isServiceRunning(application,
-                    VideoIndexForegroundService::class.java)
+                val indexingInProgress = isServiceRunning(application, MediaIndexForegroundService::class.java)
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
                 val delayInMinutes = if (indexingInProgress) 60L else null
                 scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
@@ -208,10 +206,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     fun refreshImageIndex() {
         viewModelScope.launch {
             val imageRepository = ImageEmbeddingRepository(ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao())
-            val running = isServiceRunning(application, ImageIndexForegroundService::class.java)
+            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
             if(running){
                 getApplication<Application>().stopService(Intent(getApplication<Application>(),
-                    ImageIndexForegroundService::class.java))
+                    MediaIndexForegroundService::class.java))
             }
             imageRepository.deleteAllEmbeddings()
             startIndexing()
@@ -222,10 +220,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     fun refreshVideoIndex() {
         viewModelScope.launch {
             val videoRepository = VideoEmbeddingRepository(VideoEmbeddingDatabase.getDatabase(getApplication()).videoEmbeddingDao())
-            val running = isServiceRunning(application, VideoIndexForegroundService::class.java)
+            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
             if(running){
                 getApplication<Application>().stopService(Intent(getApplication<Application>(),
-                    VideoIndexForegroundService::class.java))
+                    MediaIndexForegroundService::class.java))
             }
             videoRepository.deleteAllEmbeddings()
             startVideoIndexing()
@@ -249,17 +247,26 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun startIndexing(){
-        application.startForegroundService(
-            Intent(application, ImageIndexForegroundService::class.java)
-        )
+    fun startIndexing() {
+        Intent(application, MediaIndexForegroundService::class.java)
+            .putExtra(
+                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                MediaIndexForegroundService.TYPE_IMAGE
+            ).also { intent ->
+                application.startForegroundService(intent)
+            }
     }
 
-    fun startVideoIndexing(){
-        application.startForegroundService(
-            Intent(application, VideoIndexForegroundService::class.java)
-        )
+    fun startVideoIndexing() {
+        Intent(application, MediaIndexForegroundService::class.java)
+            .putExtra(
+                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                MediaIndexForegroundService.TYPE_VIDEO
+            ).also { intent ->
+                application.startForegroundService(intent)
+            }
     }
+
 
     fun verifyDir(uri: Uri, context: Context): Boolean {
         val documentFile = DocumentFile.fromTreeUri(context, uri)
