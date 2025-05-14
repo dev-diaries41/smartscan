@@ -15,8 +15,6 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
-    private var hasCheckedIndexThisSession = false
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
