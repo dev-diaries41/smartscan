@@ -135,7 +135,7 @@ fun SearchScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            if (imageIndexProgress > 0f && imageIndexProgress < 1f) {
+            if (isIndexingImages) {
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
                     Text(
                         text = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
@@ -153,7 +153,7 @@ fun SearchScreen(
                 }
             }
 
-            if (videoIndexProgress > 0f && videoIndexProgress <1f) {
+            if (isIndexingVideos) {
                 Column(modifier = Modifier.padding(bottom = 8.dp)) {
                     Text(
                         text = "Indexing videos ${"%.0f".format(videoIndexProgress * 100)}%",
