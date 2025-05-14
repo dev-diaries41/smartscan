@@ -39,8 +39,6 @@ class MediaIndexForegroundService : Service() {
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
 
     private var embeddingHandler: Embeddings? = null
-    private var imageIndexer: ImageIndexer? = null
-    private var videoIndexer: VideoIndexer? = null
     private lateinit var listener: IIndexListener
 
     override fun onCreate() {
@@ -89,16 +87,16 @@ class MediaIndexForegroundService : Service() {
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
                     listener = ImageIndexListener
-                    imageIndexer = ImageIndexer(application, listener)
+                    val imageIndexer = ImageIndexer(application, listener)
                     val ids = queryAllImageIds()
-                    imageIndexer?.indexImages(ids, embeddingHandler!!)
+                    imageIndexer.indexImages(ids, embeddingHandler!!)
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
                     listener = VideoIndexListener
-                    videoIndexer = VideoIndexer(application, listener)
+                    val videoIndexer = VideoIndexer(application, listener)
                     val ids = queryAllVideoIds()
-                    videoIndexer?.indexVideos(ids, embeddingHandler!!)
+                    videoIndexer.indexVideos(ids, embeddingHandler!!)
                 }
             } catch (e: CancellationException) {
                 // cancelled
