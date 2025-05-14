@@ -16,7 +16,7 @@
     <string name="service_media_index_channel_id">Media Index</string>
     <string name="service_media_index_channel_name">Media Index Notifications</string>
 
-    <string name="notif_title_media_index_service">Indexing images</string>
+    <string name="notif_title_media_index_service">Indexing media</string>
     <string name="notif_content_media_index_service">Indexing in progress, this can take a few minutes.</string>
 
     <string name="notif_title_index_error_service">%1$s indexing error</string>
