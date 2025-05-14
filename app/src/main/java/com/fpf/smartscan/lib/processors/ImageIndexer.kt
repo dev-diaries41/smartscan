@@ -9,10 +9,9 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.data.images.ImageEmbedding
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.MemoryUtils
+import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.CancellationException
@@ -20,7 +19,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Semaphore
@@ -32,7 +30,6 @@ class ImageIndexer(
     private val application: Application,
     private val listener: IIndexListener? = null
 ) {
-    var embeddingHandler: Embeddings? = null
 
     companion object {
         private const val TAG = "ImageIndexer"
@@ -44,11 +41,7 @@ class ImageIndexer(
 
     private val memoryUtils = MemoryUtils(application.applicationContext)
 
-    init {
-        embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
-    }
-
-    suspend fun indexImages(imageIds: List<Long>): Int = withContext(Dispatchers.IO) {
+    suspend fun indexImages(imageIds: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
         val startTime = System.currentTimeMillis()
 
@@ -79,22 +72,20 @@ class ImageIndexer(
                                 )
                                 val bitmap = getBitmapFromUri(application, contentUri)
                                 val embedding = withContext(NonCancellable) {
-                                    embeddingHandler?.generateImageEmbedding(bitmap)
+                                    embeddingHandler.generateImageEmbedding(bitmap)
                                 }
 
                                 bitmap.recycle()
-                                if (embedding != null) {
-                                    repository.insert(
-                                        ImageEmbedding(
-                                            id = id,
-                                            date = System.currentTimeMillis(),
-                                            embeddings = embedding
+                                repository.insert(
+                                    ImageEmbedding(
+                                        id = id,
+                                        date = System.currentTimeMillis(),
+                                        embeddings = embedding
                                         )
                                     )
-                                    val current = processedCount.incrementAndGet()
-                                    listener?.onProgress(current, imagesToProcess.size)
-                                    return@async 1
-                                }
+                                val current = processedCount.incrementAndGet()
+                                listener?.onProgress(current, imagesToProcess.size)
+                                return@async 1
                             } catch (e: Exception) {
                                 Log.e(TAG, "Failed to process image $id", e)
                             }
@@ -117,12 +108,6 @@ class ImageIndexer(
             Log.e(TAG, "Error indexing images: ${e.message}", e)
             0
         }
-    }
-
-
-    fun close() {
-        embeddingHandler?.closeSession()
-        embeddingHandler = null
     }
 }
 

@@ -30,8 +30,6 @@ class VideoIndexer(
     private val application: Application,
     private val listener: IIndexListener? = null
 ) {
-    var embeddingHandler: Embeddings? = null
-
     companion object {
         private const val TAG = "VideoIndexer"
     }
@@ -42,11 +40,7 @@ class VideoIndexer(
 
     private val memoryUtils = MemoryUtils(application.applicationContext)
 
-    init {
-        embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
-    }
-
-    suspend fun indexVideos(ids: List<Long>): Int = withContext(Dispatchers.IO) {
+    suspend fun indexVideos(ids: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
         val startTime = System.currentTimeMillis()
 
@@ -79,20 +73,17 @@ class VideoIndexer(
 
                                 if(frameBitmaps == null) return@async 0
 
-                                val embedding: FloatArray? = embeddingHandler?.generatePrototypeEmbedding(frameBitmaps!!)
+                                val embedding: FloatArray = embeddingHandler.generatePrototypeEmbedding(frameBitmaps)
 
-                                if (embedding != null) {
-                                    repository.insert(
-                                        VideoEmbedding(
-                                            id = id,
-                                            date = System.currentTimeMillis(),
-                                            embeddings = embedding
-                                        )
-                                    )
-                                    val current = processedCount.incrementAndGet()
-                                    listener?.onProgress(current, videosToProcess.size)
-                                    return@async 1
-                                }
+                                repository.insert(
+                                    VideoEmbedding(
+                                        id = id,
+                                        date = System.currentTimeMillis(),
+                                        embeddings = embedding)
+                                )
+                                val current = processedCount.incrementAndGet()
+                                listener?.onProgress(current, videosToProcess.size)
+                                return@async 1
                             } catch (e: Exception) {
                                 Log.e(TAG, "Failed to process video $id", e)
                             }
@@ -115,12 +106,6 @@ class VideoIndexer(
             Log.e(TAG, "Error indexing videos: ${e.message}", e)
             0
         }
-    }
-
-
-    fun close() {
-        embeddingHandler?.closeSession()
-        embeddingHandler = null
     }
 }
 

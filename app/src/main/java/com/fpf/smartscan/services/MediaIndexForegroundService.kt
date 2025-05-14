@@ -12,6 +12,8 @@ import androidx.core.app.NotificationCompat
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.Storage
+import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.processors.IIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.ImageIndexer
@@ -36,6 +38,7 @@ class MediaIndexForegroundService : Service() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
 
+    private var embeddingHandler: Embeddings? = null
     private var imageIndexer: ImageIndexer? = null
     private var videoIndexer: VideoIndexer? = null
     private lateinit var listener: IIndexListener
@@ -80,18 +83,22 @@ class MediaIndexForegroundService : Service() {
         serviceScope.launch {
             val storage = Storage.getInstance(application)
             try {
+                embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
+
+                if(embeddingHandler == null) throw IllegalStateException("Embedding handler not initialised")
+
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
                     listener = ImageIndexListener
                     imageIndexer = ImageIndexer(application, listener)
                     val ids = queryAllImageIds()
-                    imageIndexer?.indexImages(ids)
+                    imageIndexer?.indexImages(ids, embeddingHandler!!)
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
                     listener = VideoIndexListener
                     videoIndexer = VideoIndexer(application, listener)
                     val ids = queryAllVideoIds()
-                    videoIndexer?.indexVideos(ids)
+                    videoIndexer?.indexVideos(ids, embeddingHandler!!)
                 }
             } catch (e: CancellationException) {
                 // cancelled
@@ -108,8 +115,7 @@ class MediaIndexForegroundService : Service() {
 
     override fun onDestroy() {
         serviceJob.cancel()
-        imageIndexer?.close()
-        videoIndexer?.close()
+        embeddingHandler?.closeSession()
         super.onDestroy()
     }
 
