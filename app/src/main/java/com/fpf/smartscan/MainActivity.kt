@@ -36,8 +36,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume(){
         super.onResume()
-        if (hasCheckedIndexThisSession) return
-        hasCheckedIndexThisSession = true
         val storage = Storage.getInstance(applicationContext)
         val jsonSettings = storage.getItem("app_settings")
         val appSettings = if (jsonSettings != null) {
@@ -52,7 +50,6 @@ class MainActivity : ComponentActivity() {
 
         val lastIndexed = storage.getItem("lastIndexed")?.toLongOrNull() ?: 0L
         val now = System.currentTimeMillis()
-
 
         val shouldIndex = when (appSettings.indexFrequency) {
             "1 Day" -> (now - lastIndexed) > TimeUnit.DAYS.toMillis(1)
