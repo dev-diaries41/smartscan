@@ -212,7 +212,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                     MediaIndexForegroundService::class.java))
             }
             imageRepository.deleteAllEmbeddings()
-            startIndexing()
+            startImageIndexing()
         }
     }
 
@@ -247,7 +247,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun startIndexing() {
+    private fun startImageIndexing() {
         Intent(application, MediaIndexForegroundService::class.java)
             .putExtra(
                 MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
@@ -257,7 +257,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
     }
 
-    fun startVideoIndexing() {
+    private fun startVideoIndexing() {
         Intent(application, MediaIndexForegroundService::class.java)
             .putExtra(
                 MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
@@ -293,26 +293,22 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     private fun loadSettings() {
-        viewModelScope.launch {
-            val jsonSettings = storage.getItem("app_settings")
-            _appSettings.value = if (jsonSettings != null) {
-                try {
-                    Json.decodeFromString<AppSettings>(jsonSettings)
-                } catch (e: Exception) {
-                    Log.e("Settings", "Failed to decode settings", e)
-                    AppSettings()
-                }
-            } else {
+        val jsonSettings = storage.getItem("app_settings")
+        _appSettings.value = if (jsonSettings != null) {
+            try {
+                Json.decodeFromString<AppSettings>(jsonSettings)
+            } catch (e: Exception) {
+                Log.e("Settings", "Failed to decode settings", e)
                 AppSettings()
             }
+        } else {
+            AppSettings()
         }
     }
 
     private fun saveSettings() {
-        viewModelScope.launch {
-            val jsonSettings = Json.encodeToString(_appSettings.value)
-            storage.setItem("app_settings", jsonSettings)
-        }
+        val jsonSettings = Json.encodeToString(_appSettings.value)
+        storage.setItem("app_settings", jsonSettings)
     }
 
     private suspend fun isWorkScheduled(context: Context, workName: String): Boolean {
