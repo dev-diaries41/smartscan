@@ -55,6 +55,8 @@ class ImageIndexer(
                 .map { it.id }
                 .toSet()
             val imagesToProcess = ids.filterNot { indexedIds.contains(it) }
+            val idsToPurge = indexedIds.minus(ids.toSet()).toList()
+
             var totalProcessed = 0
 
             for (batch in imagesToProcess.chunked(10)) {
@@ -98,6 +100,7 @@ class ImageIndexer(
             val endTime = System.currentTimeMillis()
             val completionTime = endTime - startTime
             listener?.onComplete(application, totalProcessed, completionTime)
+            purge(idsToPurge)
             totalProcessed
         }
         catch (e: CancellationException) {
@@ -107,6 +110,17 @@ class ImageIndexer(
             listener?.onError(application, e)
             Log.e(TAG, "Error indexing images: ${e.message}", e)
             0
+        }
+    }
+
+    private suspend fun purge(idsToPurge: List<Long>) = withContext(Dispatchers.IO) {
+        if (idsToPurge.isEmpty()) return@withContext
+
+        try {
+            repository.deleteByIds(idsToPurge)
+            Log.i(TAG, "Purged ${idsToPurge.size} stale embeddings")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error purging embeddings", e)
         }
     }
 }

@@ -13,12 +13,14 @@ class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
         dao.insertImageEmbedding(imageEmbedding)
     }
 
-    suspend fun delete(imageEmbedding: ImageEmbedding) {
-        dao.deleteImageEmbedding(imageEmbedding)
+    suspend fun deleteById(id: Long) {
+        dao.deleteById(id)
     }
 
-    suspend fun isImageIndexed(id: Long): Boolean {
-        return dao.isImageIndexed(id)
+    suspend fun deleteByIds(ids: List<Long>) {
+        if (ids.isNotEmpty()) {
+            dao.deleteByIds(ids)
+        }
     }
 
     suspend fun deleteAllEmbeddings() {
