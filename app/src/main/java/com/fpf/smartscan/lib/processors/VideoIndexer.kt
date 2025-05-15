@@ -3,20 +3,21 @@ package com.fpf.smartscan.lib.processors
 import android.app.Application
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.images.ImageEmbedding
-import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
-import com.fpf.smartscan.data.images.ImageEmbeddingRepository
-import com.fpf.smartscan.lib.getBitmapFromUri
-import com.fpf.smartscan.lib.MemoryUtils
+import com.fpf.smartscan.data.videos.VideoEmbedding
+import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
+import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.MemoryUtils
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,17 +27,16 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import java.util.concurrent.atomic.AtomicInteger
 
-class ImageIndexer(
+class VideoIndexer(
     private val application: Application,
     private val listener: IIndexListener? = null
 ) {
-
     companion object {
-        private const val TAG = "ImageIndexer"
+        private const val TAG = "VideoIndexer"
     }
 
-    private val repository = ImageEmbeddingRepository(
-        ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
+    private val repository = VideoEmbeddingRepository(
+        VideoEmbeddingDatabase.getDatabase(application).videoEmbeddingDao()
     )
 
     private val memoryUtils = MemoryUtils(application.applicationContext)
@@ -47,19 +47,19 @@ class ImageIndexer(
 
         try {
             if (ids.isEmpty()) {
-                Log.i(TAG, "No images found.")
+                Log.d(TAG, "No videos to index.")
                 return@withContext 0
             }
 
-            val indexedIds: Set<Long> = repository.getAllEmbeddingsSync()
+            val existingIds: Set<Long> = repository.getAllEmbeddingsSync()
                 .map { it.id }
                 .toSet()
-            val imagesToProcess = ids.filterNot { indexedIds.contains(it) }
-            val idsToPurge = indexedIds.minus(ids.toSet()).toList()
+            val videosToProcess = ids.filterNot { existingIds.contains(it) }
+            val idsToPurge = existingIds.minus(ids.toSet()).toList()
 
             var totalProcessed = 0
 
-            for (batch in imagesToProcess.chunked(10)) {
+            for (batch in videosToProcess.chunked(10)) {
                 val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
                 // Log.i(TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${memoryUtils.getFreeMemory() / (1024 * 1024)} MB")
 
@@ -70,26 +70,25 @@ class ImageIndexer(
                         semaphore.withPermit {
                             try {
                                 val contentUri = ContentUris.withAppendedId(
-                                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id
+                                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id
                                 )
-                                val bitmap = getBitmapFromUri(application, contentUri)
-                                val embedding = withContext(NonCancellable) {
-                                    embeddingHandler.generateImageEmbedding(bitmap)
-                                }
+                                val frameBitmaps = extractFramesFromVideo(application, contentUri)
 
-                                bitmap.recycle()
+                                if(frameBitmaps == null) return@async 0
+
+                                val embedding: FloatArray = embeddingHandler.generatePrototypeEmbedding(frameBitmaps)
+
                                 repository.insert(
-                                    ImageEmbedding(
+                                    VideoEmbedding(
                                         id = id,
                                         date = System.currentTimeMillis(),
-                                        embeddings = embedding
-                                        )
-                                    )
+                                        embeddings = embedding)
+                                )
                                 val current = processedCount.incrementAndGet()
-                                listener?.onProgress(current, imagesToProcess.size)
+                                listener?.onProgress(current, videosToProcess.size)
                                 return@async 1
                             } catch (e: Exception) {
-                                Log.e(TAG, "Failed to process image $id", e)
+                                Log.e(TAG, "Failed to process video $id", e)
                             }
                             return@async 0
                         }
@@ -108,8 +107,41 @@ class ImageIndexer(
         }
         catch (e: Exception) {
             listener?.onError(application, e)
-            Log.e(TAG, "Error indexing images: ${e.message}", e)
+            Log.e(TAG, "Error indexing videos: ${e.message}", e)
             0
+        }
+    }
+
+    private fun extractFramesFromVideo(context: Context, videoUri: Uri, frameCount: Int = 10): List<Bitmap>? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, videoUri)
+
+            val durationUs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()?.times(1000)
+                ?: return null
+
+            val frameList = mutableListOf<Bitmap>()
+
+            for (i in 0 until frameCount) {
+                val frameTimeUs = (i * durationUs) / frameCount
+                val bitmap = retriever.getFrameAtTime(frameTimeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+
+                if (bitmap != null) {
+                    frameList.add(bitmap)
+                } else {
+                    // Temporary Fix: Break early if null which suggest codec issue with video
+                    break
+                }
+            }
+
+            if (frameList.isEmpty()) return null
+
+            frameList
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting video frames: $e")
+            null
+        } finally {
+            retriever.release()
         }
     }
 
@@ -123,11 +155,12 @@ class ImageIndexer(
             Log.e(TAG, "Error purging embeddings", e)
         }
     }
+
 }
 
-object ImageIndexListener : IIndexListener {
-    const val NOTIFICATION_ID = 1002
-    const val TAG = "ImageIndexListener"
+object VideoIndexListener : IIndexListener {
+    const val NOTIFICATION_ID = 1003
+    const val TAG = "VideoIndexListener"
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
@@ -135,15 +168,12 @@ object ImageIndexListener : IIndexListener {
     val indexingInProgress: StateFlow<Boolean> = _indexingInProgress
 
     override fun onProgress(processedCount: Int, total: Int) {
-        if(!_indexingInProgress.value){
-            _indexingInProgress.value = true
-        }
         val currentProgress = processedCount.toFloat() / total.toFloat()
-        if(currentProgress - _progress.value >= 0.01f){
+        if(currentProgress > 0f){
+            if(!_indexingInProgress.value){
+                _indexingInProgress.value = true
+            }
             _progress.value = currentProgress
-        }
-        else if(processedCount == total){
-            _progress.value = 1f
         }
     }
 
@@ -152,9 +182,8 @@ object ImageIndexListener : IIndexListener {
 
         try {
             _indexingInProgress.value = false
-            _progress.value = 0f
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
-            val notificationText = "Total images indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
+            val notificationText = "Total videos indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
             showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, NOTIFICATION_ID)
         }
         catch (e: Exception){
@@ -165,14 +194,12 @@ object ImageIndexListener : IIndexListener {
     override fun onError(context: Context, error: Exception) {
         try {
             _indexingInProgress.value = false
-            _progress.value = 0f
-            val title = context.getString(R.string.notif_title_index_error_service, "Image")
-            val content = context.getString(R.string.notif_content_index_error_service, "image")
+            val title = context.getString(R.string.notif_title_index_error_service, "Video")
+            val content = context.getString(R.string.notif_content_index_error_service, "video")
             showNotification(context, title, content, NOTIFICATION_ID)
         }
         catch (e: Exception){
             Log.e(TAG, "Error in onError: ${e.message}", e)
         }
     }
-
 }

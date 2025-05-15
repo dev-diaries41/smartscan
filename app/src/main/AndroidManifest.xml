@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove"/>
     <application
@@ -17,6 +19,10 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         tools:targetApi="33">
+        <service
+            android:name="com.fpf.smartscan.services.MediaIndexForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync"/>
         <activity
             android:name="com.fpf.smartscan.MainActivity"
             android:exported="true"

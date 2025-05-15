@@ -9,11 +9,18 @@
     <string name="title_scan_history">Scan History</string>
     <string name="title_test_organisation">Test SmartScan</string>
 
-
     <!-- Notifications -->
     <string name="worker_channel_id">Background Tasks</string>
     <string name="worker_channel_name">Background Tasks Notifications</string>
     <string name="worker_channel_description">Notifications for background tasks</string>
+    <string name="service_media_index_channel_id">Media Index</string>
+    <string name="service_media_index_channel_name">Media Index Notifications</string>
+
+    <string name="notif_title_media_index_service">Indexing media</string>
+    <string name="notif_content_media_index_service">Indexing in progress, this can take a few minutes.</string>
+
+    <string name="notif_title_index_error_service">%1$s indexing error</string>
+    <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index in settings by clicking the Refresh %1$s index option.</string>
 
     <string name="notif_title_smart_scan_complete">Smart scan complete</string>
     <string name="notif_title_index_complete">Indexing complete</string>
@@ -22,13 +29,15 @@
     <string name="notif_title_smart_scan_issue">Smart scan issue detected</string>
     <string name="notif_title_smart_scan_issue_description">You can manually restart it by toggling `Enable scan` in settings or leave it to run at the next scheduled time.</string>
 
-
     <!-- Search screen -->
-    <string name="first_index">
-        First image indexing is in progress and may take a few minutes. Searching will be limited until the process is complete. Please ensure that notifications are enabled so you can be informed when indexing is finished.
+    <string name="first_indexing">
+      First %1$s indexing is in progress and may take a few minutes.
+      Searching will be limited until the process is complete.
+      Please ensure that notifications are enabled so you can be informed when indexing is finished.
     </string>
+
     <string name="storage_permissions">Storage permission required to search images.</string>
-    <string name="search_error_images_not_indexed">Images have not been indexed yet.</string>
+    <string name="search_error_not_indexed">Index is empty.</string>
     <string name="search_error_no_results">No matching results found.</string>
     <string name="search_error_missing_permissions_for_results">Missing storage permissions for 1 or more images.</string>
     <string name="search_error_empty_query">Query cannot be empty.</string>
@@ -47,11 +56,11 @@
 
     <!-- Scan history screen -->
     <string name="no_scan_history">No Scan History</string>
-    <string name="no_scan_history_description">"Enable scan in settings to allow smart folder organisation"</string>
+    <string name="no_scan_history_description">"Enable auto-organisation in settings to allow smart folder organisation"</string>
 
     <!-- Settings-related strings -->
     <string name="image_management_settings">Image Management</string>
-    <string name="image_search_settings">Image Search</string>
+    <string name="media_search_settings">Media Search</string>
     <string name="advanced_settings">Advanced</string>
     <string name="other_settings">Other</string>
 
@@ -66,6 +75,7 @@
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
     <string name="setting_index_frequency">Index frequency</string>
+    <string name="setting_index_frequency_description">Schedule for auto-updates of video and image indexes.</string>
     <string name="setting_test_model_description">Upload an image to see the classification result</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
     <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
@@ -73,17 +83,18 @@
 
     <!-- Refresh image index -->
     <string name="setting_refresh_image_index">Refresh image index</string>
-    <string name="setting_refresh_image_index_description_warning">Auto-updates based on the index frequency setting. Refresh manually only if necessary — it performs a full reset.</string>
+    <string name="setting_refresh_video_index">Refresh video index</string>
+    <string name="setting_refresh_media_index_description_warning">Refresh manually only if necessary — it performs a full reset.</string>
 
-    <string name="setting_refresh_image_index_description_full">
-        Manually refresh image index. This can take up to a few minutes. Make sure notifications are enabled to be notified upon completion.
+    <string name="setting_refresh_index_description_full">
+        Manually refresh index. This can take up to a few minutes.
     </string>
 
-    <string name="setting_refresh_image_index_description_partial">
-        Manually refresh image index. This can take up to a few minutes, but only the selected images will be indexed. Make sure notifications are enabled to be notified upon completion.
+    <string name="setting_refresh_index_description_partial">
+        Manually refresh index. This can take up to a few minutes, but only the selected images will be indexed.
     </string>
-    <string name="setting_refresh_image_index_description_denied">
-        Missing storage permissions. Please grant storage permissions and make sure notifications are enabled to be notified upon completion.
+    <string name="setting_refresh_index_description_denied">
+        Missing storage permissions. Please grant storage permissions.
     </string>
 
     <!-- Scan Frequency options -->

@@ -104,16 +104,6 @@ suspend fun fetchBitmapsFromDirectory(context: Context, directoryUri: Uri, limit
     }
 }
 
-
-fun hasImageAccess(context: Context, uri: Uri): Boolean {
-    return try {
-        context.contentResolver.openFileDescriptor(uri, "r")?.use { }
-        true
-    } catch (e: Exception) {
-        false
-    }
-}
-
 fun openImageInGallery(context: Context, uri: Uri) {
     val intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(uri, "image/*")

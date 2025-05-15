@@ -102,3 +102,13 @@ fun readUriListFromFile(path: String): List<Uri> {
 
     return uriList
 }
+
+fun canOpenUri(context: Context, uri: Uri): Boolean {
+    return try {
+        context.contentResolver.openFileDescriptor(uri, "r")?.use { }
+        true
+    } catch (e: Exception) {
+        false
+    }
+}
+

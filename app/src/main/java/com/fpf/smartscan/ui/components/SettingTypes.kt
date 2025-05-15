@@ -1,6 +1,7 @@
 package com.fpf.smartscan.ui.components
 
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +39,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
@@ -59,7 +62,7 @@ fun SettingsCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -94,7 +97,7 @@ fun SettingsSwitch(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -136,7 +139,7 @@ fun SettingsIncrementor(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -155,6 +158,7 @@ fun SettingsIncrementor(
                     .width(140.dp)
                     .height(40.dp)
                     .clip(RoundedCornerShape(percent = 50))
+                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outline,
@@ -164,24 +168,26 @@ fun SettingsIncrementor(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    IconButton(onClick = {
+                    IconButton(
+                        modifier = Modifier.size(24.dp).weight(1f),
+                        onClick = {
                         if ((value.toIntOrNull() ?: 0) > minValue) onDecrement()
                     }) {
-                        Icon(Icons.Default.Remove,
-                            contentDescription = "Decrement",
-                        )
+                        Icon(Icons.Default.Remove, contentDescription = "Decrement",)
                     }
 
                     Text(
                         text = value,
-                        style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         color = textColor,
+                        fontSize = 12.sp,
                         modifier = Modifier
                             .padding(horizontal = 4.dp)
                     )
 
-                    IconButton(onClick = {
+                    IconButton(
+                        modifier = Modifier.size(24.dp).weight(1f),
+                        onClick = {
                         if ((value.toIntOrNull() ?: 0) < maxValue) onIncrement()
                     }) {
                         Icon(Icons.Default.Add, contentDescription = "Increment")
@@ -254,7 +260,8 @@ fun SettingsSelect(
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
     description: String? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    showLabel: Boolean = true,
 ) {
     val textColor = if (enabled)
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
@@ -265,22 +272,28 @@ fun SettingsSelect(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
+            .padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = textColor
-            )
+            if(label.isNotEmpty() && showLabel){
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = textColor
+                )
+            }
+
             OutlinedButton(
                 onClick = { showDialog = true },
                 enabled = enabled,
-                modifier = Modifier.widthIn(max = 140.dp)
+                modifier = Modifier.widthIn(max = 140.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)  // 50% transparent red
+                )
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -297,6 +310,7 @@ fun SettingsSelect(
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
                         contentDescription = "Dropdown",
+                        tint = if(enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
             }

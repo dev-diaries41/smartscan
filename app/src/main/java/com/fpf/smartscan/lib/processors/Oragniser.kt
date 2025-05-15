@@ -22,7 +22,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import androidx.core.content.edit
-import com.fpf.smartscan.workers.WorkerConstants
+import com.fpf.smartscan.workers.ClassificationWorker
 
 class Organiser(private val context: Context) {
     var embeddingHandler: Embeddings? = null
@@ -118,7 +118,7 @@ class Organiser(private val context: Context) {
     }
 
     private fun saveLastUsedDestinations(context: Context, files: List<String>) {
-        val prefs = context.getSharedPreferences(WorkerConstants.JOB_NAME_CLASSIFICATION, Context.MODE_PRIVATE)
+        val prefs = context.getSharedPreferences(ClassificationWorker.JOB_NAME, Context.MODE_PRIVATE)
         prefs.edit() {
             putStringSet(PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, files.toSet())
         }
