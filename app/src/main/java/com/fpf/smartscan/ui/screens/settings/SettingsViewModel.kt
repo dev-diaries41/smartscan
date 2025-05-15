@@ -195,8 +195,9 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             viewModelScope.launch {
                 val indexingInProgress = isServiceRunning(application, MediaIndexForegroundService::class.java)
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
-                val delayInMinutes = if (indexingInProgress) 60L else null
-                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
+                // Big 12 hour buffer used to account for image AND video indexing.
+                val delayInHour = if (indexingInProgress) 12L else null
+                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInHour)
             }
         }
     }

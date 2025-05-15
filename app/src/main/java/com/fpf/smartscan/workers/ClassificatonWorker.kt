@@ -174,7 +174,7 @@ fun scheduleClassificationWorker(
     context: Context,
     uris: Array<Uri?>,
     frequency: String,
-    delayInMinutes: Long? = null
+    delayInHours: Long? = null
 ) {
     val duration = when (frequency) {
         "1 Day" -> 1L to TimeUnit.DAYS
@@ -190,13 +190,19 @@ fun scheduleClassificationWorker(
         .putStringArray("uris", uriStrings as Array<String?>)
         .build()
 
+    val constraints = Constraints.Builder()
+        .setRequiresBatteryNotLow(true)
+        .build()
+
     val workRequestBuilder =
         PeriodicWorkRequestBuilder<ClassificationWorker>(duration.first, duration.second)
             .setInputData(inputData)
+            .setConstraints(constraints)
 
 
-    if (delayInMinutes != null && delayInMinutes > 0) {
-        workRequestBuilder.setInitialDelay(delayInMinutes, TimeUnit.MINUTES)
+
+    if (delayInHours != null && delayInHours > 0) {
+        workRequestBuilder.setInitialDelay(delayInHours, TimeUnit.HOURS)
     }
 
     val workRequest = workRequestBuilder.build()
