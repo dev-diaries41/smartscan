@@ -9,6 +9,8 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.ui.permissions.StorageAccess
+import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.theme.MyAppTheme
 import kotlinx.serialization.json.Json
@@ -56,6 +58,8 @@ class MainActivity : ComponentActivity() {
         }
 
         if (shouldIndex) {
+            val permissionType = getStorageAccess(application)
+            if(permissionType == StorageAccess.Denied) return
             Intent(application, MediaIndexForegroundService::class.java)
                 .putExtra(
                     MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
