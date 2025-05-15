@@ -31,7 +31,8 @@ import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.services.MediaIndexForegroundService
-import com.fpf.smartscan.workers.WorkerConstants
+import com.fpf.smartscan.workers.ClassificationBatchWorker
+import com.fpf.smartscan.workers.ClassificationWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -76,7 +77,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             updateWorker()
         }else{
             viewModelScope.launch {
-                val workScheduled = isWorkScheduled(getApplication(), WorkerConstants.CLASSIFICATION_WORKER )
+                val workScheduled = isWorkScheduled(getApplication(), ClassificationWorker.TAG )
                 if(workScheduled){
                     cancelClassificationWorker()
                 }
@@ -281,8 +282,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
     private fun cancelClassificationWorker(){
         val workManager = WorkManager.getInstance(getApplication())
-        workManager.cancelUniqueWork(WorkerConstants.CLASSIFICATION_WORKER)
-        workManager.cancelAllWorkByTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
+        workManager.cancelUniqueWork(ClassificationWorker.TAG)
+        workManager.cancelAllWorkByTag(ClassificationBatchWorker.TAG)
     }
 
     private fun loadSettings() {
