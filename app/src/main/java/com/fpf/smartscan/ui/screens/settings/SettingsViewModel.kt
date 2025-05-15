@@ -27,8 +27,6 @@ import androidx.work.WorkManager
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
-import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
-import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
@@ -216,13 +214,11 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     @SuppressLint("ImplicitSamInstance")
     fun refreshVideoIndex() {
         viewModelScope.launch {
-            val videoRepository = VideoEmbeddingRepository(VideoEmbeddingDatabase.getDatabase(getApplication()).videoEmbeddingDao())
             val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
             if(running){
                 getApplication<Application>().stopService(Intent(getApplication<Application>(),
                     MediaIndexForegroundService::class.java))
             }
-            videoRepository.deleteAllEmbeddings()
             startVideoIndexing()
         }
     }
