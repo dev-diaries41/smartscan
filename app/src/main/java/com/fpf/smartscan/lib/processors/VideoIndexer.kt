@@ -3,6 +3,9 @@ package com.fpf.smartscan.lib.processors
 import android.app.Application
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
+import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import com.fpf.smartscan.R
@@ -10,9 +13,7 @@ import com.fpf.smartscan.data.videos.VideoEmbedding
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.MemoryUtils
-import com.fpf.smartscan.lib.extractFramesFromVideo
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.CancellationException
@@ -107,6 +108,40 @@ class VideoIndexer(
             0
         }
     }
+
+    private fun extractFramesFromVideo(context: Context, videoUri: Uri, frameCount: Int = 10): List<Bitmap>? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(context, videoUri)
+
+            val durationUs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong()?.times(1000)
+                ?: return null
+
+            val frameList = mutableListOf<Bitmap>()
+
+            for (i in 0 until frameCount) {
+                val frameTimeUs = (i * durationUs) / frameCount
+                val bitmap = retriever.getFrameAtTime(frameTimeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+
+                if (bitmap != null) {
+                    frameList.add(bitmap)
+                } else {
+                    // Temporary Fix: Break early if null which suggest codec issue with video
+                    break
+                }
+            }
+
+            if (frameList.isEmpty()) return null
+
+            frameList
+        } catch (e: Exception) {
+            Log.e(TAG, "Error extracting video frames: $e")
+            null
+        } finally {
+            retriever.release()
+        }
+    }
+
 }
 
 object VideoIndexListener : IIndexListener {
