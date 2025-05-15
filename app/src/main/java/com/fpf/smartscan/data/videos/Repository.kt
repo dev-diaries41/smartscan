@@ -13,15 +13,17 @@ class VideoEmbeddingRepository(private val dao: VideoEmbeddingDao) {
         dao.insertVideoEmbedding(videoEmbedding)
     }
 
-    suspend fun delete(videoEmbedding: VideoEmbedding) {
-        dao.deleteVideoEmbedding(videoEmbedding)
+    suspend fun deleteById(id: Long) {
+        dao.deleteById(id)
+    }
+
+    suspend fun deleteByIds(ids: List<Long>) {
+        if (ids.isNotEmpty()) {
+            dao.deleteByIds(ids)
+        }
     }
 
     suspend fun deleteAllEmbeddings() {
         dao.deleteAll()
-    }
-
-    suspend fun isVideoIndexed(id: Long): Boolean {
-        return dao.isVideoIndexed(id)
     }
 }

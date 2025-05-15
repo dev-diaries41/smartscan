@@ -12,18 +12,17 @@ interface VideoEmbeddingDao {
     @Query("SELECT * FROM video_embeddings ORDER BY date DESC")
     suspend fun getAllEmbeddingsSync(): List<VideoEmbedding>
 
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertVideoEmbedding(videoEmbedding: VideoEmbedding)
 
-    @Delete
-    suspend fun deleteVideoEmbedding(videoEmbedding: VideoEmbedding)
+    @Query("DELETE FROM video_embeddings WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    @Query("DELETE FROM video_embeddings WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<Long>)
 
     @Query("DELETE FROM video_embeddings")
     suspend fun deleteAll()
-
-    @Query("SELECT EXISTS(SELECT 1 FROM video_embeddings WHERE id = :id)")
-    suspend fun isVideoIndexed(id: Long): Boolean
 
     @Query("SELECT EXISTS(SELECT 1 FROM video_embeddings)")
     fun hasAnyVideoEmbeddings(): LiveData<Boolean>
