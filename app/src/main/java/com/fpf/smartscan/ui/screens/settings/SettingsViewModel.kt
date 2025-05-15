@@ -24,8 +24,6 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
-import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
@@ -206,13 +204,11 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     @SuppressLint("ImplicitSamInstance")
     fun refreshImageIndex() {
         viewModelScope.launch {
-            val imageRepository = ImageEmbeddingRepository(ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao())
             val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
             if(running){
                 getApplication<Application>().stopService(Intent(getApplication<Application>(),
                     MediaIndexForegroundService::class.java))
             }
-            imageRepository.deleteAllEmbeddings()
             startImageIndexing()
         }
     }
