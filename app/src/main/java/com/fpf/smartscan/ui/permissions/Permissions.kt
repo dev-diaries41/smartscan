@@ -18,7 +18,9 @@ enum class StorageAccess {
 
 fun getStorageAccess(context: Context): StorageAccess {
     return if (
-        checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PERMISSION_GRANTED
+        checkSelfPermission(context, Manifest.permission.READ_MEDIA_IMAGES) == PERMISSION_GRANTED &&
+        checkSelfPermission(context, Manifest.permission.READ_MEDIA_VIDEO) == PERMISSION_GRANTED
+
     ) {
         StorageAccess.Full
     } else if (
@@ -50,10 +52,12 @@ fun RequestPermissions(
         when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
                 permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
+                permissionsToRequest.add(Manifest.permission.READ_MEDIA_VIDEO)
                 permissionsToRequest.add(Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED)
             }
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
                 permissionsToRequest.add(Manifest.permission.READ_MEDIA_IMAGES)
+                permissionsToRequest.add(Manifest.permission.READ_MEDIA_VIDEO)
             }
             else -> {
                 permissionsToRequest.add(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -75,11 +79,12 @@ fun RequestPermissions(
         } else {
             when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE -> {
-                    (permissions[Manifest.permission.READ_MEDIA_IMAGES] == true) ||
+                    (permissions[Manifest.permission.READ_MEDIA_IMAGES] == true && permissions[Manifest.permission.READ_MEDIA_VIDEO] == true)
+                            ||
                             (permissions[Manifest.permission.READ_MEDIA_VISUAL_USER_SELECTED] == true)
                 }
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> {
-                    permissions[Manifest.permission.READ_MEDIA_IMAGES] == true
+                    (permissions[Manifest.permission.READ_MEDIA_IMAGES] == true && permissions[Manifest.permission.READ_MEDIA_VIDEO] == true)
                 }
                 else -> {
                     permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true

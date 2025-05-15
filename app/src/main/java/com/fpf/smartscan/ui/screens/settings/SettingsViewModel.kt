@@ -1,7 +1,11 @@
 package com.fpf.smartscan.ui.screens.settings
 
+import android.annotation.SuppressLint
+import android.app.ActivityManager
 import android.app.Application
+import android.app.Service
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
@@ -20,16 +24,15 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
-import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
-import com.fpf.smartscan.workers.WorkerConstants
-import com.fpf.smartscan.workers.scheduleImageIndexWorker
+import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.workers.ClassificationBatchWorker
+import com.fpf.smartscan.workers.ClassificationWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -74,7 +77,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             updateWorker()
         }else{
             viewModelScope.launch {
-                val workScheduled = isWorkScheduled(getApplication(), WorkerConstants.CLASSIFICATION_WORKER )
+                val workScheduled = isWorkScheduled(getApplication(), ClassificationWorker.TAG )
                 if(workScheduled){
                     cancelClassificationWorker()
                 }
@@ -93,7 +96,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(indexFrequency = frequency)
         saveSettings()
-        updateIndexWorker()
     }
 
     fun updateTargetDirectories(directories: List<String>) {
@@ -101,7 +103,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         _appSettings.value = currentSettings.copy(targetDirectories = directories)
         saveSettings()
     }
-
 
     fun updateDestinationDirectories(directories: List<String>) {
         val currentSettings = _appSettings.value
@@ -172,6 +173,14 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
+    fun isServiceRunning(context: Context, serviceClass: Class<out Service>): Boolean {
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        @Suppress("DEPRECATION")
+        return am.getRunningServices(Int.MAX_VALUE).any {
+            it.service.className == serviceClass.name
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun updateWorker() {
         if (_appSettings.value.targetDirectories.isNotEmpty() &&
@@ -181,29 +190,37 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             val uriArray = _appSettings.value.targetDirectories.map { it.toUri() }.toTypedArray()
             viewModelScope.launch {
-                val (_, count) = isBatchWorkScheduled(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
+                val indexingInProgress = isServiceRunning(application, MediaIndexForegroundService::class.java)
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
-                val delayInMinutes = if (count > 0) 5L * count else null
-                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInMinutes)
+                // Big 12 hour buffer used to account for image AND video indexing.
+                val delayInHour = if (indexingInProgress) 12L else null
+                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInHour)
             }
         }
     }
 
-    private fun updateIndexWorker() {
-            viewModelScope.launch {
-                cancelImageIndexWorker() //must explicitly cancel because of batched work
-                scheduleImageIndexWorker(getApplication(), _appSettings.value.indexFrequency)
-            }
-    }
 
+    @SuppressLint("ImplicitSamInstance")
     fun refreshImageIndex() {
         viewModelScope.launch {
-            val imageRepository = ImageEmbeddingRepository(
-                ImageEmbeddingDatabase.getDatabase(getApplication()).imageEmbeddingDao()
-            )
-            cancelImageIndexWorker()
-            imageRepository.deleteAllEmbeddings()
-            scheduleImageIndexWorker(getApplication(), "1 Week")
+            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
+            if(running){
+                getApplication<Application>().stopService(Intent(getApplication<Application>(),
+                    MediaIndexForegroundService::class.java))
+            }
+            startImageIndexing()
+        }
+    }
+
+    @SuppressLint("ImplicitSamInstance")
+    fun refreshVideoIndex() {
+        viewModelScope.launch {
+            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
+            if(running){
+                getApplication<Application>().stopService(Intent(getApplication<Application>(),
+                    MediaIndexForegroundService::class.java))
+            }
+            startVideoIndexing()
         }
     }
 
@@ -223,6 +240,27 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
         }
     }
+
+    private fun startImageIndexing() {
+        Intent(application, MediaIndexForegroundService::class.java)
+            .putExtra(
+                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                MediaIndexForegroundService.TYPE_IMAGE
+            ).also { intent ->
+                application.startForegroundService(intent)
+            }
+    }
+
+    private fun startVideoIndexing() {
+        Intent(application, MediaIndexForegroundService::class.java)
+            .putExtra(
+                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
+                MediaIndexForegroundService.TYPE_VIDEO
+            ).also { intent ->
+                application.startForegroundService(intent)
+            }
+    }
+
 
     fun verifyDir(uri: Uri, context: Context): Boolean {
         val documentFile = DocumentFile.fromTreeUri(context, uri)
@@ -244,47 +282,27 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
     private fun cancelClassificationWorker(){
         val workManager = WorkManager.getInstance(getApplication())
-        workManager.cancelUniqueWork(WorkerConstants.CLASSIFICATION_WORKER)
-        workManager.cancelAllWorkByTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
-    }
-
-    private fun cancelImageIndexWorker(){
-        val workManager = WorkManager.getInstance(getApplication())
-        workManager.cancelUniqueWork(WorkerConstants.IMAGE_INDEXER_WORKER)
-        workManager.cancelAllWorkByTag(WorkerConstants.IMAGE_INDEXER_BATCH_WORKER)
+        workManager.cancelUniqueWork(ClassificationWorker.TAG)
+        workManager.cancelAllWorkByTag(ClassificationBatchWorker.TAG)
     }
 
     private fun loadSettings() {
-        viewModelScope.launch {
-            val jsonSettings = storage.getItem("app_settings")
-            _appSettings.value = if (jsonSettings != null) {
-                try {
-                    Json.decodeFromString<AppSettings>(jsonSettings)
-                } catch (e: Exception) {
-                    Log.e("Settings", "Failed to decode settings", e)
-                    AppSettings()
-                }
-            } else {
+        val jsonSettings = storage.getItem("app_settings")
+        _appSettings.value = if (jsonSettings != null) {
+            try {
+                Json.decodeFromString<AppSettings>(jsonSettings)
+            } catch (e: Exception) {
+                Log.e("Settings", "Failed to decode settings", e)
                 AppSettings()
             }
+        } else {
+            AppSettings()
         }
     }
 
     private fun saveSettings() {
-        viewModelScope.launch {
-            val jsonSettings = Json.encodeToString(_appSettings.value)
-            storage.setItem("app_settings", jsonSettings)
-        }
-    }
-
-    private suspend fun isBatchWorkScheduled(workerTag: String): Pair<Boolean, Int> = withContext(Dispatchers.IO) {
-        val workManager = WorkManager.getInstance(getApplication())
-        val workInfoList = workManager.getWorkInfosByTag(workerTag).get()
-        val count = workInfoList.count {
-            it.state == WorkInfo.State.RUNNING || it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.BLOCKED
-        }
-        val isScheduled = count > 0
-        Pair(isScheduled, count)
+        val jsonSettings = Json.encodeToString(_appSettings.value)
+        storage.setItem("app_settings", jsonSettings)
     }
 
     private suspend fun isWorkScheduled(context: Context, workName: String): Boolean {

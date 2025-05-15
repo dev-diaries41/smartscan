@@ -19,7 +19,7 @@ class ClassificationViewModel(
     }
 
     private fun observeWorkStatus() {
-        workManager.getWorkInfosByTagLiveData(WorkerConstants.CLASSIFICATION_BATCH_WORKER).observeForever { infos ->
+        workManager.getWorkInfosByTagLiveData(ClassificationBatchWorker.TAG).observeForever { infos ->
             if (infos.isNullOrEmpty()) {
                 _organisationActive.postValue(false)
                 return@observeForever
