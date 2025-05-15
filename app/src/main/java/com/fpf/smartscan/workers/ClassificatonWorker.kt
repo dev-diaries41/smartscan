@@ -35,7 +35,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     CoroutineWorker(context, workerParams) {
 
     companion object {
-        private const val TAG = WorkerConstants.CLASSIFICATION_WORKER
+        const val TAG = "ClassificationWorker"
+        const val JOB_NAME = "classification"
         private const val BATCH_SIZE = 500
         private const val PREF_KEY_LAST_USED_CLASSIFICATION_DIRS = "last_used_destinations"
         private const val IMAGE_URI_FILE_PREFIX = "classification_image_uris"
@@ -78,7 +79,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
             // This prevents stale data between chained workers
             val jobManager = JobManager.getInstance(applicationContext)
-            jobManager.clearJobs(WorkerConstants.JOB_NAME_CLASSIFICATION)
+            jobManager.clearJobs(JOB_NAME)
 
 
             // Chain ClassificationBatchWorker requests sequentially.
@@ -95,7 +96,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ClassificationBatchWorker>()
                     .setInputData(workData)
-                    .addTag(WorkerConstants.CLASSIFICATION_BATCH_WORKER)
+                    .addTag(ClassificationBatchWorker.TAG)
                     .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 10, TimeUnit.SECONDS)
                     .build()
 
@@ -138,12 +139,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
 
     private fun getLastUsedDestinations(context: Context): List<String> {
-        val prefs = context.getSharedPreferences(
-            WorkerConstants.JOB_NAME_CLASSIFICATION,
-            Context.MODE_PRIVATE
-        )
-        val uriSet =
-            prefs.getStringSet(PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, emptySet()) ?: emptySet()
+        val prefs = context.getSharedPreferences(JOB_NAME, Context.MODE_PRIVATE)
+        val uriSet = prefs.getStringSet(PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, emptySet()) ?: emptySet()
         return uriSet.toList()
     }
 
@@ -208,7 +205,7 @@ fun scheduleClassificationWorker(
     val workRequest = workRequestBuilder.build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        WorkerConstants.CLASSIFICATION_WORKER,
+        ClassificationWorker.TAG,
         ExistingPeriodicWorkPolicy.REPLACE,
         workRequest
     )
