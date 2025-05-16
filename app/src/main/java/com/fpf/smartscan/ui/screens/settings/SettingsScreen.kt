@@ -186,7 +186,6 @@ fun SettingsScreen(
 
                 SettingsCard(
                     text = stringResource(id = R.string.setting_refresh_image_index),
-                    description = stringResource(id = R.string.setting_refresh_media_index_description_warning),
                     onClick = {
                         val storageAccess = getStorageAccess(context)
                         currentStorageAccess = storageAccess
@@ -201,7 +200,6 @@ fun SettingsScreen(
 
                 SettingsCard(
                     text = stringResource(id = R.string.setting_refresh_video_index),
-                    description = stringResource(id = R.string.setting_refresh_media_index_description_warning),
                     onClick = {
                         val storageAccess = getStorageAccess(context)
                         currentStorageAccess = storageAccess
