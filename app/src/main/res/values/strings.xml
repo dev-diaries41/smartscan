@@ -84,7 +84,6 @@
     <!-- Refresh image index -->
     <string name="setting_refresh_image_index">Refresh image index</string>
     <string name="setting_refresh_video_index">Refresh video index</string>
-    <string name="setting_refresh_media_index_description_warning">Refresh manually only if necessary — it performs a full reset.</string>
 
     <string name="setting_refresh_index_description_full">
         Manually refresh index. This can take up to a few minutes.
