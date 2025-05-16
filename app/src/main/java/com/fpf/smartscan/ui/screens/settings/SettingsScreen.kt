@@ -181,7 +181,7 @@ fun SettingsScreen(
                     onOptionSelected = { selected ->
                         viewModel.updateIndexFrequency(selected)
                     },
-                    description = stringResource(id = R.string.setting_index_frequency_description)
+//                    description = stringResource(id = R.string.setting_index_frequency_description)
                 )
 
                 SettingsCard(
