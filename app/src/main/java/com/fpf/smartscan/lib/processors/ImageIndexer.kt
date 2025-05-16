@@ -51,11 +51,13 @@ class ImageIndexer(
                 return@withContext 0
             }
 
-            val indexedIds: Set<Long> = repository.getAllEmbeddingsSync()
+            val existingIds: Set<Long> = repository.getAllEmbeddingsSync()
                 .map { it.id }
                 .toSet()
-            val imagesToProcess = ids.filterNot { indexedIds.contains(it) }
-            val idsToPurge = indexedIds.minus(ids.toSet()).toList()
+            val imagesToProcess = ids.filterNot { existingIds.contains(it) }
+            val idsToPurge = existingIds.minus(ids.toSet()).toList()
+            // Always purge stale embeddings first to prevent issue with live data
+            purge(idsToPurge)
 
             var totalProcessed = 0
 
@@ -100,7 +102,6 @@ class ImageIndexer(
             val endTime = System.currentTimeMillis()
             val completionTime = endTime - startTime
             listener?.onComplete(application, totalProcessed, completionTime)
-            purge(idsToPurge)
             totalProcessed
         }
         catch (e: CancellationException) {
