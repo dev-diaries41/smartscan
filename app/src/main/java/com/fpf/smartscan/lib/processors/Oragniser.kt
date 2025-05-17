@@ -22,9 +22,9 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import androidx.core.content.edit
-import com.fpf.smartscan.data.moveHistory.MoveHistory
-import com.fpf.smartscan.data.moveHistory.MoveHistoryDatabase
-import com.fpf.smartscan.data.moveHistory.MoveHistoryRepository
+import com.fpf.smartscan.data.movehistory.MoveHistory
+import com.fpf.smartscan.data.movehistory.MoveHistoryDatabase
+import com.fpf.smartscan.data.movehistory.MoveHistoryRepository
 import com.fpf.smartscan.workers.ClassificationWorker
 
 class Organiser(private val context: Context) {

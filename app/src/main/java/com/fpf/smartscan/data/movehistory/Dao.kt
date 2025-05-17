@@ -1,4 +1,4 @@
-package com.fpf.smartscan.data.moveHistory
+package com.fpf.smartscan.data.movehistory
 
 import androidx.room.*
 

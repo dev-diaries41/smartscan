@@ -1,4 +1,4 @@
-package com.fpf.smartscan.data.jobResults
+package com.fpf.smartscan.data.jobs
 
 class JobResultRepository(private val jobResultDao: JobResultDao) {
 
