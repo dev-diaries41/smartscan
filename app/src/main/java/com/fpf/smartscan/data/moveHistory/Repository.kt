@@ -2,7 +2,7 @@ package com.fpf.smartscan.data.moveHistory
 
 class MoveHistoryRepository(private val dao: MoveHistoryDao) {
 
-    suspend fun getMoveHistory(scanId: Long): List<MoveHistory> {
+    suspend fun getMoveHistory(scanId: Int): List<MoveHistory> {
         return dao.getMoveHistory(scanId)
     }
 
@@ -10,7 +10,7 @@ class MoveHistoryRepository(private val dao: MoveHistoryDao) {
         dao.insertMove(move)
     }
 
-    suspend fun deleteMoveHistory(scanId: Long) {
+    suspend fun deleteMoveHistory(scanId: Int) {
         dao.deleteMoveHistory(scanId)
     }
 }

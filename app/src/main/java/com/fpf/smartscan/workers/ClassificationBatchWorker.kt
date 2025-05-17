@@ -39,6 +39,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     private var startTime: Long = 0L
     private var previousProcessingCount: Int = 0
 
+    private val scanId = inputData.getInt("SCAN_ID", -1)
     private val batchIndex = inputData.getInt("BATCH_INDEX", -1)
     private val batchSize = inputData.getInt("BATCH_SIZE", -1)
     private val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
@@ -53,8 +54,8 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         previousProcessingCount = startResult.initialProcessedCount
 
         try {
-            if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0) {
-                throw IllegalArgumentException("Invalid batch parameters: BATCH_INDEX=$batchIndex, BATCH_SIZE=$batchSize, TOTAL_IMAGES=$totalImages")
+            if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0 || scanId == -1) {
+                throw IllegalArgumentException("Invalid batch parameters: BATCH_INDEX=$batchIndex, BATCH_SIZE=$batchSize, TOTAL_IMAGES=$totalImages, SCAN_ID=$scanId")
             }
             if (imageUriFilePath.isEmpty()) {
                 throw IllegalArgumentException("IMAGE_URI_FILE not provided")
@@ -66,7 +67,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             val batchUriList = uriList.subList(startIndex, endIndex)
 
             Log.i(TAG, "Processing classification batch $batchIndex with ${batchUriList.size} images.")
-            val processedCount = organiser.processBatch(batchUriList)
+            val processedCount = organiser.processBatch(batchUriList, scanId)
             val finishTime = System.currentTimeMillis()
 
             jobManager.onComplete(

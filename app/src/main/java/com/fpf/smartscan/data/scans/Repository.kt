@@ -12,4 +12,8 @@ class ScanDataRepository(private val dao: ScanDataDao) {
     suspend fun delete(scanData: ScanData) {
         dao.deleteScanData(scanData)
     }
+
+    suspend fun getNextScanId(): Int {
+        return dao.getHighestId() + 1
+    }
 }

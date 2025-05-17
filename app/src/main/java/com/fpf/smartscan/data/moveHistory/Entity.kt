@@ -6,7 +6,7 @@ import androidx.room.*
 data class MoveHistory(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,  // Auto-generated primary key
-    val scanId: Long,
+    val scanId: Int,
     val sourceUri: String,
     val destinationUri: String,
     val date: Long,

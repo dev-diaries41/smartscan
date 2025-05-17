@@ -14,5 +14,8 @@ interface ScanDataDao {
 
     @Delete
     suspend fun deleteScanData(scanData: ScanData)
+
+    @Query("SELECT COALESCE(MAX(id), 0) FROM scan_data")
+    suspend fun getHighestId(): Int
 }
 
