@@ -14,6 +14,8 @@ import androidx.core.net.toUri
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.data.scans.AppDatabase
+import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getFilesFromDir
@@ -42,11 +44,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
         private const val IMAGE_URI_FILE_PREFIX = "classification_image_uris"
     }
 
-    private val prototypeRepository: PrototypeEmbeddingRepository =
-        PrototypeEmbeddingRepository(
-            PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
-                .prototypeEmbeddingDao()
-        )
+    private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application).prototypeEmbeddingDao())
+    private val scanHistoryRepository: ScanDataRepository = ScanDataRepository(AppDatabase.getDatabase(context.applicationContext as Application).scanDataDao())
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
@@ -55,6 +54,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 return@withContext Result.failure()
             }
 
+            val scanId = scanHistoryRepository.getNextScanId()
             val targetDirectories = uriStrings.map { it.toUri() }
             val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
             val fileUriList = getFilesFromDir(applicationContext, targetDirectories, imageExtensions)
@@ -87,6 +87,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 val isLastBatch = batchIndex == totalBatches - 1
 
                 val workData = workDataOf(
+                    "SCAN_ID" to scanId,
                     "IMAGE_URI_FILE" to imageUriFilePath,
                     "BATCH_INDEX" to batchIndex,
                     "BATCH_SIZE" to BATCH_SIZE,
