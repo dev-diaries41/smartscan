@@ -2,7 +2,7 @@ package com.fpf.smartscan.lib
 
 import android.content.Context
 import android.util.Log
-import com.fpf.smartscan.data.jobResults.*
+import com.fpf.smartscan.data.jobs.*
 
 data class StartResult(
     val startTime: Long,
