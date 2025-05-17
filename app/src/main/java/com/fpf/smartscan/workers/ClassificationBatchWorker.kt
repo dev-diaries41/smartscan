@@ -2,9 +2,7 @@ package com.fpf.smartscan.workers
 
 import android.app.Application
 import android.content.Context
-import android.net.Uri
 import android.util.Log
-import androidx.core.net.toUri
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.fpf.smartscan.R
@@ -12,15 +10,13 @@ import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
-import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.processors.Organiser
 import com.fpf.smartscan.lib.readUriListFromFile
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import org.json.JSONArray
-import java.io.File
+
 
 /**
  * Batch worker that reads a persisted file containing all image URIs,
