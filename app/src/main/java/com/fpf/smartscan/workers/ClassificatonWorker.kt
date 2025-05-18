@@ -14,6 +14,9 @@ import androidx.core.net.toUri
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.data.scans.AppDatabase
+import com.fpf.smartscan.data.scans.ScanData
+import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getFilesFromDir
@@ -42,11 +45,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
         private const val IMAGE_URI_FILE_PREFIX = "classification_image_uris"
     }
 
-    private val prototypeRepository: PrototypeEmbeddingRepository =
-        PrototypeEmbeddingRepository(
-            PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
-                .prototypeEmbeddingDao()
-        )
+    private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application).prototypeEmbeddingDao())
+    private val scanHistoryRepository: ScanDataRepository = ScanDataRepository(AppDatabase.getDatabase(context.applicationContext as Application).scanDataDao())
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
@@ -81,12 +81,20 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             val jobManager = JobManager.getInstance(applicationContext)
             jobManager.clearJobs(JOB_NAME)
 
+            // Insert placeholder scan which will be updated upon completion
+            // This is required to allow the undo functionality to work as the scanId is needed prior
+            val scanId = scanHistoryRepository.insert(ScanData(
+                result = ScanData.IN_PROGRESS_RESULT, // used to indicate that scan is in progress
+                date = System.currentTimeMillis()
+            ))
+
 
             // Chain ClassificationBatchWorker requests sequentially.
             for (batchIndex in 0 until totalBatches) {
                 val isLastBatch = batchIndex == totalBatches - 1
 
                 val workData = workDataOf(
+                    "SCAN_ID" to scanId,
                     "IMAGE_URI_FILE" to imageUriFilePath,
                     "BATCH_INDEX" to batchIndex,
                     "BATCH_SIZE" to BATCH_SIZE,
