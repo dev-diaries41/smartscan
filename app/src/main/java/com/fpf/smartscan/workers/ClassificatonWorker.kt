@@ -15,6 +15,7 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.data.scans.AppDatabase
+import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
@@ -54,7 +55,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 return@withContext Result.failure()
             }
 
-            val scanId = scanHistoryRepository.getNextScanId()
             val targetDirectories = uriStrings.map { it.toUri() }
             val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
             val fileUriList = getFilesFromDir(applicationContext, targetDirectories, imageExtensions)
@@ -80,6 +80,13 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             // This prevents stale data between chained workers
             val jobManager = JobManager.getInstance(applicationContext)
             jobManager.clearJobs(JOB_NAME)
+
+            // Insert placeholder scan which will be updated upon completion
+            // This is required to allow the undo functionality to work as the scanId is needed prior
+            val scanId = scanHistoryRepository.insert(ScanData(
+                result = ScanData.IN_PROGRESS_RESULT, // used to indicate that scan is in progress
+                date = System.currentTimeMillis()
+            ))
 
 
             // Chain ClassificationBatchWorker requests sequentially.

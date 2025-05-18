@@ -96,7 +96,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 // If totalProcessedCount > 0 it indicates some batches were successful.
                 // ERROR_RESULT (-1) is used to indicate a failure with no reliable result.
                 val count = if(results.totalProcessedCount > 0) results.totalProcessedCount else ScanData.ERROR_RESULT
-                repository.insert(ScanData(result=count, date = System.currentTimeMillis()))
+                repository.update(scanId, count, System.currentTimeMillis())
                 // Do not continually retry unlike indexing, because this does not have a super critical impact on usability
                 showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_issue), applicationContext.getString(R.string.notif_title_smart_scan_issue_description), 1003)
                 return@withContext Result.failure()
@@ -113,8 +113,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         if (results.totalProcessedCount == 0) return
 
         try {
-            repository.insert(ScanData(result=results.totalProcessedCount, date = System.currentTimeMillis()))
-
+            repository.update(scanId, results.totalProcessedCount, System.currentTimeMillis())
             val totalProcessingTime = results.finishTime - results.startTime
             val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
             val notificationText = "Total images moved: ${results.totalProcessedCount}, Time: ${minutes}m ${seconds}s"

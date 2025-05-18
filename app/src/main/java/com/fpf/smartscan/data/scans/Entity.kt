@@ -12,5 +12,6 @@ data class ScanData(
 ){
     companion object {
         const val ERROR_RESULT = -1
+        const val IN_PROGRESS_RESULT = -2 // workaround to allow undo fucntionality
     }
 }

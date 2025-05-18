@@ -156,6 +156,18 @@ fun ScanHistoryItemCard(data: ScanData) {
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
+                } else if(data.result == ScanData.IN_PROGRESS_RESULT){
+                    Text(
+                        text = "Images moved: unknown",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.alpha(0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Status: in progress",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary.copy(0.5f)
+                    )
                 } else {
                     Text(
                         text = "Images moved: ${data.result}",
