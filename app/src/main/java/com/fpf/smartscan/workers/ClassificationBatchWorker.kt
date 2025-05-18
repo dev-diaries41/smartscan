@@ -110,9 +110,12 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
 
     private suspend fun onAllJobsComplete(){
         val results = jobManager.getJobResults(JOB_NAME)
-        if (results.totalProcessedCount == 0) return
-
         try {
+            if (results.totalProcessedCount == 0){
+                repository.delete(scanId)
+                return
+            }
+
             repository.update(scanId, results.totalProcessedCount, System.currentTimeMillis())
             val totalProcessingTime = results.finishTime - results.startTime
             val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
