@@ -5,11 +5,16 @@ import androidx.lifecycle.*
 class ScanDataRepository(private val dao: ScanDataDao) {
     val allScanData: LiveData<List<ScanData>> = dao.getAllScanData()
 
-    suspend fun insert(scanData: ScanData) {
-        dao.insertScanData(scanData)
+    suspend fun insert(scanData: ScanData): Int {
+        return dao.insert(scanData).toInt()
     }
 
-    suspend fun delete(scanData: ScanData) {
-        dao.deleteScanData(scanData)
+    suspend fun update(scanId: Int, result: Int, date: Long) {
+        dao.update(scanId, result, date)
     }
+
+    suspend fun delete(id: Int) {
+        dao.delete(id)
+    }
+
 }

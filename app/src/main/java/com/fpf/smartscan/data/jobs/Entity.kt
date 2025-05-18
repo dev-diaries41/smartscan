@@ -1,4 +1,4 @@
-package com.fpf.smartscan.data.jobResults
+package com.fpf.smartscan.data.jobs
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey

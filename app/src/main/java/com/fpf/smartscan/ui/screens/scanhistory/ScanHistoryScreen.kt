@@ -1,11 +1,18 @@
 package com.fpf.smartscan.ui.screens.scanhistory
 
+import android.util.Log
+import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,11 +27,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.data.scans.ScanData
@@ -34,18 +44,67 @@ import com.fpf.smartscan.lib.toDateString
 @Composable
 fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
     val items by viewModel.scanDataList.observeAsState(initial = emptyList())
-    
+    val hasMoveHistoryForLastScan by viewModel.hasMoveHistoryForLastScan.observeAsState(false)
+    val undoMessage by viewModel.undoResultEvent.observeAsState()
+    val isLoading by viewModel.isLoading.observeAsState(false)
+    val context = LocalContext.current
+
+    LaunchedEffect(items) {
+        if(items.isNotEmpty()){
+            val lastScanId = items.maxOf { item -> item.id }
+            viewModel.checkHasMoveHistory(lastScanId)
+        }
+    }
+
+    LaunchedEffect(undoMessage) {
+        undoMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     if (items.isEmpty()) {
         EmptyScanHistoryScreen()
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp)
+        Box(
+            modifier = Modifier.padding(16.dp)
         ) {
-            items(
-                items = items,
-                key = { it.id }
-            ) { item ->
-                ScanHistoryItemCard(data = item)
+            Column {
+                if(hasMoveHistoryForLastScan){
+                    Button(
+                        enabled = !isLoading,
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        onClick = {viewModel.undoLastScan(items)}
+                    ) {
+                        Text(text = "Undo last scan")
+                        AnimatedVisibility(
+                            visible = isLoading,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
+                            exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.padding(start = 8.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier
+                                        .size(18.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                LazyColumn(
+                ) {
+                    items(
+                        items = items,
+                        key = { it.id }
+                    ) { item ->
+                        ScanHistoryItemCard(data = item)
+                    }
+                }
             }
         }
     }
@@ -96,6 +155,18 @@ fun ScanHistoryItemCard(data: ScanData) {
                         text = "Status: failed",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
+                    )
+                } else if(data.result == ScanData.IN_PROGRESS_RESULT){
+                    Text(
+                        text = "Images moved: unknown",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.alpha(0.8f)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "Status: in progress",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary.copy(0.5f)
                     )
                 } else {
                     Text(

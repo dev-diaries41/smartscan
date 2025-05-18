@@ -22,6 +22,9 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import androidx.core.content.edit
+import com.fpf.smartscan.data.movehistory.MoveHistory
+import com.fpf.smartscan.data.movehistory.MoveHistoryDatabase
+import com.fpf.smartscan.data.movehistory.MoveHistoryRepository
 import com.fpf.smartscan.workers.ClassificationWorker
 
 class Organiser(private val context: Context) {
@@ -32,11 +35,8 @@ class Organiser(private val context: Context) {
         private const val PREF_KEY_LAST_USED_CLASSIFICATION_DIRS = "last_used_destinations"
     }
 
-    private val prototypeRepository: PrototypeEmbeddingRepository =
-        PrototypeEmbeddingRepository(
-            PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application)
-                .prototypeEmbeddingDao()
-        )
+    private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application).prototypeEmbeddingDao())
+    private val moveHistoryRepository: MoveHistoryRepository = MoveHistoryRepository(MoveHistoryDatabase.getDatabase(context.applicationContext as Application).moveHistoryDao())
 
     private val memoryUtils = MemoryUtils(context)
 
@@ -44,7 +44,7 @@ class Organiser(private val context: Context) {
         embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
     }
 
-    suspend fun processBatch(imageUris: List<Uri>): Int = withContext(Dispatchers.IO) {
+    suspend fun processBatch(imageUris: List<Uri>, scanId: Int): Int = withContext(Dispatchers.IO) {
         if (imageUris.isEmpty()) {
             Log.i(TAG, "No image files found for classification.")
             return@withContext 0
@@ -71,8 +71,13 @@ class Organiser(private val context: Context) {
 
                 val deferredResults = chunk.map { imageUri ->
                     async {
-                        semaphore.withPermit {
-                            processImage(imageUri, prototypeList)
+                        try {
+                            semaphore.withPermit {
+                                processImage(imageUri, prototypeList, scanId)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error in coroutine for $imageUri: ${e.message}", e)
+                            false
                         }
                     }
                 }
@@ -89,10 +94,7 @@ class Organiser(private val context: Context) {
         }
     }
 
-    private suspend fun processImage(
-        imageUri: Uri,
-        prototypeEmbeddings: List<PrototypeEmbedding>
-    ): Boolean {
+    private suspend fun processImage(imageUri: Uri, prototypeEmbeddings: List<PrototypeEmbedding>, scanId: Int): Boolean {
         return try {
             val bitmap = getBitmapFromUri(context, imageUri)
             val imageEmbedding = embeddingHandler?.generateImageEmbedding(bitmap)
@@ -100,16 +102,40 @@ class Organiser(private val context: Context) {
 
             if (imageEmbedding == null) return false
 
-            val similarities =
-                getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-            val bestIndex = getTopN(similarities, 1, 0.4f).firstOrNull() ?: -1
-            val destinationIdentifier = prototypeEmbeddings.getOrNull(bestIndex)?.id
+            val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
+            val top2 = getTopN(similarities, 2)
 
-            if (destinationIdentifier == null) {
+            if(top2.isEmpty()) return false
+
+            val bestIndex = top2[0]
+            val bestSim = similarities[bestIndex]
+            val secondSim = top2.getOrNull(1)?.let { similarities[it] } ?: 0f
+
+            val threshold = 0.4f
+            val minMargin = 0.05f
+
+            if (bestSim < threshold) return false // don't move if below threshold
+            if((bestSim - secondSim) < minMargin) return false // don't move if gap between best and second is too small
+
+            val destinationString = prototypeEmbeddings.getOrNull(bestIndex)?.id
+
+            if (destinationString == null) {
                 Log.e(TAG, "Image classification failed for URI: $imageUri")
                 false
             } else {
-                moveFile(context, imageUri, destinationIdentifier.toUri())
+                val newFileUri = moveFile(context, imageUri, destinationString.toUri())
+                val isMoved = newFileUri != null
+                if(isMoved){
+                    moveHistoryRepository.insert(
+                        MoveHistory(
+                            scanId = scanId,
+                            sourceUri = imageUri.toString(),
+                            destinationUri = newFileUri.toString(),
+                            date = System.currentTimeMillis(),
+                        )
+                    )
+                }
+                isMoved
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error processing image $imageUri: ${e.message}", e)
