@@ -19,7 +19,7 @@ fun getSimilarities(embedding: FloatArray, comparisonEmbeddings: List<FloatArray
     return comparisonEmbeddings.map { embedding dot it }
 }
 
-fun getTopN(similarities: List<Float>, n: Int, threshold: Float): List<Int> {
+fun getTopN(similarities: List<Float>, n: Int, threshold: Float = 0f): List<Int> {
     return similarities.indices.filter { similarities[it] >= threshold }
         .sortedByDescending { similarities[it] }
         .take(n)

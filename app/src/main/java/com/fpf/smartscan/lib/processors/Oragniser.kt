@@ -98,7 +98,20 @@ class Organiser(private val context: Context) {
             if (imageEmbedding == null) return false
 
             val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-            val bestIndex = getTopN(similarities, 1, 0.4f).firstOrNull() ?: -1
+            val top2 = getTopN(similarities, 2)
+
+            if(top2.isEmpty()) return false
+
+            val bestIndex = top2[0]
+            val bestSim = similarities[bestIndex]
+            val secondSim = top2.getOrNull(1)?.let { similarities[it] } ?: 0f
+
+            val threshold = 0.4f
+            val minMargin = 0.05f
+
+            if (bestSim < threshold) return false // don't move if below threshold
+            if((bestSim - secondSim) < minMargin) return false // don't move if gap between best and second is too small
+
             val destinationString = prototypeEmbeddings.getOrNull(bestIndex)?.id
 
             if (destinationString == null) {
@@ -106,7 +119,8 @@ class Organiser(private val context: Context) {
                 false
             } else {
                 val newFileUri = moveFile(context, imageUri, destinationString.toUri())
-                if(newFileUri != null){
+                val isMoved = newFileUri != null
+                if(isMoved){
                     moveHistoryRepository.insert(
                         MoveHistory(
                             scanId = scanId,
@@ -116,7 +130,7 @@ class Organiser(private val context: Context) {
                         )
                     )
                 }
-                newFileUri != null
+                isMoved
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error processing image $imageUri: ${e.message}", e)
