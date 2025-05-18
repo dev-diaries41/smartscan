@@ -9,13 +9,13 @@ interface ScanDataDao {
     @Query("SELECT * FROM scan_data ORDER BY date DESC")
     fun getAllScanData(): LiveData<List<ScanData>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertScanData(scanData: ScanData)
+    @Insert
+    suspend fun insert(scanData: ScanData): Long
 
     @Query("DELETE FROM scan_data where id = :id")
-    suspend fun deleteScanData(id: Int)
+    suspend fun delete(id: Int)
 
-    @Query("SELECT COALESCE(MAX(id), 0) FROM scan_data")
-    suspend fun getHighestId(): Int
+    @Query("UPDATE scan_data SET result = :result, date = :date WHERE id = :scanId")
+    suspend fun update(scanId: Int, result: Int, date: Long)
 }
 
