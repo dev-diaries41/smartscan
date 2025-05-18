@@ -73,6 +73,11 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 processedCount = processedCount
             )
 
+            if (isLastBatch) {
+                onAllJobsComplete()
+                jobManager.clearJobs(JOB_NAME)
+            }
+
             return@withContext Result.success()
         } catch (e: Exception) {
             val failTime = System.currentTimeMillis()
@@ -86,6 +91,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             )
             val results = jobManager.getJobResults(JOB_NAME)
             if(results.errorCount >= 3){
+                jobManager.clearJobs(JOB_NAME)
                 // Temporary workaround to avoid modifying db schema:
                 // If totalProcessedCount > 0 it indicates some batches were successful.
                 // ERROR_RESULT (-1) is used to indicate a failure with no reliable result.
@@ -99,10 +105,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             return@withContext Result.retry()
         } finally {
             organiser.close()
-            if (isLastBatch) {
-                onAllJobsComplete()
-                jobManager.clearJobs(JOB_NAME)
-            }
         }
     }
 

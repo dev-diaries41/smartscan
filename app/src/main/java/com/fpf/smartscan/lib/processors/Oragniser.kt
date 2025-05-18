@@ -71,8 +71,13 @@ class Organiser(private val context: Context) {
 
                 val deferredResults = chunk.map { imageUri ->
                     async {
-                        semaphore.withPermit {
-                            processImage(imageUri, prototypeList, scanId)
+                        try {
+                            semaphore.withPermit {
+                                processImage(imageUri, prototypeList, scanId)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error in coroutine for $imageUri: ${e.message}", e)
+                            false
                         }
                     }
                 }
