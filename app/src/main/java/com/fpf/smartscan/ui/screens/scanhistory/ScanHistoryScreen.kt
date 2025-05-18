@@ -1,5 +1,6 @@
 package com.fpf.smartscan.ui.screens.scanhistory
 
+import android.widget.Toast
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -20,11 +21,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.data.scans.ScanData
@@ -34,18 +37,49 @@ import com.fpf.smartscan.lib.toDateString
 @Composable
 fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
     val items by viewModel.scanDataList.observeAsState(initial = emptyList())
+    val hasMoveHistoryForLastScan by viewModel.hasMoveHistoryForLastScan.observeAsState(false)
+    val undoMessage by viewModel.undoResultEvent.observeAsState()
+    val context = LocalContext.current
+
+    LaunchedEffect(items) {
+        if(items.isNotEmpty()){
+            val lastScanId = items.maxOf { item -> item.id }
+            viewModel.checkHasMoveHistory(lastScanId)
+        }
+    }
+
+    LaunchedEffect(undoMessage) {
+        undoMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
     
     if (items.isEmpty()) {
         EmptyScanHistoryScreen()
     } else {
-        LazyColumn(
-            contentPadding = PaddingValues(16.dp)
+        Box(
+            modifier = Modifier.padding(16.dp)
         ) {
-            items(
-                items = items,
-                key = { it.id }
-            ) { item ->
-                ScanHistoryItemCard(data = item)
+            Column {
+                if(hasMoveHistoryForLastScan){
+                    Button(
+                        modifier = Modifier.padding(bottom = 8.dp),
+                        onClick = {viewModel.undoLastScan(items)}
+                    ) {
+                        Text(text = "Revert last scan")
+                    }
+                }
+
+                LazyColumn(
+//                contentPadding = PaddingValues(16.dp)
+                ) {
+                    items(
+                        items = items,
+                        key = { it.id }
+                    ) { item ->
+                        ScanHistoryItemCard(data = item)
+                    }
+                }
             }
         }
     }

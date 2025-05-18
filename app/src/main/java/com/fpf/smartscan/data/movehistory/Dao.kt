@@ -1,5 +1,6 @@
 package com.fpf.smartscan.data.movehistory
 
+import androidx.lifecycle.LiveData
 import androidx.room.*
 
 @Dao
@@ -13,5 +14,8 @@ interface MoveHistoryDao {
 
     @Query("DELETE FROM move_history WHERE scanId = :scanId")
     suspend fun deleteMoveHistory(scanId: Int)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM move_history where scanId = :scanId)")
+    fun hasMoveHistory(scanId: Int): Boolean
 }
 

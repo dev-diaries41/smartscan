@@ -1,9 +1,15 @@
 package com.fpf.smartscan.data.movehistory
 
+import androidx.lifecycle.LiveData
+
 class MoveHistoryRepository(private val dao: MoveHistoryDao) {
 
     suspend fun getMoveHistory(scanId: Int): List<MoveHistory> {
         return dao.getMoveHistory(scanId)
+    }
+
+    suspend fun hasMoveHistory(scanId: Int): Boolean {
+        return dao.hasMoveHistory(scanId)
     }
 
     suspend fun insert(move: MoveHistory) {

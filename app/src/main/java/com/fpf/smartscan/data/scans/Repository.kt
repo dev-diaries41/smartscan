@@ -9,8 +9,8 @@ class ScanDataRepository(private val dao: ScanDataDao) {
         dao.insertScanData(scanData)
     }
 
-    suspend fun delete(scanData: ScanData) {
-        dao.deleteScanData(scanData)
+    suspend fun delete(id: Int) {
+        dao.deleteScanData(id)
     }
 
     suspend fun getNextScanId(): Int {
