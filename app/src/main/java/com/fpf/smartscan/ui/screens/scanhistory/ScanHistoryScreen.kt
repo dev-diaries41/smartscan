@@ -1,12 +1,18 @@
 package com.fpf.smartscan.ui.screens.scanhistory
 
+import android.util.Log
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,6 +30,7 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
@@ -39,6 +46,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
     val items by viewModel.scanDataList.observeAsState(initial = emptyList())
     val hasMoveHistoryForLastScan by viewModel.hasMoveHistoryForLastScan.observeAsState(false)
     val undoMessage by viewModel.undoResultEvent.observeAsState()
+    val isLoading by viewModel.isLoading.observeAsState(false)
     val context = LocalContext.current
 
     LaunchedEffect(items) {
@@ -53,7 +61,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
         }
     }
-    
+
     if (items.isEmpty()) {
         EmptyScanHistoryScreen()
     } else {
@@ -63,15 +71,32 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
             Column {
                 if(hasMoveHistoryForLastScan){
                     Button(
+                        enabled = !isLoading,
                         modifier = Modifier.padding(bottom = 8.dp),
                         onClick = {viewModel.undoLastScan(items)}
                     ) {
-                        Text(text = "Revert last scan")
+                        Text(text = "Undo last scan")
+                        AnimatedVisibility(
+                            visible = isLoading,
+                            enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
+                            exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.padding(start = 8.dp)
+                            ) {
+                                CircularProgressIndicator(
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier
+                                        .size(18.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        }
                     }
                 }
 
                 LazyColumn(
-//                contentPadding = PaddingValues(16.dp)
                 ) {
                     items(
                         items = items,
