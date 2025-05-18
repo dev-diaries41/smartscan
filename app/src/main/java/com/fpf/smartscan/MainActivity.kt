@@ -48,7 +48,9 @@ class MainActivity : ComponentActivity() {
             AppSettings()
         }
 
-        val lastIndexed = storage.getItem("lastIndexed")?.toLongOrNull() ?: 0L
+        val lastIndexed = storage.getItem("lastIndexed")?.toLongOrNull()
+        if(lastIndexed == null) return
+
         val now = System.currentTimeMillis()
 
         val shouldIndex = when (appSettings.indexFrequency) {
