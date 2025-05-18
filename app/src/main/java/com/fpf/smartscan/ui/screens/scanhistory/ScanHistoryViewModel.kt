@@ -45,12 +45,15 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
 
                 val message = when {
                     failedMoves == 0 -> "$successfulMoves images restored"
-                    (successfulMoves == 0) && movesForScan.isNotEmpty() -> "Failed to restore any images"
+                    (successfulMoves == 0) && movesForScan.isNotEmpty() -> "Failed to undo scan"
                     else -> "$successfulMoves images restored, $failedMoves failed"
                 }
                 _undoResultEvent.postValue(message)
+                movesRepository.deleteMoveHistory(lastScanId)
                 scansRepository.delete(lastScanId)
             }catch (e: Exception){
+                val errorMessage = "Failed to undo scan"
+                _undoResultEvent.postValue(errorMessage)
                 Log.e("ScanHistoryViewModel", "Error undoing last scan: $e")
             }
         }
