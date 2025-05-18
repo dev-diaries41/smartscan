@@ -9,13 +9,13 @@ import org.json.JSONArray
 import org.json.JSONException
 import java.io.File
 
-fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Boolean {
+fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
     val tag = "FileOperationError"
     try {
         val destDir = DocumentFile.fromTreeUri(context, destinationDirUri)
         if (destDir == null || !destDir.isDirectory) {
             Log.e(tag, "Destination is not a valid directory")
-            return false
+            return null
         }
 
         val sourceDocument = DocumentFile.fromSingleUri(context, sourceUri)
@@ -25,7 +25,7 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Boolean 
         val newFile = destDir.createFile(mimeType, sourceFileName)
         if (newFile == null) {
             Log.e(tag, "Failed to create new file in destination directory")
-            return false
+            return null
         }
 
         context.contentResolver.openInputStream(sourceUri)?.use { input ->
@@ -34,10 +34,10 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Boolean 
             }
         }
         sourceDocument?.delete()
-        return true
+        return newFile.uri
     } catch (e: Exception) {
         Log.e(tag, "Failed to move image: ${e.message ?: "Unknown error"}")
-        return false
+        return null
     }
 }
 

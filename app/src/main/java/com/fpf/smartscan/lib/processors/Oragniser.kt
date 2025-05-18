@@ -105,18 +105,18 @@ class Organiser(private val context: Context) {
                 Log.e(TAG, "Image classification failed for URI: $imageUri")
                 false
             } else {
-                val isMoved = moveFile(context, imageUri, destinationString.toUri())
-                if(isMoved){
+                val newFileUri = moveFile(context, imageUri, destinationString.toUri())
+                if(newFileUri != null){
                     moveHistoryRepository.insert(
                         MoveHistory(
                             scanId = scanId,
                             sourceUri = imageUri.toString(),
-                            destinationUri = destinationString,
+                            destinationUri = newFileUri.toString(),
                             date = System.currentTimeMillis(),
                         )
                     )
                 }
-                isMoved
+                newFileUri != null
             }
         } catch (e: Exception) {
             Log.e(TAG, "Error processing image $imageUri: ${e.message}", e)

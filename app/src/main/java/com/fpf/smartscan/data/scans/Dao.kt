@@ -12,8 +12,8 @@ interface ScanDataDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertScanData(scanData: ScanData)
 
-    @Delete
-    suspend fun deleteScanData(scanData: ScanData)
+    @Query("DELETE FROM scan_data where id = :id")
+    suspend fun deleteScanData(id: Int)
 
     @Query("SELECT COALESCE(MAX(id), 0) FROM scan_data")
     suspend fun getHighestId(): Int
