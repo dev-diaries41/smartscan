@@ -8,6 +8,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.launch
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.data.images.ImageEmbedding
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
@@ -103,7 +104,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _isLoading.value = true
         _error.value = null
 
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch((Dispatchers.IO)) {
             try {
                 if (embeddingsHandler == null) {
                     embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
