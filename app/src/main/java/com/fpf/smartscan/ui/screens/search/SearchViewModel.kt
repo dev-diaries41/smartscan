@@ -165,7 +165,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _isLoading.value = true
         _error.value = null
 
-        CoroutineScope(Dispatchers.Default).launch {
+        viewModelScope.launch((Dispatchers.IO)) {
             try {
                 if (embeddingsHandler == null) {
                     embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
