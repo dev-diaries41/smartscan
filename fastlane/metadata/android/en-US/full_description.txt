@@ -1,21 +1,22 @@
-<b>SmartScan</b> is an innovative app powered by a <b>CLIP model</b> that 
-automatically organizes your images by <b>content similarity</b> and enables 
-<b>text-based search</b>, making gallery management effortless.
+<b>SmartScan</b> is an innovative app powered by a <b>CLIP model</b> that
+automatically organizes your images by <b>content similarity</b> and enables
+<b>text-based search across both images and videos</b>, making gallery management effortless.
 
 <b>Key Features</b>
 
-<b>Automated Image Organisation</b>  
+<b>Automated Image Organisation</b>
 <ul>
-<li><b>Smart Scans:</b> Schedule regular scans automatically.</li>
-<li><b>Auto-Categorisation Test:</b> Upload a test image to verify categorisation.</li>
+<li><b>Auto-Organisation:</b> Schedule regular scans automatically to organise images based on content similarity.</li>
+<li><b>Auto-Organisation Test:</b> Upload a test image to verify categorisation.</li>
+<li><b>Undo Scans:</b> Revert the most recent scan if needed.</li>
 </ul>
 
-<b>Text-Based Image Search</b>  
+<b>Text-Based Video & Image Search</b>
 <ul>
 <li><b>Gallery Access:</b> Open search results directly in the gallery.</li>
-<li><b>Result Display:</b> Show the top result plus up to 20 similar images.</li>
-<li><b>Weekly Updates:</b> Automatically refresh the image index for new images.</li>
+<li><b>Result Display:</b> Show the top result plus up to 20 similar images or videos.</li>
+<li><b>Weekly Updates:</b> Automatically refresh image and video indexes for new content.</li>
 </ul>
 
-<b>Fully On-Device</b>  
+<b>Fully On-Device</b>
 All processing including both image organisation and text-based search is handled entirely on-device, ensuring privacy, speed, and offline functionality.
