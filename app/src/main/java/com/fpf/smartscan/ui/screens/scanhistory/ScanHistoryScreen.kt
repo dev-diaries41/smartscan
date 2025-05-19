@@ -1,6 +1,5 @@
 package com.fpf.smartscan.ui.screens.scanhistory
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
@@ -152,19 +151,14 @@ fun ScanHistoryItemCard(data: ScanData) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Status: failed",
+                        text = "Status: ${Status.FAILED}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error
                     )
                 } else if(data.result == ScanData.IN_PROGRESS_RESULT){
-                    Text(
-                        text = "Images moved: unknown",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.alpha(0.8f)
-                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Status: in progress",
+                        text = "Status: ${Status.IN_PROGRESS}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary.copy(0.5f)
                     )
@@ -176,7 +170,7 @@ fun ScanHistoryItemCard(data: ScanData) {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = "Status: success",
+                        text = "Status: ${Status.SUCCESS}",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.primary
                     )
