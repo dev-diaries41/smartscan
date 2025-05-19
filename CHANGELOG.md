@@ -1,3 +1,16 @@
+## v1.1.0 – 19/05/2025
+
+### Added
+- Video search support
+- Undo last scan feature
+- Help screen for guidance and troubleshooting
+
+### Changed
+- Refresh logic revised to avoid hard reset
+
+### Fixed
+- Reduced false positives in auto-organisation
+
 ## v1.0.6 – 30/04/2025
 
 ### Added
