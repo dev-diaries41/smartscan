@@ -158,7 +158,7 @@ fun SettingsIncrementor(
                     .width(140.dp)
                     .height(40.dp)
                     .clip(RoundedCornerShape(percent = 50))
-                    .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
+                    .background(MaterialTheme.colorScheme.surfaceContainerLow)
                     .border(
                         width = 1.dp,
                         color = MaterialTheme.colorScheme.outline,
@@ -292,7 +292,7 @@ fun SettingsSelect(
                 enabled = enabled,
                 modifier = Modifier.widthIn(max = 140.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)  // 50% transparent red
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 )
             ) {
                 Row(
