@@ -121,7 +121,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             val (minutes, seconds) = getTimeInMinutesAndSeconds(totalProcessingTime)
             val notificationText = "Total images moved: ${results.totalProcessedCount}, Time: ${minutes}m ${seconds}s"
 
-            showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_complete), notificationText, 1003)
+            showNotification(applicationContext, applicationContext.getString(R.string.notif_title_auto_organisation_complete), notificationText, 1003)
         }
         catch (e: Exception){
             Log.e(TAG, "Error finalising $JOB_NAME jobs: ${e.message}", e)
