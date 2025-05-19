@@ -150,7 +150,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                         semaphore.withPermit {
                             try {
                                 val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri(), 30)
-                                val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(bitmaps)
+                                val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(context, bitmaps)
                                 repository.insert(
                                     PrototypeEmbedding(
                                         id = uri,
