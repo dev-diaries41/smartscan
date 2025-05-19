@@ -119,7 +119,8 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(id = R.string.image_management_settings),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
                 SettingsSwitch(
                     text = stringResource(id = R.string.setting_enable_scan),
@@ -153,7 +154,8 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(id = R.string.media_search_settings),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 SettingsIncrementor(
@@ -216,7 +218,8 @@ fun SettingsScreen(
                 Text(
                     text = stringResource(id = R.string.other_settings),
                     style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 SettingsCard(
