@@ -7,6 +7,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.work.Operation
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.data.scans.*
 import com.fpf.smartscan.data.movehistory.*
@@ -18,6 +19,12 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.atomic.AtomicInteger
+
+object Status {
+    const val FAILED: String = "failed"
+    const val IN_PROGRESS: String = "in progress"
+    const val SUCCESS: String = "success"
+}
 
 class ScanHistoryViewModel(application: Application) : AndroidViewModel(application) {
     private val scansRepository: ScanDataRepository = ScanDataRepository(AppDatabase.getDatabase(application).scanDataDao())
