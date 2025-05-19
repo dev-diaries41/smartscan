@@ -1,7 +1,6 @@
-# SmartScan - Image organisation & search app
+# SmartScan - Media organisation & search app
 
-SmartScan is an innovative app powered by a CLIP model that automatically organizes your images by content similarity and enables text-based search, making gallery management effortless.
-
+SmartScan is an innovative app powered by a CLIP model that automatically organizes your images by content similarity and enables text-based search across both images and videos, making gallery management effortless.
 
 <div align="center">
   <img src="fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner" style="border-radius: 20px;">
@@ -53,7 +52,7 @@ All processing—including both image organisation and text-based search—is ha
 
 - The accuracy of auto-categorization depends on the consistency of the sample images in each destination folder.
 - False moves may occur if the images in a destination folder do not accurately represent the intended content.
-- To minimize inaccuracies, ensure your destination folders are well-curated. If issues persist, **disable scanning** and **open a GitHub issue**. Repeated issues might result in the removal of this feature.
+- To minimize inaccuracies, ensure your destination folders are well-curated. If issues persist, **disable auto-organisation** and **open a GitHub issue**. Repeated issues might result in the removal of this feature.
 
 ### Media Search
 
