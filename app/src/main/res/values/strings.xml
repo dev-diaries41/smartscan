@@ -25,7 +25,7 @@
     <string name="notif_title_index_error_service">%1$s indexing error</string>
     <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index in settings by clicking the Refresh %1$s index option.</string>
 
-    <string name="notif_title_smart_scan_complete">Smart scan complete</string>
+    <string name="notif_title_auto_organisation_complete">Auto-organisation complete</string>
     <string name="notif_title_index_complete">Indexing complete</string>
     <string name="notif_title_index_issue">Indexing issue detected</string>
     <string name="notif_title_index_issue_description">It will automatically try to resume. If the problem does not resolve within a few minutes, you can restart indexing manually from Settings.</string>
