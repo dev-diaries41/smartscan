@@ -4,10 +4,13 @@
     <string name="copyright">© 2025 D41 Dev</string>
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
 
+    <!-- Screen titles-->
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
     <string name="title_scan_history">Scan History</string>
     <string name="title_test_organisation">Test SmartScan</string>
+    <string name="title_donate">Donate</string>
+    <string name="title_help">Help</string>
 
     <!-- Notifications -->
     <string name="worker_channel_id">Background Tasks</string>
@@ -64,7 +67,6 @@
     <string name="advanced_settings">Advanced</string>
     <string name="other_settings">Other</string>
 
-    <string name="setting_donate">Donate</string>
     <string name="setting_source_code">Source code</string>
     <string name="setting_enable_scan">Enable auto-organisation</string>
     <string name="setting_enable_scan_description">Enable periodic scanning of the folder you want to organise.</string>
@@ -99,4 +101,40 @@
     <!-- Scan Frequency options -->
     <string name="scan_frequency_1d">1 Day</string>
     <string name="scan_frequency_1w">1 Week</string>
+
+    <!--Help screen-->
+
+    <!-- Image Management -->
+    <string name="help_image_management_title">Image Management</string>
+    <string name="help_enable_auto_organisation">Enable auto-organisation to automatically move new images to categorised folders.</string>
+    <string name="help_select_folders_to_monitor">In settings, select folders to monitor for new images (Target Folders).</string>
+    <string name="help_select_destination_folders">Select the allowed folders for moving categorised images (Destination Folders).</string>
+    <string name="help_test_auto_organisation">Test auto-organisation using the test tube icon and uploading an image.</string>
+    <string name="help_curated_images_requirement">Each destination folder should contain at least 10 well-curated images that accurately represent the types of images you expect to be moved there.</string>
+
+    <!-- Undo Last Scan -->
+    <string name="help_undo_last_scan_title">Undo Last Scan</string>
+    <string name="help_undo_last_scan_description">You can now undo the last scan if undesired moves are noticed.</string>
+    <string name="help_undo_version_requirement">Undo is only available for scans performed with version 1.1.0 or newer.</string>
+
+    <!-- Limitations -->
+    <string name="help_limitations_title">Limitations</string>
+    <string name="help_accuracy_note">Accuracy depends on consistency of images in each destination folder.</string>
+    <string name="help_incorrect_moves_warning">Incorrect moves can occur if folders are not representative.</string>
+    <string name="help_reduce_errors_tip">To reduce errors, ensure destination folders are well-curated.</string>
+    <string name="help_disable_and_report">If persistent issues occur, disable auto-organisation and open a GitHub issue.</string>
+
+    <!-- Media Search -->
+    <string name="help_media_search_title">Media Search</string>
+    <string name="help_media_search_intro">Search across both images and videos with the following behavior:</string>
+    <string name="help_indexing_first_time">First-time use requires indexing of media files. This may take several minutes depending on your library size.</string>
+    <string name="help_indexing_schedule">Indexing occurs automatically on a schedule (daily or weekly) based on your settings.</string>
+    <string name="help_manual_refresh_index">You can also manually refresh the image or video index anytime via settings.</string>
+
+    <!-- Search Tips -->
+    <string name="help_search_tips_title">Search Tips:</string>
+    <string name="help_short_specific_queries">Use short, specific queries.</string>
+    <string name="help_include_text_from_media">Include specific text from the media (e.g. subtitles, overlay text) when available.</string>
+    <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
+
 </resources>
