@@ -18,13 +18,14 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 ## Key Features
 
 ### Automated Image Organisation
-- **Smart Scans:** Schedule regular scans automatically.
+- **Auto-organisation:** Schedule regular scans automatically to organise images based on content similarity.
 - **Auto-Categorisation Test:** Upload a test image to verify categorisation.
+- **Undo Scans:** Revert the most recent scan if needed.
 
-### Text-Based Image Search
+### Text-Based Video & Image Search
 - **Gallery Access:** Open search results directly in the gallery.
 - **Result Display:** Show the top result plus up to 20 similar images.
-- **Weekly Updates:** Automatically refresh the image index for new images.
+- **Weekly Updates:** Automatically refresh image and videos indexes for new images.
 
 ### Fully On-Device
 All processing—including both image organisation and text-based search—is handled entirely on-device, ensuring privacy, speed, and offline functionality.
@@ -38,9 +39,9 @@ All processing—including both image organisation and text-based search—is ha
 
 1. **Target Folders**: In settings, select the folders you want to monitor for new images.
 2. **Destination Folders**: In settings, select the allowed destination folders for images to be moved to.
-3. **Test auto-categorisation**: Once you have set this up you can test auto-categorisation by clicking the `test tube` icon and uploading an image. 
+3. **Test auto-organisation**: Once you have set this up you can test auto-categorisation by clicking the `test tube` icon and uploading an image. 
 
-**Note:** Each destination folder should contain at least 10 images. This sample set is crucial for accurate matching.
+**Note:** Each destination folder should contain at least 10 well-curated images that accurately represent the types of images you expect to be moved there.
 
 <div style="display: flex; justify-content: space-between; padding-top: 20px;">
   <img src="fastlane/metadata/android/en-US/images/other/target.png" alt="Target folders" style="border-radius: 15px; margin: 5px; width:200px;">
@@ -54,10 +55,13 @@ All processing—including both image organisation and text-based search—is ha
 - False moves may occur if the images in a destination folder do not accurately represent the intended content.
 - To minimize inaccuracies, ensure your destination folders are well-curated. If issues persist, **disable scanning** and **open a GitHub issue**. Repeated issues might result in the removal of this feature.
 
-### Image Search
+### Media Search
 
-- **Indexing Requirement**: The first time you use the app, images must be indexed. Depending on your gallery size, this may take a few minutes.
-- **Ongoing Updates**: Image indexing is updated on a weekly schedule to include new images.
+Search across both images and videos with the following behavior:
+
+* **First-Time Indexing:** First-time use requires indexing of media files. This may take several minutes depending on your library size.
+* **Automatic Updates:** Indexing occurs automatically on a schedule (daily or weekly) based on your settings.
+* **Manual Refresh:** You can also manually refresh the image or video index anytime via Settings.
 
 #### Search Tips
 
@@ -65,6 +69,7 @@ All processing—including both image organisation and text-based search—is ha
 - **Be Descriptive**: For images with text content, include specific words present in the image.
 - **Adjust Results**: In settings, you can modify the number of similar results displayed.
 
+---
 
 ## Download
 
