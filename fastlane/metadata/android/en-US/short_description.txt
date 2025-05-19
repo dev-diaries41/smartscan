@@ -1,1 +1,1 @@
-SmartScan organizes images and enables text-based search.
+SmartScan organizes images and enables text-based search across images and videos.
