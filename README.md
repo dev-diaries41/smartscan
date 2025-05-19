@@ -17,8 +17,8 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 ## Key Features
 
 ### Automated Image Organisation
-- **Auto-organisation:** Schedule regular scans automatically to organise images based on content similarity.
-- **Auto-Categorisation Test:** Upload a test image to verify categorisation.
+- **Auto-Organisation:** Schedule regular scans automatically to organise images based on content similarity.
+- **Auto-Organisation Test:** Upload a test image to verify categorisation.
 - **Undo Scans:** Revert the most recent scan if needed.
 
 ### Text-Based Video & Image Search
