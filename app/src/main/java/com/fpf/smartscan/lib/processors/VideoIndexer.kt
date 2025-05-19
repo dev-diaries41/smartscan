@@ -78,7 +78,7 @@ class VideoIndexer(
 
                                 if(frameBitmaps == null) return@async 0
 
-                                val embedding: FloatArray = embeddingHandler.generatePrototypeEmbedding(frameBitmaps)
+                                val embedding: FloatArray = embeddingHandler.generatePrototypeEmbedding(application, frameBitmaps)
 
                                 repository.insert(
                                     VideoEmbedding(

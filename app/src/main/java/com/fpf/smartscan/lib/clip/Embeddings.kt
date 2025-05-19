@@ -3,11 +3,13 @@ package com.fpf.smartscan.lib.clip
 import ai.onnxruntime.OnnxTensor
 import ai.onnxruntime.OrtEnvironment
 import ai.onnxruntime.OrtSession
+import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.util.JsonReader
 import android.util.Log
 import com.fpf.smartscan.R
+import com.fpf.smartscan.lib.MemoryUtils
 import com.fpf.smartscan.lib.centerCrop
 import com.fpf.smartscan.lib.preProcess
 import kotlinx.coroutines.Deferred
@@ -99,38 +101,53 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
         }
     }
 
-    suspend fun generatePrototypeEmbedding(bitmaps: List<Bitmap>): FloatArray = withContext(Dispatchers.Default) {
+    suspend fun generatePrototypeEmbedding(context: Context, bitmaps: List<Bitmap>): FloatArray = withContext(Dispatchers.Default) {
         if (bitmaps.isEmpty()) {
             throw IllegalArgumentException("Bitmap list is empty")
         }
 
-        val semaphore = Semaphore(3)
-        val embeddingDeferred: List<Deferred<FloatArray?>> = bitmaps.map { bitmap ->
-            async {
-                semaphore.withPermit {
-                    try {
-                        generateImageEmbedding(bitmap)
-                    } catch (e: Exception) {
-                        Log.e("EmbeddingGeneration", "Failed to process bitmap", e)
-                        null
+        val allEmbeddings = mutableListOf<FloatArray>()
+        val memoryUtils = MemoryUtils(context)
+
+        for (chunk in bitmaps.chunked(10)) {
+            val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
+//            Log.i("generatePrototypeEmbedding", "generatePrototypeEmbedding() - Concurrency: $currentConcurrency | Free Memory: ${
+//                memoryUtils.getFreeMemory() / (1024 * 1024)
+//            } MB"
+//            )
+
+            val semaphore = Semaphore(currentConcurrency)
+
+            val deferredEmbeddings: List<Deferred<FloatArray?>> = chunk.map { bitmap ->
+                async {
+                    semaphore.withPermit {
+                        try {
+                            generateImageEmbedding(bitmap)
+                        } catch (e: Exception) {
+                            Log.e("generatePrototypeEmbedding", "Failed to process bitmap", e)
+                            null
+                        }
                     }
                 }
             }
+
+            val embeddings = deferredEmbeddings.awaitAll().filterNotNull()
+            allEmbeddings.addAll(embeddings)
         }
 
-        val embeddings = embeddingDeferred.awaitAll().filterNotNull()
-        if (embeddings.isEmpty()) {
+        if (allEmbeddings.isEmpty()) {
             throw IllegalStateException("No embeddings could be generated from the provided bitmaps")
         }
 
-        val embeddingLength = embeddings[0].size
+        val embeddingLength = allEmbeddings[0].size
         val sumEmbedding = FloatArray(embeddingLength) { 0f }
-        for (emb in embeddings) {
+        for (emb in allEmbeddings) {
             for (i in 0 until embeddingLength) {
                 sumEmbedding[i] += emb[i]
             }
         }
-        val avgEmbedding = FloatArray(embeddingLength) { i -> sumEmbedding[i] / embeddings.size }
+
+        val avgEmbedding = FloatArray(embeddingLength) { i -> sumEmbedding[i] / allEmbeddings.size }
         normalizeL2(avgEmbedding)
     }
 
