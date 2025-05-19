@@ -24,6 +24,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
+import com.fpf.smartscan.ui.screens.help.HelpScreen
 import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryViewModel
 import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryScreen
 import com.fpf.smartscan.ui.screens.search.SearchScreen
@@ -50,7 +51,8 @@ fun MainScreen() {
         currentRoute == "search" -> stringResource(R.string.title_search)
         currentRoute == "scanhistory" -> stringResource(R.string.title_scan_history)
         currentRoute == "settings" -> stringResource(R.string.title_settings)
-        currentRoute == "donate" -> stringResource(R.string.setting_donate)
+        currentRoute == "donate" -> stringResource(R.string.title_donate)
+        currentRoute == "help" -> stringResource(R.string.title_help)
         currentRoute == "test" -> stringResource(R.string.title_test_organisation)
         currentRoute?.startsWith("settingsDetail") == true -> when (typeVal) {
             "targets" -> stringResource(R.string.setting_target_folders)
@@ -66,7 +68,7 @@ fun MainScreen() {
             TopAppBar(
                 title = { Text(text = headerTitle) },
                 navigationIcon = {
-                    if (currentRoute?.startsWith("settingsDetail") == true || currentRoute?.startsWith("test") == true || currentRoute == "donate" || currentRoute == "scanhistory") {
+                    if (currentRoute?.startsWith("settingsDetail") == true || currentRoute?.startsWith("test") == true || currentRoute == "donate" || currentRoute == "scanhistory" || currentRoute == "help") {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -157,6 +159,10 @@ fun MainScreen() {
             }
             composable("donate"){
                 DonateScreen()
+            }
+
+            composable("help"){
+                HelpScreen()
             }
         }
     }

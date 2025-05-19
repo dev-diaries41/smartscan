@@ -223,7 +223,12 @@ fun SettingsScreen(
                 )
 
                 SettingsCard(
-                    text = stringResource(id = R.string.setting_donate),
+                    text = stringResource(id = R.string.title_help),
+                    onClick = { onNavigate("help") }
+                )
+
+                SettingsCard(
+                    text = stringResource(id = R.string.title_donate),
                     onClick = { onNavigate("donate") }
                 )
                 SettingsCard(
