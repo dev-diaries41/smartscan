@@ -57,10 +57,32 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
                 val bitmap = getBitmapFromUri(context, uri)
                 val imageEmbedding = embeddingsHandler?.generateImageEmbedding(bitmap) ?: return@launch
                 val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-                val bestIndex = getTopN(similarities, 1, 0.4f).firstOrNull() ?: -1
+                val top2 = getTopN(similarities, 2)
+                if(top2.isEmpty()) {
+                    _predictedClass.postValue("No match")
+                    return@launch
+                }
+
+                val bestIndex = top2[0]
+                val bestSim = similarities[bestIndex]
+                val secondSim = top2.getOrNull(1)?.let { similarities[it] } ?: 0f
+
+                val threshold = 0.4f
+                val minMargin = 0.05f
+
+                if (bestSim < threshold) {
+                    _predictedClass.postValue("No match")
+                    return@launch
+                }
+
+                if((bestSim - secondSim) < minMargin) {
+                    _predictedClass.postValue("No match")
+                    return@launch
+                }
+
                 val result = prototypeEmbeddings.getOrNull(bestIndex)?.id?.let {
-                    DocumentFile.fromTreeUri(context, it.toUri())?.name ?: "Unknown"
-                } ?: "Unknown"
+                    DocumentFile.fromTreeUri(context, it.toUri())?.name ?: "No match"
+                } ?: "No match"
                 _predictedClass.postValue(result)
             } catch (e: Exception) {
                 Log.e("TestViewModelError", "Inference failed: ${e.message}", e)
