@@ -86,6 +86,29 @@ fun getBitmapFromUri(context: Context, uri: Uri): Bitmap {
     return ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, true)
 }
 
+fun getRestrictedDimensions(uri: Uri): Pair(Int?, Int?) {
+    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+    val inputStream = contentResolver.openInputStream(uri)
+    BitmapFactory.decodeStream(inputStream, null, options)
+    val width = options.outWidth
+    val height = options.outHeight
+    val scale = 1.0
+    if (width > 2048) {
+        scale = 2048.toDouble() / width 
+    }
+    if (height > 2048 && (2048.toDouble() / height) < scale) {
+        scale = 2048.toDouble() / height
+    }
+    val targetWidth: Int? = null
+    val targetHeight: Int? = null
+    if (scale < 1.0)
+    {
+        targetWidth = (width * scale).toInt()
+        targetHeight = (height * scale).toInt()
+    }
+    return Pair(targetWidth, targetHeight)
+}
+
 fun getImageUriFromId(id: Long): Uri {
     return ContentUris.withAppendedId(
         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
@@ -164,6 +187,11 @@ suspend fun loadBitmapFromUri(
             val source = ImageDecoder.createSource(context.contentResolver, uri)
             val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
                 if (targetWidth != null && targetHeight != null) {
+                    decoder.setTargetSize(targetWidth, targetHeight)
+                }
+                else {
+                    // Prevent failure on large images even if targets not specified
+                    (targetWidth, targetHeight) = getRestrictedDimensions(uri)
                     decoder.setTargetSize(targetWidth, targetHeight)
                 }
             }
