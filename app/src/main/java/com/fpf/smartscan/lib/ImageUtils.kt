@@ -30,12 +30,27 @@ fun preProcess(bitmap: Bitmap): FloatBuffer {
     )
     imgData.rewind()
     val stride = IMAGE_SIZE_X * IMAGE_SIZE_Y
-    val bmpData = IntArray(stride)
-    bitmap.getPixels(bmpData, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+    // getPixel instead of getPixels that fails on larger images (e.g. 3MB+).
+    val iSrcMul = (bitmap.width.toDouble() / IMAGE_SIZE_X) * bimap.width
+    val jSrcMul = (bitmap.height.toDouble() / IMAGE_SIZE_Y) * bitmap.height
     for (i in 0..IMAGE_SIZE_X - 1) {
         for (j in 0..IMAGE_SIZE_Y - 1) {
             val idx = IMAGE_SIZE_Y * i + j
-            val pixelValue = bmpData[idx]
+            val iSrc = (iSrcMuli * i).toInt()
+            if (iSrc >= bitmap.width) {
+              iSrc = bitmap.width - 1
+            }
+            if (iSrc < 0) {
+              iSrc = 0
+            }
+            val jSrc = (jSrcMul * j).toInt()
+            if (jSrc >= bitmap.height) {
+              jSrc = bitmap.height - 1
+            }
+            if (jSrc < 0) {
+              jSrc = 0
+            }
+            val pixelValue = bitmap.getPixel(iSrc, jSrc);
             imgData.put(idx, (((pixelValue shr 16 and 0xFF) / 255f - 0.485f) / 0.229f))
             imgData.put(idx + stride, (((pixelValue shr 8 and 0xFF) / 255f - 0.456f) / 0.224f))
             imgData.put(idx + stride * 2, (((pixelValue and 0xFF) / 255f - 0.406f) / 0.225f))
