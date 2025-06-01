@@ -86,7 +86,7 @@ fun getBitmapFromUri(context: Context, uri: Uri): Bitmap {
     return ImageDecoder.decodeBitmap(source).copy(Bitmap.Config.ARGB_8888, true)
 }
 
-fun getRestrictedDimensions(uri: Uri): Pair(Int?, Int?) {
+fun getRestrictedDimensions(contentResolver: ContentResolver, uri: Uri): Pair(Int?, Int?) {
     val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     val inputStream = contentResolver.openInputStream(uri)
     BitmapFactory.decodeStream(inputStream, null, options)
@@ -185,13 +185,12 @@ suspend fun loadBitmapFromUri(
     return withContext(Dispatchers.IO) {
         BitmapCache.get(uri) ?: try {
             val source = ImageDecoder.createSource(context.contentResolver, uri)
+            if (targetWidth == null || targetHeight == null) {
+                // Prevent failure on large images even if targets not specified
+                (targetWidth, targetHeight) = getRestrictedDimensions(context.contentResolver, uri)
+            }
             val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
                 if (targetWidth != null && targetHeight != null) {
-                    decoder.setTargetSize(targetWidth, targetHeight)
-                }
-                else {
-                    // Prevent failure on large images even if targets not specified
-                    (targetWidth, targetHeight) = getRestrictedDimensions(uri)
                     decoder.setTargetSize(targetWidth, targetHeight)
                 }
             }
