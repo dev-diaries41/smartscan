@@ -35,12 +35,12 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
     private var imageSession: OrtSession? = null
     private var textSession: OrtSession? = null
 
-
     private val tokenizerVocab: Map<String, Int> = getVocab(resources)
     private val tokenizerMerges: HashMap<Pair<String, String>, Int> = getMerges(resources)
     private val tokenBOS: Int = 49406
     private val tokenEOS: Int = 49407
     private val tokenizer = ClipTokenizer(tokenizerVocab, tokenizerMerges)
+    private var closed = false
 
     init {
         if (modelType == ModelType.BOTH || modelType == ModelType.IMAGE) {
@@ -154,10 +154,12 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
 
 
     fun closeSession() {
+        if (closed) return  // fix double close bug
         imageSession?.close()
         textSession?.close()
         imageSession = null
         textSession = null
+        closed = true
     }
 
     private fun getVocab(resources: Resources): Map<String, Int> {
