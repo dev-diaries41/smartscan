@@ -52,8 +52,11 @@ fun SettingsDetailScreen(
                 "targets" -> {
                     DirectoryPicker(
                         directories = appSettings.targetDirectories,
-                        onDirectoriesChanged = { newDirs ->
-                            viewModel.updateTargetDirectories(newDirs)
+                        addDirectory = { newDir ->
+                            viewModel.addTargetDirectory(newDir)
+                        },
+                        deleteDirectory = { newDir ->
+                            viewModel.deleteTargetDirectory(newDir)
                         },
                         description = stringResource(R.string.setting_target_folders_description)
                     )
@@ -61,10 +64,12 @@ fun SettingsDetailScreen(
                 "destinations" -> {
                     DirectoryPicker(
                         directories = appSettings.destinationDirectories,
-                        onDirectoriesChanged = { newDirs ->
-                            viewModel.updateDestinationDirectories(newDirs)
+                        addDirectory = { newDir ->
+                            viewModel.addDestinationDirectory(newDir)
                         },
-                        onVerifyDir = { uri -> viewModel.verifyDir(uri, context) },
+                        deleteDirectory = { newDir ->
+                            viewModel.deleteDestinationDirectory(newDir)
+                        },
                         description = stringResource(R.string.setting_destination_folders_description)
                     )
                 }
