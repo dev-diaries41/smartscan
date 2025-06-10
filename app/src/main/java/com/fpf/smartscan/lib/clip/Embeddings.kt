@@ -9,8 +9,11 @@ import android.graphics.Bitmap
 import android.util.JsonReader
 import android.util.Log
 import com.fpf.smartscan.R
+import com.fpf.smartscan.lib.DIM_BATCH_SIZE
+import com.fpf.smartscan.lib.DIM_PIXEL_SIZE
+import com.fpf.smartscan.lib.IMAGE_SIZE_X
+import com.fpf.smartscan.lib.IMAGE_SIZE_Y
 import com.fpf.smartscan.lib.MemoryUtils
-import com.fpf.smartscan.lib.centerCrop
 import com.fpf.smartscan.lib.preProcess
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -35,12 +38,12 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
     private var imageSession: OrtSession? = null
     private var textSession: OrtSession? = null
 
-
     private val tokenizerVocab: Map<String, Int> = getVocab(resources)
     private val tokenizerMerges: HashMap<Pair<String, String>, Int> = getMerges(resources)
     private val tokenBOS: Int = 49406
     private val tokenEOS: Int = 49407
     private val tokenizer = ClipTokenizer(tokenizerVocab, tokenizerMerges)
+    private var closed = false
 
     init {
         if (modelType == ModelType.BOTH || modelType == ModelType.IMAGE) {
@@ -64,10 +67,11 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
 
     suspend fun generateImageEmbedding(bitmap: Bitmap): FloatArray = withContext(Dispatchers.Default) {
         val session = imageSession ?: throw IllegalStateException("Image model not loaded")
-        val processedBitmap = centerCrop(bitmap, 224)
-        val inputShape = longArrayOf(1, 3, 224, 224)
+        val inputShape = longArrayOf(DIM_BATCH_SIZE.toLong(), DIM_PIXEL_SIZE.toLong(),
+            IMAGE_SIZE_X.toLong(), IMAGE_SIZE_Y.toLong()
+        )
         val inputName = session.inputNames.iterator().next()
-        val imgData = preProcess(processedBitmap)
+        val imgData = preProcess(bitmap)
 
         OnnxTensor.createTensor(ortEnv, imgData, inputShape).use { inputTensor ->
             session.run(Collections.singletonMap(inputName, inputTensor)).use { output ->
@@ -151,9 +155,9 @@ class Embeddings(resources: Resources, modelType: ModelType = ModelType.BOTH) {
         normalizeL2(avgEmbedding)
     }
 
-
-
     fun closeSession() {
+        if (closed) return  // fix double close bug
+        closed = true
         imageSession?.close()
         textSession?.close()
         imageSession = null

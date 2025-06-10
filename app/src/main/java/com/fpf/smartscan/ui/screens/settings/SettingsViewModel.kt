@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
@@ -20,7 +21,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
-import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.LiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
@@ -98,15 +98,70 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         saveSettings()
     }
 
-    fun updateTargetDirectories(directories: List<String>) {
+    fun addTargetDirectory(dir: String) {
         val currentSettings = _appSettings.value
-        _appSettings.value = currentSettings.copy(targetDirectories = directories)
+        val newDirs = currentSettings.targetDirectories + dir
+        _appSettings.value = currentSettings.copy(targetDirectories = newDirs)
         saveSettings()
     }
 
-    fun updateDestinationDirectories(directories: List<String>) {
+    fun deleteTargetDirectory(dir: String) {
         val currentSettings = _appSettings.value
-        _appSettings.value = currentSettings.copy(destinationDirectories = directories)
+        val newDirs = currentSettings.targetDirectories - dir
+        _appSettings.value = currentSettings.copy(targetDirectories = newDirs)
+        saveSettings()
+    }
+
+
+    fun addDestinationDirectory(dirString: String) {
+        val uri = dirString.toUri()
+
+        viewModelScope.launch {
+            try {
+                val hasTenImages = withContext(Dispatchers.IO) {
+                    val docId = DocumentsContract.getTreeDocumentId(uri)
+                    val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, docId)
+                    val resolver = application.contentResolver
+
+                    val projection = arrayOf(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                    resolver.query(childrenUri, projection, null, null, null)?.use { cursor ->
+                        var count = 0
+                        while (cursor.moveToNext()) {
+                            val mime = cursor.getString(0) ?: continue
+                            if (mime.startsWith("image/") && ++count >= 10) {
+                                return@withContext true
+                            }
+                        }
+                        return@withContext false
+                    } ?: false
+                }
+
+                if (!hasTenImages) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            application,
+                            "Directory must contain at least 10 images",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    return@launch
+                }
+
+                val current = _appSettings.value
+                val newList = current.destinationDirectories + dirString
+                _appSettings.value = current.copy(destinationDirectories = newList)
+                saveSettings()
+            }catch (e: Exception){
+                Log.e("addDestinationDir", "unexpected error", e)
+                Toast.makeText(application, "Unexpected error", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    fun deleteDestinationDirectory(dir: String) {
+        val currentSettings = _appSettings.value
+        val newDirs = currentSettings.destinationDirectories - dir
+        _appSettings.value = currentSettings.copy(destinationDirectories = newDirs)
         saveSettings()
     }
 
@@ -259,25 +314,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             ).also { intent ->
                 application.startForegroundService(intent)
             }
-    }
-
-
-    fun verifyDir(uri: Uri, context: Context): Boolean {
-        val documentFile = DocumentFile.fromTreeUri(context, uri)
-        if (documentFile == null || !documentFile.isDirectory) {
-            Toast.makeText(context, "Invalid directory", Toast.LENGTH_SHORT).show()
-            return false
-        }
-
-        val imageCount = documentFile.listFiles().count { file ->
-            file.type?.startsWith("image/") == true
-        }
-
-        if (imageCount < 10) {
-            Toast.makeText(context, "Directory must contain at least 10 images", Toast.LENGTH_LONG).show()
-            return false
-        }
-        return true
     }
 
     private fun cancelClassificationWorker(){
