@@ -12,6 +12,8 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.data.videos.VideoEmbedding
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
+import com.fpf.smartscan.lib.IMAGE_SIZE_X
+import com.fpf.smartscan.lib.IMAGE_SIZE_Y
 import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.MemoryUtils
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
@@ -125,7 +127,9 @@ class VideoIndexer(
 
             for (i in 0 until frameCount) {
                 val frameTimeUs = (i * durationUs) / frameCount
-                val bitmap = retriever.getFrameAtTime(frameTimeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                val bitmap = retriever.getScaledFrameAtTime(frameTimeUs, MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                    IMAGE_SIZE_X, IMAGE_SIZE_Y
+                )
 
                 if (bitmap != null) {
                     frameList.add(bitmap)
