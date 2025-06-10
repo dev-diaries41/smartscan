@@ -37,9 +37,9 @@ import com.fpf.smartscan.lib.getDirectoryName
 @Composable
 fun DirectoryPicker(
     directories: List<String>,
-    onDirectoriesChanged: (List<String>) -> Unit,
+    addDirectory: (String) -> Unit,
+    deleteDirectory: (String) -> Unit,
     description: String? = null,
-    onVerifyDir: ((Uri) -> Boolean)? = null
 ) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri: Uri? ->
@@ -48,11 +48,8 @@ fun DirectoryPicker(
                 selectedUri,
                 Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
             )
-            if (onVerifyDir?.invoke(selectedUri) == false) {
-                return@let
-            }
             if (!directories.contains(selectedUri.toString())) {
-                onDirectoriesChanged(directories + selectedUri.toString())
+                addDirectory(selectedUri.toString())
             }
         }
     }
@@ -90,7 +87,7 @@ fun DirectoryPicker(
                             Icon(Icons.Default.Folder, contentDescription = "Folder", tint = Color(0xFF4CAF50))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(text = displayName, modifier = Modifier.weight(1f))
-                            IconButton(onClick = { onDirectoriesChanged(directories - dir) }) {
+                            IconButton(onClick = { deleteDirectory(dir) }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Remove directory", tint = Color.Red)
                             }
                         }

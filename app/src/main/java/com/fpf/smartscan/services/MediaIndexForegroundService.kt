@@ -96,8 +96,8 @@ class MediaIndexForegroundService : Service() {
                 }
             } catch (e: CancellationException) {
                 // cancelled
-            } catch (t: Throwable) {
-                Log.e(TAG, "Indexing failed:", t)
+            } catch (e: Exception) {
+                Log.e(TAG, "Indexing failed:", e)
             } finally {
                 storage.setItem("lastIndexed", System.currentTimeMillis().toString())
                 embeddingHandler?.closeSession()
