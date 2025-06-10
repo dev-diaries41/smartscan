@@ -14,6 +14,8 @@ import androidx.documentfile.provider.DocumentFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.util.Locale
 
 const val DIM_BATCH_SIZE = 1
@@ -22,28 +24,33 @@ const val IMAGE_SIZE_X = 224
 const val IMAGE_SIZE_Y = 224
 
 fun preProcess(bitmap: Bitmap): FloatBuffer {
-    val imgData = FloatBuffer.allocate(
-        DIM_BATCH_SIZE
-                * DIM_PIXEL_SIZE
-                * IMAGE_SIZE_X
-                * IMAGE_SIZE_Y
-    )
-    imgData.rewind()
-    val stride = IMAGE_SIZE_X * IMAGE_SIZE_Y
-    val bmpData = IntArray(stride)
-    bitmap.getPixels(bmpData, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
-    for (i in 0..IMAGE_SIZE_X - 1) {
-        for (j in 0..IMAGE_SIZE_Y - 1) {
-            val idx = IMAGE_SIZE_Y * i + j
-            val pixelValue = bmpData[idx]
-            imgData.put(idx, (((pixelValue shr 16 and 0xFF) / 255f - 0.485f) / 0.229f))
-            imgData.put(idx + stride, (((pixelValue shr 8 and 0xFF) / 255f - 0.456f) / 0.224f))
-            imgData.put(idx + stride * 2, (((pixelValue and 0xFF) / 255f - 0.406f) / 0.225f))
+    val cropped = centerCrop(bitmap, IMAGE_SIZE_X)
+
+    val numFloats = DIM_BATCH_SIZE * DIM_PIXEL_SIZE * IMAGE_SIZE_Y * IMAGE_SIZE_X
+    val byteBuffer = ByteBuffer
+        .allocateDirect(numFloats * 4)
+        .order(ByteOrder.nativeOrder())
+    val floatBuffer = byteBuffer.asFloatBuffer()
+    for (c in 0 until DIM_PIXEL_SIZE) {
+        for (y in 0 until IMAGE_SIZE_Y) {
+            for (x in 0 until IMAGE_SIZE_X) {
+                val px = cropped.getPixel(x, y)
+                val v = when (c) {
+                    0 -> (px shr 16 and 0xFF) / 255f  // R
+                    1 -> (px shr  8 and 0xFF) / 255f  // G
+                    else -> (px and 0xFF) / 255f  // B
+                }
+                val norm = when (c) {
+                    0 -> (v - 0.485f) / 0.229f
+                    1 -> (v - 0.456f) / 0.224f
+                    else -> (v - 0.406f) / 0.225f
+                }
+                floatBuffer.put(norm)
+            }
         }
     }
-
-    imgData.rewind()
-    return imgData
+    floatBuffer.rewind()
+    return floatBuffer
 }
 
 fun centerCrop(bitmap: Bitmap, imageSize: Int): Bitmap {
