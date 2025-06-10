@@ -18,13 +18,10 @@
     <string name="worker_channel_description">Notifications for background tasks</string>
     <string name="service_media_index_channel_id">Media Index</string>
     <string name="service_media_index_channel_name">Media Index Notifications</string>
-
     <string name="notif_title_media_index_service">Indexing media</string>
     <string name="notif_content_media_index_service">Indexing in progress, this can take a few minutes.</string>
-
     <string name="notif_title_index_error_service">%1$s indexing error</string>
     <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index in settings by clicking the Refresh %1$s index option.</string>
-
     <string name="notif_title_auto_organisation_complete">Auto-organisation complete</string>
     <string name="notif_title_index_complete">Indexing complete</string>
     <string name="notif_title_index_issue">Indexing issue detected</string>
@@ -34,9 +31,7 @@
 
     <!-- Search screen -->
     <string name="first_indexing">
-      First %1$s indexing is in progress and may take a few minutes.
-      Searching will be limited until the process is complete.
-      Please ensure that notifications are enabled so you can be informed when indexing is finished.
+      Start first %1$s index to enable search, this may take a few minutes. Searching will be limited until the process is complete.
     </string>
 
     <string name="storage_permissions">Storage permission required to search images.</string>
