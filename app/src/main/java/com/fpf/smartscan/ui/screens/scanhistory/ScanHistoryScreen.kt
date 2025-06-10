@@ -215,7 +215,8 @@ fun EmptyScanHistoryScreen() {
             Text(
                 text = stringResource(R.string.no_scan_history),
                 style = MaterialTheme.typography.displayMedium,
-                modifier = Modifier.align(Alignment.CenterHorizontally)
+                modifier = Modifier.align(Alignment.CenterHorizontally),
+                textAlign = TextAlign.Center
             )
             Text(
                 text = stringResource(R.string.no_scan_history_description),
