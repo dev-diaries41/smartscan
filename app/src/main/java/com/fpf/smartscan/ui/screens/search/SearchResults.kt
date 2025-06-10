@@ -30,6 +30,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.loadBitmapFromUri
 import com.fpf.smartscan.lib.openImageInGallery
 
@@ -38,12 +39,11 @@ fun MediaStoreImage(
     uri: Uri,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
-    targetWidth: Int? = null,
-    targetHeight: Int? = null
+    maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE,
 ) {
     val context = LocalContext.current
     val bitmapState = produceState<Bitmap?>(initialValue = null, key1 = uri) {
-        value = loadBitmapFromUri(context, uri, targetWidth, targetHeight)
+        value = loadBitmapFromUri(context, uri, maxSize)
     }
     val bitmap = bitmapState.value
     if (bitmap != null) {
