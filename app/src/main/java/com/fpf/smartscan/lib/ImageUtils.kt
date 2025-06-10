@@ -145,25 +145,30 @@ object BitmapCache {
     fun put(uri: Uri, bitmap: Bitmap): Bitmap? = cache.put(uri, bitmap)
 }
 
-suspend fun loadBitmapFromUri(
-    context: Context,
-    uri: Uri,
-    targetWidth: Int? = null,
-    targetHeight: Int? = null
-): Bitmap? {
-    return withContext(Dispatchers.IO) {
-        BitmapCache.get(uri) ?: try {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-                if (targetWidth != null && targetHeight != null) {
-                    decoder.setTargetSize(targetWidth, targetHeight)
-                }
-            }
-            BitmapCache.put(uri, bitmap)
-            bitmap
-        } catch (e: IOException) {
-            e.printStackTrace()
-            null
+fun getScaledDimensions(imgWith: Int, imgHeight: Int, maxSize: Int = 1024): Pair<Int, Int> {
+    if (imgWith <= maxSize && imgHeight <= maxSize) {
+        return imgWith to imgHeight
+    }
+    return if (imgWith >= imgHeight) {
+        val scale = maxSize.toFloat() / imgWith
+        maxSize to (imgHeight * scale).toInt()
+    } else {
+        val scale = maxSize.toFloat() / imgHeight
+        (imgWith * scale).toInt() to maxSize
+    }
+}
+
+suspend fun loadBitmapFromUri(context: Context, uri: Uri, maxSize: Int = 1024): Bitmap? = withContext(Dispatchers.IO) {
+    BitmapCache.get(uri) ?: try {
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            val (w, h) = getScaledDimensions(imgWith  = info.size.width, imgHeight = info.size.height, maxSize)
+            decoder.setTargetSize(w, h)
         }
+        BitmapCache.put(uri, bitmap)
+        bitmap
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
     }
 }
