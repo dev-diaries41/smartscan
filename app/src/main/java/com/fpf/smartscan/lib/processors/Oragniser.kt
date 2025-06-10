@@ -62,11 +62,11 @@ class Organiser(private val context: Context) {
         try {
             for (chunk in imageUris.chunked(10)) {
                 val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
-                Log.i(
-                    TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${
-                        memoryUtils.getFreeMemory() / (1024 * 1024)
-                    } MB"
-                )
+//                Log.i(
+//                    TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${
+//                        memoryUtils.getFreeMemory() / (1024 * 1024)
+//                    } MB"
+//                )
                 val semaphore = Semaphore(currentConcurrency)
 
                 val deferredResults = chunk.map { imageUri ->
