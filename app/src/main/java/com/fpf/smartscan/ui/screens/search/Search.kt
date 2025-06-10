@@ -86,10 +86,8 @@ fun SearchScreen(
     LaunchedEffect(hasIndexed, hasStoragePermission, mode) {
         if(hasStoragePermission && !hasIndexed && (mode == SearchMode.IMAGE)){
             showFirstIndexImageDialog = true
-            searchViewModel.startIndexing()
         }else if(hasStoragePermission && !hasIndexed && (mode == SearchMode.VIDEO)){
             showFirstIndexVideoDialog = true
-            searchViewModel.startVideoIndexing()
         }
     }
 
@@ -99,10 +97,20 @@ fun SearchScreen(
     if ( showFirstIndexImageDialog) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Indexing Images") },
+            title = { Text("Start Indexing Images") },
             text = { Text(message) },
+            dismissButton = {
+                TextButton(onClick = {
+                    showFirstIndexImageDialog = false
+                }) {
+                    Text("Cancel")
+                }
+            },
             confirmButton = {
-                TextButton(onClick = { showFirstIndexImageDialog = false }) {
+                TextButton(onClick = {
+                    showFirstIndexImageDialog = false
+                    searchViewModel.startIndexing()
+                }) {
                     Text("OK")
                 }
             }
@@ -112,10 +120,20 @@ fun SearchScreen(
     if ( showFirstIndexVideoDialog) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Indexing Videos") },
+            title = { Text("Start Indexing Videos") },
             text = { Text(message) },
+            dismissButton = {
+                TextButton(onClick = {
+                    showFirstIndexVideoDialog = false
+                }) {
+                    Text("Cancel")
+                }
+            },
             confirmButton = {
-                TextButton(onClick = { showFirstIndexVideoDialog = false }) {
+                TextButton(onClick = {
+                    showFirstIndexVideoDialog = false
+                    searchViewModel.startVideoIndexing()
+                }) {
                     Text("OK")
                 }
             }
