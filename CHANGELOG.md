@@ -1,3 +1,15 @@
+## v1.1.1 – 11/06/2025
+
+### Changed
+
+* Improved memory efficiency in video processing
+
+### Fixed
+
+* UI freeze when selecting destination folders with many images
+* Out-of-memory (OOM) crashes when processing/loading large images
+* Double ONNX environment teardown bug
+
 ## v1.1.0 – 19/05/2025
 
 ### Added
