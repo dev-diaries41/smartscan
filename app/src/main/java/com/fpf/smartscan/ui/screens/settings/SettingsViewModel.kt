@@ -49,7 +49,7 @@ data class AppSettings(
     val frequency: String = "1 Day",
     val destinationDirectories: List<String> = emptyList(),
     val similarityThreshold: Float = 0.2f,
-    val numberSimilarResults: Int = 5,
+    val numberSimilarResults: Int = 10,
     val indexFrequency: String = "1 Week",
     )
 
