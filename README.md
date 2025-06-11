@@ -13,6 +13,17 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 
 ---
 
+## Buy Me A Coffee
+
+The app is free, but if you enjoy using it and want to support project development and maintenance, please consider donating using one of the options below:
+
+| Wallet   | Address                              |
+| -------- | ------------------------------------ |
+| Bitcoin  | bc1qw46nxjp5gkh460ewamjd3jfeu0xv6ytq5et6xm        |
+| Ethereum | 0xa53aC18B25942C71019f85314AF67F6132E525ad       |
+| Litecoin | ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3       |
+
+---
 
 ## Key Features
 
@@ -79,17 +90,6 @@ Go to [Releases](https://github.com/dev-diaries41/smartscan/releases/latest) and
   <img src="https://f-droid.org/badge/get-it-on.svg" alt="F-Droid" style="max-width:100%;" width=200>
   </a>
 </div>
-
-
-## Buy Me A Coffee
-
-The app is free, but if you enjoy using it and want to support project development and maintenance, please consider donating using one of the options below:
-
-| Wallet   | Address                              |
-| -------- | ------------------------------------ |
-| Bitcoin  | bc1qw46nxjp5gkh460ewamjd3jfeu0xv6ytq5et6xm        |
-| Ethereum | 0xa53aC18B25942C71019f85314AF67F6132E525ad       |
-| Litecoin | ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3       |
 
 ---
 
