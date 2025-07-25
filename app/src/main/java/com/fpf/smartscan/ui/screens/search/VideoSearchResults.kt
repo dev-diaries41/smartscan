@@ -1,9 +1,6 @@
 package com.fpf.smartscan.ui.screens.search
 
-import android.graphics.Bitmap
 import android.net.Uri
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -12,21 +9,19 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import com.fpf.smartscan.lib.loadVideoThumbnailFromUri
 import com.fpf.smartscan.lib.openVideoInGallery
+import com.fpf.smartscan.ui.components.ImageDisplay
+import com.fpf.smartscan.ui.components.ImageDisplayType
+import com.fpf.smartscan.ui.components.MediaExpandedView
 
 @Composable
 fun VideoSearchResults(
@@ -86,10 +81,11 @@ fun VideoSearchResults(
             shape = MaterialTheme.shapes.medium,
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            MediaStoreVideoThumbnail(
+            ImageDisplay(
                 uri = mainResult,
                 modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
+                contentScale = ContentScale.Crop,
+                type = ImageDisplayType.VIDEO_THUMBNAIL
             )
         }
 
@@ -123,10 +119,11 @@ fun VideoSearchResults(
                         shape = MaterialTheme.shapes.small,
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
-                        MediaStoreVideoThumbnail(
+                        ImageDisplay(
                             uri = uri,
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.Crop,
+                            type = ImageDisplayType.VIDEO_THUMBNAIL
                         )
                     }
                 }
@@ -134,57 +131,11 @@ fun VideoSearchResults(
         }
     }
 
-    // Fullscreen dialog
     if (isExpanded) {
-        Dialog(onDismissRequest = { isExpanded = false }) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                MediaStoreVideoThumbnail(
-                    uri = mainResult,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Fit
-                )
-                IconButton(
-                    onClick = { isExpanded = false },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "Close",
-                        tint = Color.White
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MediaStoreVideoThumbnail(
-    uri: Uri,
-    modifier: Modifier = Modifier,
-    contentScale: ContentScale = ContentScale.Crop,
-    targetWidth: Int? = null,
-    targetHeight: Int? = null
-) {
-    val context = LocalContext.current
-    val bitmapState = produceState<Bitmap?>(initialValue = null, key1 = uri) {
-        value = loadVideoThumbnailFromUri(context, uri, targetWidth, targetHeight)
-    }
-    val bitmap = bitmapState.value
-    if (bitmap != null) {
-        Image(
-            bitmap = bitmap.asImageBitmap(),
-            contentDescription = "Video Thumbnail",
-            contentScale = contentScale,
-            modifier = modifier
+        MediaExpandedView(
+            uri = mainResult,
+            type = ImageDisplayType.VIDEO_THUMBNAIL,
+            onClose = {isExpanded = false}
         )
-    } else {
-        Box(modifier = modifier.background(Color.Gray))
     }
 }

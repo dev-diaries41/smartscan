@@ -18,29 +18,21 @@ fun getVideoUriFromId(id: Long): Uri {
     )
 }
 
-/**
- * Load a video thumbnail bitmap using MediaMetadataRetriever.
- * Optionally scales the bitmap if targetWidth and targetHeight are provided.
- */
 suspend fun loadVideoThumbnailFromUri(
     context: Context,
     uri: Uri,
-    targetWidth: Int? = null,
-    targetHeight: Int? = null
+    maxSize: Int
 ): Bitmap? {
     return withContext(Dispatchers.IO) {
-        // Check cache first
         BitmapCache.get(uri) ?: try {
             val retriever = MediaMetadataRetriever()
             retriever.setDataSource(context, uri)
-            // Get a frame at time 0 (or adjust as needed)
             var bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
             retriever.release()
-            // Optionally scale the bitmap if dimensions are provided
-            if (bitmap != null && targetWidth != null && targetHeight != null) {
-                bitmap = bitmap.scale(targetWidth, targetHeight)
+            if (bitmap != null) {
+                val (w, h) = getScaledDimensions(imgWith  = bitmap.width, imgHeight = bitmap.height, maxSize)
+                bitmap = bitmap.scale(w, h)
             }
-            // Cache the bitmap
             bitmap?.let { BitmapCache.put(uri, it) }
             bitmap
         } catch (e: Exception) {
