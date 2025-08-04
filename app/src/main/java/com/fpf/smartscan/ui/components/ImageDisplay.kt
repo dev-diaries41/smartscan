@@ -15,8 +15,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.loadBitmapFromUri
 import com.fpf.smartscan.lib.loadVideoThumbnailFromUri
+import com.fpf.smartscan.ui.screens.search.MediaType
 
-enum class ImageDisplayType {IMAGE, VIDEO_THUMBNAIL}
 
 @Composable
 fun ImageDisplay(
@@ -24,13 +24,13 @@ fun ImageDisplay(
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Crop,
     maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE,
-    type: ImageDisplayType
+    type: MediaType
 ) {
     val context = LocalContext.current
     val bitmapState = produceState<Bitmap?>(initialValue = null, key1 = uri) {
         value = when(type) {
-            ImageDisplayType.IMAGE -> loadBitmapFromUri(context, uri, maxSize)
-            ImageDisplayType.VIDEO_THUMBNAIL -> loadVideoThumbnailFromUri(context, uri, maxSize)
+            MediaType.IMAGE -> loadBitmapFromUri(context, uri, maxSize)
+            MediaType.VIDEO -> loadVideoThumbnailFromUri(context, uri, maxSize)
         }
     }
     val bitmap = bitmapState.value
