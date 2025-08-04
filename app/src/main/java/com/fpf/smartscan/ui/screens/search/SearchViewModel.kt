@@ -27,15 +27,14 @@ import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.VideoIndexListener
 import com.fpf.smartscan.services.MediaIndexForegroundService
-import kotlinx.coroutines.CoroutineScope
 
-enum class SearchMode {
+enum class MediaType {
     IMAGE, VIDEO
 }
 
 val searchModeOptions = mapOf(
-    SearchMode.IMAGE to "Images",
-    SearchMode.VIDEO to "Videos",
+    MediaType.IMAGE to "Images",
+    MediaType.VIDEO to "Videos",
 )
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -69,8 +68,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    private val _mode = MutableLiveData<SearchMode>(SearchMode.IMAGE)
-    val mode: LiveData<SearchMode> = _mode
+    private val _mode = MutableLiveData<MediaType>(MediaType.IMAGE)
+    val mode: LiveData<MediaType> = _mode
 
     private val _resultToView = MutableLiveData<Uri?>()
     val resultToView: LiveData<Uri?> = _resultToView
@@ -86,7 +85,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    fun setMode(newMode: SearchMode) {
+    fun setMode(newMode: MediaType) {
         _mode.value = newMode
         _error.value = null
         _searchResults.value = emptyList()

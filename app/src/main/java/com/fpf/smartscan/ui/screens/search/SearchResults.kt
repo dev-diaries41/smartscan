@@ -8,23 +8,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.*
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Fullscreen
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.RestartAlt
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.fpf.smartscan.lib.openImageInGallery
 import com.fpf.smartscan.ui.components.ImageDisplay
-import com.fpf.smartscan.ui.components.ImageDisplayType
 import com.fpf.smartscan.ui.components.MediaExpandedView
 
 @Composable
@@ -33,39 +22,13 @@ fun SearchResults(
     mainResult: Uri,
     similarResults: List<Uri>,
     toggleViewResult: (uri: Uri?) -> Unit,
+    type: MediaType,
 ) {
-    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-//        Row(
-//            modifier = Modifier.fillMaxWidth(),
-//            horizontalArrangement = Arrangement.SpaceBetween
-//        ) {
-//            TextButton(
-//                onClick = {onClear() },
-//            ) {
-//                Text("Clear Results")
-//            }
-//
-//            Row {
-//                IconButton(onClick = { openImageInGallery(context, mainResult) }) {
-//                    Icon(Icons.Filled.Image, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.primary)
-//                }
-//
-//                IconButton(onClick = { mainResult = initialMainResult }) {
-//                    Icon(Icons.Filled.RestartAlt, contentDescription = "Reset Image", tint = MaterialTheme.colorScheme.primary)
-//                }
-//
-//                IconButton(onClick = { isExpanded = true }) {
-//                    Icon(Icons.Filled.Fullscreen, contentDescription = "Expand Image", tint = MaterialTheme.colorScheme.primary)
-//                }
-//            }
-//        }
-
-
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -79,7 +42,7 @@ fun SearchResults(
                     .fillMaxSize()
                     .clickable(onClick = { toggleViewResult(mainResult) }),
                 contentScale = ContentScale.Crop,
-                type = ImageDisplayType.IMAGE,
+                type = type,
             )
         }
 
@@ -118,7 +81,7 @@ fun SearchResults(
                                 .fillMaxSize()
                                 .clickable(onClick = { toggleViewResult(uri) }),
                             contentScale = ContentScale.Crop,
-                            type = ImageDisplayType.IMAGE
+                            type = type
                         )
                     }
                 }
@@ -129,7 +92,7 @@ fun SearchResults(
     if (resultToView != null) {
         MediaExpandedView(
             uri = resultToView,
-            type = ImageDisplayType.IMAGE,
+            type = type,
             onClose = {toggleViewResult(null)}
         )
     }

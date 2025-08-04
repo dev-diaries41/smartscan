@@ -57,18 +57,18 @@ fun SearchScreen(
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
-    val mode by searchViewModel.mode.observeAsState(SearchMode.IMAGE)
+    val mode by searchViewModel.mode.observeAsState(MediaType.IMAGE)
     val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
     val hasAnyIndexedVideos by searchViewModel.hasAnyVideos.observeAsState(null)
     val hasIndexed = when(mode) {
-        SearchMode.IMAGE -> hasAnyIndexedImages == true
-        SearchMode.VIDEO -> hasAnyIndexedVideos == true
+        MediaType.IMAGE -> hasAnyIndexedImages == true
+        MediaType.VIDEO -> hasAnyIndexedVideos == true
     }
     val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
     val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val resultToView by searchViewModel.resultToView.observeAsState()
-    val embeddings = if (mode == SearchMode.IMAGE) imageEmbeddings else videoEmbeddings
+    val embeddings = if (mode == MediaType.IMAGE) imageEmbeddings else videoEmbeddings
     val canSearch = hasIndexed && embeddings.isNotEmpty()
     val loadingIndexData = hasIndexed && embeddings.isEmpty()
     val showLoader = isLoading || loadingIndexData
@@ -87,14 +87,14 @@ fun SearchScreen(
     }
 
     LaunchedEffect(hasIndexed, hasStoragePermission, mode) {
-        if(hasStoragePermission && !hasIndexed && (mode == SearchMode.IMAGE)){
+        if(hasStoragePermission && !hasIndexed && (mode == MediaType.IMAGE)){
             showFirstIndexImageDialog = true
-        }else if(hasStoragePermission && !hasIndexed && (mode == SearchMode.VIDEO)){
+        }else if(hasStoragePermission && !hasIndexed && (mode == MediaType.VIDEO)){
             showFirstIndexVideoDialog = true
         }
     }
 
-    val label = if (mode == SearchMode.IMAGE) "image" else "video"
+    val label = if (mode == MediaType.IMAGE) "image" else "video"
     val message = stringResource(R.string.first_indexing, label)
 
     if ( showFirstIndexImageDialog) {
@@ -201,7 +201,7 @@ fun SearchScreen(
                 onOptionSelected = { selected ->
                     val newMode = searchModeOptions.entries
                         .find { it.value == selected }
-                        ?.key ?: SearchMode.IMAGE
+                        ?.key ?: MediaType.IMAGE
                     searchViewModel.setMode(newMode)
                 }
             )
@@ -213,19 +213,19 @@ fun SearchScreen(
                     searchViewModel.setQuery(newQuery)
                 },
                 label = { Text(text=when(mode){
-                    SearchMode.IMAGE -> "Search images..."
-                    SearchMode.VIDEO -> "Search videos..."
+                    MediaType.IMAGE -> "Search images..."
+                    MediaType.VIDEO -> "Search videos..."
                 }) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(8.dp),
                 keyboardActions = KeyboardActions (
                     onSearch = {
                         when (mode) {
-                            SearchMode.IMAGE ->
+                            MediaType.IMAGE ->
                                 searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold
                                 )
 
-                            SearchMode.VIDEO ->
+                            MediaType.VIDEO ->
                                 searchViewModel.searchVideos(appSettings.numberSimilarResults, videoEmbeddings, appSettings.similarityThreshold
                                 )
                         }
@@ -239,11 +239,11 @@ fun SearchScreen(
                         enabled = canSearch && hasStoragePermission && searchQuery.isNotEmpty(),
                         onClick = {
                             when (mode) {
-                                SearchMode.IMAGE ->
+                                MediaType.IMAGE ->
                                     searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold
                                     )
 
-                                SearchMode.VIDEO ->
+                                MediaType.VIDEO ->
                                     searchViewModel.searchVideos(appSettings.numberSimilarResults, videoEmbeddings, appSettings.similarityThreshold
                                     )
                             }
@@ -288,8 +288,8 @@ fun SearchScreen(
             if(loadingIndexData && hasStoragePermission){
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(text = when(mode){
-                    SearchMode.IMAGE -> "Loading indexed images..."
-                    SearchMode.VIDEO -> "Loading indexed videos..."
+                    MediaType.IMAGE -> "Loading indexed images..."
+                    MediaType.VIDEO -> "Loading indexed videos..."
                 })
             }
 
@@ -312,21 +312,13 @@ fun SearchScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 val mainResult = searchResults.first()
                 val similarResults = if (searchResults.size > 1) searchResults.drop(1).take(appSettings.numberSimilarResults) else emptyList()
-
-                when(mode){
-                    SearchMode.IMAGE -> SearchResults(
-                        resultToView = resultToView,
-                        mainResult = mainResult,
-                        similarResults = similarResults,
-                        toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
-                    )
-                    SearchMode.VIDEO -> VideoSearchResults(
-                        resultToView = resultToView,
-                        mainResult = mainResult,
-                        similarResults = similarResults,
-                        toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
-                    )
-                }
+                SearchResults(
+                    type = mode,
+                    resultToView = resultToView,
+                    mainResult = mainResult,
+                    similarResults = similarResults,
+                    toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
+                )
             }
         }
     }
