@@ -17,7 +17,6 @@ import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -32,6 +31,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -47,32 +47,35 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
+    // Index state
     val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
     val isIndexingImages by searchViewModel.isIndexingImages.collectAsState()
     val isIndexingVideos by searchViewModel.isIndexingVideos.collectAsState()
+
+    // Search state
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
+    val mode by searchViewModel.mode.observeAsState(SearchMode.IMAGE)
     val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
     val hasAnyIndexedVideos by searchViewModel.hasAnyVideos.observeAsState(null)
-    val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
-    val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
-    val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
-    val mode by searchViewModel.mode.observeAsState(SearchMode.IMAGE)
-    val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
-    val scrollState = rememberScrollState()
-
-    // Search state
     val hasIndexed = when(mode) {
         SearchMode.IMAGE -> hasAnyIndexedImages == true
         SearchMode.VIDEO -> hasAnyIndexedVideos == true
     }
+    val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
+    val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
+    val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
+    val resultToView by searchViewModel.resultToView.observeAsState()
     val embeddings = if (mode == SearchMode.IMAGE) imageEmbeddings else videoEmbeddings
     val canSearch = hasIndexed && embeddings.isNotEmpty()
     val loadingIndexData = hasIndexed && embeddings.isEmpty()
     val showLoader = isLoading || loadingIndexData
 
+    val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
+
+    val scrollState = rememberScrollState()
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showFirstIndexImageDialog by remember { mutableStateOf(false) }
@@ -255,6 +258,15 @@ fun SearchScreen(
                 }
             )
 
+            if(searchResults.isNotEmpty()){
+                TextButton(
+                    onClick = {searchViewModel.clearResults() },
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text("Clear Results")
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
             AnimatedVisibility(
@@ -303,14 +315,16 @@ fun SearchScreen(
 
                 when(mode){
                     SearchMode.IMAGE -> SearchResults(
-                        initialMainResult = mainResult,
+                        resultToView = resultToView,
+                        mainResult = mainResult,
                         similarResults = similarResults,
-                        onClear = { searchViewModel.clearResults() }
+                        toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
                     )
                     SearchMode.VIDEO -> VideoSearchResults(
-                        initialMainResult = mainResult,
+                        resultToView = resultToView,
+                        mainResult = mainResult,
                         similarResults = similarResults,
-                        onClear = { searchViewModel.clearResults() }
+                        toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
                     )
                 }
             }

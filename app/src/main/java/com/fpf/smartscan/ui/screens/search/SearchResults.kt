@@ -29,43 +29,41 @@ import com.fpf.smartscan.ui.components.MediaExpandedView
 
 @Composable
 fun SearchResults(
-    initialMainResult: Uri,
+    resultToView: Uri? = null,
+    mainResult: Uri,
     similarResults: List<Uri>,
-    onClear: () -> Unit
+    toggleViewResult: (uri: Uri?) -> Unit,
 ) {
     val context = LocalContext.current
-    var mainResult by remember { mutableStateOf(initialMainResult) }
-    var isExpanded by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TextButton(
-                onClick = {onClear() },
-            ) {
-                Text("Clear Results")
-            }
-
-            Row {
-                IconButton(onClick = { openImageInGallery(context, mainResult) }) {
-                    Icon(Icons.Filled.Image, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.primary)
-                }
-
-                IconButton(onClick = { mainResult = initialMainResult }) {
-                    Icon(Icons.Filled.RestartAlt, contentDescription = "Reset Image", tint = MaterialTheme.colorScheme.primary)
-                }
-
-                IconButton(onClick = { isExpanded = true }) {
-                    Icon(Icons.Filled.Fullscreen, contentDescription = "Expand Image", tint = MaterialTheme.colorScheme.primary)
-                }
-            }
-        }
+//        Row(
+//            modifier = Modifier.fillMaxWidth(),
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            TextButton(
+//                onClick = {onClear() },
+//            ) {
+//                Text("Clear Results")
+//            }
+//
+//            Row {
+//                IconButton(onClick = { openImageInGallery(context, mainResult) }) {
+//                    Icon(Icons.Filled.Image, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.primary)
+//                }
+//
+//                IconButton(onClick = { mainResult = initialMainResult }) {
+//                    Icon(Icons.Filled.RestartAlt, contentDescription = "Reset Image", tint = MaterialTheme.colorScheme.primary)
+//                }
+//
+//                IconButton(onClick = { isExpanded = true }) {
+//                    Icon(Icons.Filled.Fullscreen, contentDescription = "Expand Image", tint = MaterialTheme.colorScheme.primary)
+//                }
+//            }
+//        }
 
 
         Card(
@@ -77,9 +75,11 @@ fun SearchResults(
         ) {
             ImageDisplay(
                 uri = mainResult,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = { toggleViewResult(mainResult) }),
                 contentScale = ContentScale.Crop,
-                type = ImageDisplayType.IMAGE
+                type = ImageDisplayType.IMAGE,
             )
         }
 
@@ -108,14 +108,15 @@ fun SearchResults(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clickable { mainResult = uri },
+                            .aspectRatio(1f),
                         shape = MaterialTheme.shapes.small,
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         ImageDisplay(
                             uri = uri,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable(onClick = { toggleViewResult(uri) }),
                             contentScale = ContentScale.Crop,
                             type = ImageDisplayType.IMAGE
                         )
@@ -125,11 +126,11 @@ fun SearchResults(
         }
     }
 
-    if (isExpanded) {
+    if (resultToView != null) {
         MediaExpandedView(
-            uri = mainResult,
+            uri = resultToView,
             type = ImageDisplayType.IMAGE,
-            onClose = {isExpanded = false}
+            onClose = {toggleViewResult(null)}
         )
     }
 }

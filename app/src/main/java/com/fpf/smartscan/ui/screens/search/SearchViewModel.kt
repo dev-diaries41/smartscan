@@ -72,6 +72,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _mode = MutableLiveData<SearchMode>(SearchMode.IMAGE)
     val mode: LiveData<SearchMode> = _mode
 
+    private val _resultToView = MutableLiveData<Uri?>()
+    val resultToView: LiveData<Uri?> = _resultToView
+
     fun setQuery(newQuery: String) {
         _query.value = newQuery
         if(newQuery.isEmpty()){
@@ -229,6 +232,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             ).also { intent ->
                 application.startForegroundService(intent)
             }
+    }
+
+    fun toggleViewResult(uri: Uri?){
+        _resultToView.value = uri
     }
 
 
