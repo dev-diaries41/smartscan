@@ -25,13 +25,12 @@ import com.fpf.smartscan.ui.components.MediaExpandedView
 
 @Composable
 fun VideoSearchResults(
-    initialMainResult: Uri,
+    resultToView: Uri? = null,
+    mainResult: Uri,
     similarResults: List<Uri>,
-    onClear: () -> Unit
+    toggleViewResult: (uri: Uri?) -> Unit,
 ) {
     val context = LocalContext.current
-    var mainResult by remember { mutableStateOf(initialMainResult) }
-    var isExpanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -39,39 +38,39 @@ fun VideoSearchResults(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top row with Clear and action buttons
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            TextButton(onClick = onClear) {
-                Text("Clear Results")
-            }
-            Row {
-                IconButton(onClick = { openVideoInGallery(context, mainResult) }) {
-                    Icon(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = "Open Video",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = { mainResult = initialMainResult }) {
-                    Icon(
-                        imageVector = Icons.Filled.RestartAlt,
-                        contentDescription = "Reset Video",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-                IconButton(onClick = { isExpanded = true }) {
-                    Icon(
-                        imageVector = Icons.Filled.Fullscreen,
-                        contentDescription = "Expand Video",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-        }
+//        // Top row with Clear and action buttons
+//        Row(
+//            modifier = Modifier
+//                .fillMaxWidth(),
+//            horizontalArrangement = Arrangement.SpaceBetween
+//        ) {
+//            TextButton(onClick = onClear) {
+//                Text("Clear Results")
+//            }
+//            Row {
+//                IconButton(onClick = { openVideoInGallery(context, mainResult) }) {
+//                    Icon(
+//                        imageVector = Icons.Filled.PlayArrow,
+//                        contentDescription = "Open Video",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//                IconButton(onClick = { mainResult = initialMainResult }) {
+//                    Icon(
+//                        imageVector = Icons.Filled.RestartAlt,
+//                        contentDescription = "Reset Video",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//                IconButton(onClick = { isExpanded = true }) {
+//                    Icon(
+//                        imageVector = Icons.Filled.Fullscreen,
+//                        contentDescription = "Expand Video",
+//                        tint = MaterialTheme.colorScheme.primary
+//                    )
+//                }
+//            }
+//        }
 
         // Main video thumbnail card
         Card(
@@ -83,7 +82,9 @@ fun VideoSearchResults(
         ) {
             ImageDisplay(
                 uri = mainResult,
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(onClick = { toggleViewResult(mainResult) }),
                 contentScale = ContentScale.Crop,
                 type = ImageDisplayType.VIDEO_THUMBNAIL
             )
@@ -114,14 +115,15 @@ fun VideoSearchResults(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clickable { mainResult = uri },
+                            .aspectRatio(1f),
                         shape = MaterialTheme.shapes.small,
                         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         ImageDisplay(
                             uri = uri,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable(onClick = { toggleViewResult(uri) }),
                             contentScale = ContentScale.Crop,
                             type = ImageDisplayType.VIDEO_THUMBNAIL
                         )
@@ -131,11 +133,11 @@ fun VideoSearchResults(
         }
     }
 
-    if (isExpanded) {
+    if (resultToView != null) {
         MediaExpandedView(
-            uri = mainResult,
+            uri = resultToView,
             type = ImageDisplayType.VIDEO_THUMBNAIL,
-            onClose = {isExpanded = false}
+            onClose = {toggleViewResult(null)}
         )
     }
 }

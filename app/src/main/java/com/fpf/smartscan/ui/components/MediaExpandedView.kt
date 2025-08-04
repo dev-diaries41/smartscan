@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,13 +41,13 @@ fun MediaExpandedView(
                 maxSize = maxSize
             )
             IconButton(
-                onClick = { onClose },
+                onClick = { onClose() },
                 modifier = Modifier
-                    .align(Alignment.Companion.TopEnd)
+                    .align(Alignment.Companion.TopStart)
                     .padding(16.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Close Image",
                     tint = Color.White
                 )
