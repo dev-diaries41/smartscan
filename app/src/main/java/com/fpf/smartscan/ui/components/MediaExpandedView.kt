@@ -16,6 +16,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,6 +31,8 @@ import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.openImageInGallery
 import com.fpf.smartscan.lib.openVideoInGallery
 import com.fpf.smartscan.ui.screens.search.MediaType
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun MediaExpandedView(
@@ -36,13 +42,15 @@ fun MediaExpandedView(
     maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE
 ){
     val context = LocalContext.current
-    val mime = context.contentResolver.getType(uri)
 
+    val mime = context.contentResolver.getType(uri)
     val shareIntent: Intent = Intent().apply {
         this.action = Intent.ACTION_SEND
         this.putExtra(Intent.EXTRA_STREAM, uri)
         this.type = mime
     }
+
+    var hideActions by remember { mutableStateOf(false) }
 
     Dialog(onDismissRequest = { onClose() }) {
         Box(
@@ -50,7 +58,7 @@ fun MediaExpandedView(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            if(type == MediaType.IMAGE){
+            if (type == MediaType.IMAGE) {
                 ImageDisplay(
                     uri = uri,
                     modifier = Modifier.fillMaxSize(),
@@ -58,51 +66,62 @@ fun MediaExpandedView(
                     type = type,
                     maxSize = maxSize
                 )
-            }else{
+            } else {
                 VideoDisplay(
                     uri = uri,
                     modifier = Modifier.fillMaxSize(),
-                    maxSize = maxSize
-                )
-            }
-            IconButton(
-                onClick = { onClose() },
-                modifier = Modifier
-                    .align(Alignment.Companion.TopStart)
-                    .padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Close Image",
-                    tint = Color.White
+                    onTap = { hideActions = !hideActions }
                 )
             }
 
-            Row (
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.Bottom
-            )
-            {
-                IconButton(onClick = {
-                    if (type == MediaType.IMAGE) {
-                        openImageInGallery(context, uri)
-                    }else{
-                        openVideoInGallery(context, uri)
-                    }
-                }) {
-                    Icon(Icons.Filled.PhotoLibrary, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.onSurface)
+            if (!hideActions) {
+                IconButton(
+                    onClick = { onClose() },
+                    modifier = Modifier
+                        .align(Alignment.Companion.TopStart)
+                        .padding(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Close Image",
+                        tint = Color.White
+                    )
                 }
 
-                // Prevent share if mime is undefined for some reason
-                mime?.let{
+                Row(
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.Bottom
+                )
+                {
                     IconButton(onClick = {
-                        context.startActivity(Intent.createChooser(shareIntent, null))
+                        if (type == MediaType.IMAGE) {
+                            openImageInGallery(context, uri)
+                        } else {
+                            openVideoInGallery(context, uri)
+                        }
                     }) {
-                        Icon(Icons.Filled.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface)
+                        Icon(
+                            Icons.Filled.PhotoLibrary,
+                            contentDescription = "Open in Gallery",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
-                }
 
+                    // Prevent share if mime is undefined for some reason
+                    mime?.let {
+                        IconButton(onClick = {
+                            context.startActivity(Intent.createChooser(shareIntent, null))
+                        }) {
+                            Icon(
+                                Icons.Filled.Share,
+                                contentDescription = "Share",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+                    }
+
+                }
             }
         }
     }
