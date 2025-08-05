@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,8 +32,6 @@ import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.openImageInGallery
 import com.fpf.smartscan.lib.openVideoInGallery
 import com.fpf.smartscan.ui.screens.search.MediaType
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
 fun MediaExpandedView(
@@ -75,52 +74,53 @@ fun MediaExpandedView(
             }
 
             if (!hideActions) {
-                IconButton(
-                    onClick = { onClose() },
-                    modifier = Modifier
-                        .align(Alignment.Companion.TopStart)
-                        .padding(16.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Close Image",
-                        tint = Color.White
-                    )
-                }
-
                 Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.Bottom
-                )
-                {
-                    IconButton(onClick = {
-                        if (type == MediaType.IMAGE) {
-                            openImageInGallery(context, uri)
-                        } else {
-                            openVideoInGallery(context, uri)
-                        }
-                    }) {
+                    modifier = Modifier.fillMaxWidth().padding(8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
+                ){
+                    IconButton(
+                        onClick = { onClose() },
+                        modifier = Modifier
+                    ) {
                         Icon(
-                            Icons.Filled.PhotoLibrary,
-                            contentDescription = "Open in Gallery",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Close Image",
+                            tint = Color.White
                         )
                     }
-
-                    // Prevent share if mime is undefined for some reason
-                    mime?.let {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    )
+                    {
                         IconButton(onClick = {
-                            context.startActivity(Intent.createChooser(shareIntent, null))
+                            if (type == MediaType.IMAGE) {
+                                openImageInGallery(context, uri)
+                            } else {
+                                openVideoInGallery(context, uri)
+                            }
                         }) {
                             Icon(
-                                Icons.Filled.Share,
-                                contentDescription = "Share",
+                                Icons.Filled.PhotoLibrary,
+                                contentDescription = "Open in Gallery",
                                 tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
-                    }
 
+                        // Prevent share if mime is undefined for some reason
+                        mime?.let {
+                            IconButton(onClick = {
+                                context.startActivity(Intent.createChooser(shareIntent, null))
+                            }) {
+                                Icon(
+                                    Icons.Filled.Share,
+                                    contentDescription = "Share",
+                                    tint = MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
