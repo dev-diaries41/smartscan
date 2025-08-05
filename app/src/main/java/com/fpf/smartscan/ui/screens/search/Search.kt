@@ -29,7 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.ProgressBar
-import com.fpf.smartscan.ui.components.SettingsSelect
+import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
@@ -161,7 +161,7 @@ fun SearchScreen(
                 progress = videoIndexProgress
             )
 
-            SettingsSelect(
+            SelectorItem(
                 enabled = (!isIndexingVideos && !isIndexingImages), // prevent switching modes when indexing in progress
                 showLabel = false,
                 label = "Search Mode",

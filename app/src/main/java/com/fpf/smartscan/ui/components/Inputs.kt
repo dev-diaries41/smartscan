@@ -51,7 +51,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.Boolean
 
 @Composable
-fun SettingsCard(
+fun ActionItem(
     text: String,
     onClick: () -> Unit,
     description: String? = null,
@@ -85,7 +85,7 @@ fun SettingsCard(
 }
 
 @Composable
-fun SettingsSwitch(
+fun SwitchItem(
     text: String,
     checked: Boolean,
     onCheckedChange: ((Boolean) -> Unit),
@@ -120,7 +120,7 @@ fun SettingsSwitch(
 }
 
 @Composable
-fun SettingsIncrementor(
+fun IncrementorItem(
     label: String,
     value: String,
     description: String? = null,
@@ -209,7 +209,7 @@ fun SettingsIncrementor(
 
 
 @Composable
-fun SettingsTextInput(
+fun TextInput(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
@@ -254,7 +254,7 @@ fun SettingsTextInput(
 
 
 @Composable
-fun SettingsSelect(
+fun SelectorItem(
     label: String,
     options: List<String>,
     selectedOption: String,
