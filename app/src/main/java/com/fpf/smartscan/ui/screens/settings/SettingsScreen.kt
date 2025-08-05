@@ -23,10 +23,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpf.smartscan.R
-import com.fpf.smartscan.ui.components.SettingsCard
-import com.fpf.smartscan.ui.components.SettingsSelect
-import com.fpf.smartscan.ui.components.SettingsSwitch
-import com.fpf.smartscan.ui.components.SettingsIncrementor
+import com.fpf.smartscan.ui.components.ActionItem
+import com.fpf.smartscan.ui.components.SelectorItem
+import com.fpf.smartscan.ui.components.SwitchItem
+import com.fpf.smartscan.ui.components.IncrementorItem
 import androidx.core.net.toUri
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
@@ -122,24 +122,24 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 8.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
-                SettingsSwitch(
+                SwitchItem(
                     text = stringResource(id = R.string.setting_enable_scan),
                     checked = appSettings.enableScan,
                     onCheckedChange = { checked ->
                         viewModel.updateEnableScan(checked)
                     }
                 )
-                SettingsCard(
+                ActionItem(
                     enabled = appSettings.enableScan,
                     text = stringResource(id = R.string.setting_target_folders),
                     onClick = { onNavigate("settingsDetail/targets") }
                 )
-                SettingsCard(
+                ActionItem(
                     enabled = appSettings.enableScan,
                     text = stringResource(id = R.string.setting_destination_folders),
                     onClick = { onNavigate("settingsDetail/destinations") }
                 )
-                SettingsSelect(
+                SelectorItem(
                     enabled = appSettings.enableScan,
                     label = stringResource(id = R.string.setting_scan_frequency),
                     options = listOf(
@@ -158,7 +158,7 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                SettingsIncrementor(
+                IncrementorItem(
                     minValue = 1,
                     maxValue = 20,
                     onDecrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults - 1).toString())},
@@ -167,13 +167,13 @@ fun SettingsScreen(
                     label = stringResource(id = R.string.setting_number_similar_results),
                 )
 
-                SettingsCard(
+                ActionItem(
                     text = stringResource(id = R.string.setting_similarity_threshold),
                     onClick = { onNavigate("settingsDetail/threshold") }
                 )
 
 
-                SettingsSelect(
+                SelectorItem(
                     label = stringResource(id = R.string.setting_index_frequency),
                     options = listOf(
                         stringResource(id = R.string.scan_frequency_1d),
@@ -186,7 +186,7 @@ fun SettingsScreen(
 //                    description = stringResource(id = R.string.setting_index_frequency_description)
                 )
 
-                SettingsCard(
+                ActionItem(
                     text = stringResource(id = R.string.setting_refresh_image_index),
                     onClick = {
                         val storageAccess = getStorageAccess(context)
@@ -200,7 +200,7 @@ fun SettingsScreen(
                     }
                 )
 
-                SettingsCard(
+                ActionItem(
                     text = stringResource(id = R.string.setting_refresh_video_index),
                     onClick = {
                         val storageAccess = getStorageAccess(context)
@@ -222,16 +222,16 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                SettingsCard(
+                ActionItem(
                     text = stringResource(id = R.string.title_help),
                     onClick = { onNavigate("help") }
                 )
 
-                SettingsCard(
+                ActionItem(
                     text = stringResource(id = R.string.title_donate),
                     onClick = { onNavigate("donate") }
                 )
-                SettingsCard(
+                ActionItem(
                     text = stringResource(id = R.string.setting_source_code),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, sourceCodeUrl.toUri())
