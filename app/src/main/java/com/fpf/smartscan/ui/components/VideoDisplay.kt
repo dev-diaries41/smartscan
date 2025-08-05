@@ -16,7 +16,6 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
 
-
 @Composable
 fun VideoDisplay(
     uri: Uri,
@@ -24,6 +23,7 @@ fun VideoDisplay(
     onTap: () -> Unit = {}
 ) {
     val context = LocalContext.current
+
     val exoPlayer = remember {
         ExoPlayer.Builder(context).build().apply {
             setMediaItem(MediaItem.fromUri(uri))
@@ -34,8 +34,8 @@ fun VideoDisplay(
     val gestureDetector = remember(context) {
         GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
             override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                onTap()
-                return false  // don't consume, let PlayerView handle tap too
+                onTap() 
+                return true // signal handled so we can call performClick()
             }
         })
     }
@@ -53,9 +53,12 @@ fun VideoDisplay(
                     android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
                     android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
                 )
-                setOnTouchListener { _, event ->
-                    gestureDetector.onTouchEvent(event)
-                    false // important: return false to let PlayerView handle event
+                setOnTouchListener { view, event ->
+                    val handled = gestureDetector.onTouchEvent(event)
+                    if (handled) {
+                        view.performClick() // accessibility compliance
+                    }
+                    false // pass event to PlayerView so controls still work
                 }
             }
         },
