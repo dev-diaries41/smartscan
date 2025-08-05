@@ -91,7 +91,15 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
+    fun search(n: Int, imageEmbeddings: List<ImageEmbedding>, videoEmbeddings: List<VideoEmbedding>, threshold: Float = 0.2f){
+        when (_mode.value) {
+            MediaType.IMAGE -> searchImages(n, imageEmbeddings, threshold)
+            MediaType.VIDEO -> searchVideos(n, videoEmbeddings, threshold)
+            null -> {}
+        }
+    }
+
+    private fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -152,7 +160,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun searchVideos(n: Int, embeddings: List<VideoEmbedding>, threshold: Float = 0.2f) {
+    private fun searchVideos(n: Int, embeddings: List<VideoEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
