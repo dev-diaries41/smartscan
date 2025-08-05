@@ -18,12 +18,17 @@ import com.fpf.smartscan.ui.components.MediaExpandedView
 
 @Composable
 fun SearchResults(
+    isVisible: Boolean,
     resultToView: Uri? = null,
-    mainResult: Uri,
-    similarResults: List<Uri>,
+    searchResults: List<Uri>,
+    maxResults: Int,
     toggleViewResult: (uri: Uri?) -> Unit,
     type: MediaType,
 ) {
+    if(!isVisible) return
+
+    val mainResult = searchResults.first()
+    val similarResults = if (searchResults.size > 1) searchResults.drop(1).take(maxResults) else emptyList()
     Column(
         modifier = Modifier
             .fillMaxWidth(),
