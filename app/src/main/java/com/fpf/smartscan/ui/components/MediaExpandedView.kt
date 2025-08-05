@@ -1,5 +1,6 @@
 package com.fpf.smartscan.ui.components
 
+import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -9,8 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,7 +37,13 @@ fun MediaExpandedView(
 ){
     val context = LocalContext.current
 
-    Dialog(onDismissRequest = { onClose }) {
+    val shareIntent: Intent = Intent().apply {
+        this.action = Intent.ACTION_SEND
+        this.putExtra(Intent.EXTRA_STREAM, uri)
+        this.type = context.contentResolver.getType(uri)?: "image/jpeg"
+    }
+
+    Dialog(onDismissRequest = { onClose() }) {
         Box(
             modifier = Modifier.Companion
                 .fillMaxSize()
@@ -76,10 +82,12 @@ fun MediaExpandedView(
                         openVideoInGallery(context, uri)
                     }
                 }) {
-                    Icon(if (type == MediaType.IMAGE) Icons.Filled.Image else Icons.Filled.PlayArrow, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.onSurface)
+                    Icon(Icons.Filled.PhotoLibrary, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.onSurface)
                 }
 
-                IconButton(onClick = {  }) {
+                IconButton(onClick = {
+                    context.startActivity(Intent.createChooser(shareIntent, null))
+                }) {
                     Icon(Icons.Filled.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface)
                 }
             }
