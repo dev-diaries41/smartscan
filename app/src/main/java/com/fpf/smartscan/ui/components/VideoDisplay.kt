@@ -1,27 +1,27 @@
 package com.fpf.smartscan.ui.components
 
 import android.net.Uri
+import android.view.GestureDetector
+import android.view.MotionEvent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
-import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 
 
 @Composable
 fun VideoDisplay(
     uri: Uri,
     modifier: Modifier = Modifier,
-    maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE
+    onTap: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val exoPlayer = remember {
@@ -29,6 +29,15 @@ fun VideoDisplay(
             setMediaItem(MediaItem.fromUri(uri))
             prepare()
         }
+    }
+
+    val gestureDetector = remember(context) {
+        GestureDetector(context, object : GestureDetector.SimpleOnGestureListener() {
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
+                onTap()
+                return false  // don't consume, let PlayerView handle tap too
+            }
+        })
     }
 
     DisposableEffect(exoPlayer) {
@@ -40,15 +49,18 @@ fun VideoDisplay(
             PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = true
-                layoutParams =
-                    android.widget.FrameLayout.LayoutParams(
-                        android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                        android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
-                    )
+                layoutParams = android.widget.FrameLayout.LayoutParams(
+                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                )
+                setOnTouchListener { _, event ->
+                    gestureDetector.onTouchEvent(event)
+                    false // important: return false to let PlayerView handle event
+                }
             }
         },
         modifier = modifier
-            .sizeIn(maxWidth = maxSize.dp, maxHeight = maxSize.dp)
+            .fillMaxSize()
             .background(Color.Black)
     )
 }
