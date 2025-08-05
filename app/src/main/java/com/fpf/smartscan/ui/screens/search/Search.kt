@@ -193,10 +193,7 @@ fun SearchScreen(
             )
 
             if(searchResults.isNotEmpty()){
-                TextButton(
-                    onClick = {searchViewModel.clearResults() },
-                    modifier = Modifier.align(Alignment.End)
-                ) {
+                TextButton(onClick = {searchViewModel.clearResults() }, modifier = Modifier.align(Alignment.End)) {
                     Text("Clear Results")
                 }
             }
@@ -220,27 +217,18 @@ fun SearchScreen(
             }
 
             if(loadingIndexData && hasStoragePermission){
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = when(mode){
-                    MediaType.IMAGE -> "Loading indexed images..."
-                    MediaType.VIDEO -> "Loading indexed videos..."
-                })
+                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
             }
 
             error?.let {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = it, color = Color.Red)
+                Text(text = it, color = Color.Red, modifier = Modifier.padding(top=16.dp))
             }
 
             if(!hasStoragePermission && !isLoading){
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = stringResource(R.string.storage_permissions), color = Color.Red)
+                Text(text = stringResource(R.string.storage_permissions), color = Color.Red, modifier = Modifier.padding(top=16.dp))
             }
 
-            if(searchResults.isEmpty()){
-                Spacer(modifier = Modifier.height(48.dp))
-                SearchPlaceholderDisplay()
-            }
+            SearchPlaceholderDisplay(isVisible = searchResults.isEmpty())
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -258,12 +246,14 @@ fun SearchScreen(
 
 
 @Composable
-fun SearchPlaceholderDisplay() {
+fun SearchPlaceholderDisplay(isVisible: Boolean) {
+    if(!isVisible) return
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
