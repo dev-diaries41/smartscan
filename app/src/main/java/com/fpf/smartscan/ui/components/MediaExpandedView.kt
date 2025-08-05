@@ -36,11 +36,12 @@ fun MediaExpandedView(
     maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE
 ){
     val context = LocalContext.current
+    val mime = context.contentResolver.getType(uri)
 
     val shareIntent: Intent = Intent().apply {
         this.action = Intent.ACTION_SEND
         this.putExtra(Intent.EXTRA_STREAM, uri)
-        this.type = context.contentResolver.getType(uri)?: "image/jpeg"
+        this.type = mime
     }
 
     Dialog(onDismissRequest = { onClose() }) {
@@ -49,13 +50,21 @@ fun MediaExpandedView(
                 .fillMaxSize()
                 .background(Color.Black)
         ) {
-            ImageDisplay(
-                uri = uri,
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Fit,
-                type = type,
-                maxSize = maxSize
-            )
+            if(type == MediaType.IMAGE){
+                ImageDisplay(
+                    uri = uri,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Fit,
+                    type = type,
+                    maxSize = maxSize
+                )
+            }else{
+                VideoDisplay(
+                    uri = uri,
+                    modifier = Modifier.fillMaxSize(),
+                    maxSize = maxSize
+                )
+            }
             IconButton(
                 onClick = { onClose() },
                 modifier = Modifier
@@ -85,11 +94,15 @@ fun MediaExpandedView(
                     Icon(Icons.Filled.PhotoLibrary, contentDescription = "Open in Gallery", tint = MaterialTheme.colorScheme.onSurface)
                 }
 
-                IconButton(onClick = {
-                    context.startActivity(Intent.createChooser(shareIntent, null))
-                }) {
-                    Icon(Icons.Filled.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface)
+                // Prevent share if mime is undefined for some reason
+                mime?.let{
+                    IconButton(onClick = {
+                        context.startActivity(Intent.createChooser(shareIntent, null))
+                    }) {
+                        Icon(Icons.Filled.Share, contentDescription = "Share", tint = MaterialTheme.colorScheme.onSurface)
+                    }
                 }
+
             }
         }
     }
