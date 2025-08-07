@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
+import com.fpf.smartscan.ui.components.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.permissions.RequestPermissions
@@ -138,12 +139,12 @@ fun SearchScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-//            .padding(16.dp)
     ) {
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(16.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
@@ -237,11 +238,18 @@ fun SearchScreen(
                 type = mode,
                 searchResults = searchResults,
                 maxResults = appSettings.numberSimilarResults,
-                resultToView = resultToView,
                 toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
             )
         }
+        resultToView?.let { uri ->
+            MediaViewer(
+                uri = uri,
+                type = mode,
+                onClose = { searchViewModel.toggleViewResult(null) },
+            )
+        }
     }
+
 }
 
 
