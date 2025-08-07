@@ -38,6 +38,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.window.DialogProperties
 
 @Composable
 fun MediaViewer(
@@ -50,7 +51,7 @@ fun MediaViewer(
 
     Dialog(
         onDismissRequest = { onClose() }   ,
-//        properties = DialogProperties(usePlatformDefaultWidth = false)
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Box(
             modifier = Modifier.Companion
@@ -168,7 +169,7 @@ fun ActionRowWithFade(
                     this.alpha = alpha
                     this.translationY = translationY
                 }
-                .background(Color.Black.copy(alpha = 0.2f))
+                .background(MaterialTheme.colorScheme.background.copy(alpha = 0.8f))
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
