@@ -10,7 +10,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.ui.components.ImageDisplay
-import com.fpf.smartscan.ui.components.MediaExpandedView
+import com.fpf.smartscan.ui.components.MediaViewer
 
 @Composable
 fun SearchResults(
@@ -85,7 +85,7 @@ fun SearchResults(
 
     // Expanded view overlay
     if (resultToView != null) {
-        MediaExpandedView(
+        MediaViewer(
             uri = resultToView,
             type = type,
             onClose = { toggleViewResult(null) }
