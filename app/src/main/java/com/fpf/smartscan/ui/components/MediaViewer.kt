@@ -36,12 +36,11 @@ import com.fpf.smartscan.ui.screens.search.MediaType
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
-fun MediaExpandedView(
+fun MediaViewer(
     uri: Uri,
     type: MediaType,
     onClose: () -> Unit,
@@ -49,11 +48,14 @@ fun MediaExpandedView(
 ){
     var isActionsVisible by remember { mutableStateOf(true) }
 
-    Dialog(onDismissRequest = { onClose() }) {
+    Dialog(
+        onDismissRequest = { onClose() }   ,
+//        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Box(
             modifier = Modifier.Companion
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(MaterialTheme.colorScheme.background)
         ) {
             if (type == MediaType.IMAGE) {
                 ImageDisplay(
@@ -105,7 +107,7 @@ fun ActionRow(
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Close Image",
-                tint = Color.White
+                tint = MaterialTheme.colorScheme.onBackground
             )
         }
         Row(
@@ -166,7 +168,7 @@ fun ActionRowWithFade(
                     this.alpha = alpha
                     this.translationY = translationY
                 }
-                .background(Color.Black.copy(alpha = 0.5f))
+                .background(Color.Black.copy(alpha = 0.2f))
                 .padding(8.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
