@@ -23,12 +23,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.openImageInGallery
 import com.fpf.smartscan.lib.openVideoInGallery
@@ -38,7 +36,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 
 @Composable
 fun MediaViewer(
@@ -49,9 +48,10 @@ fun MediaViewer(
 ){
     var isActionsVisible by remember { mutableStateOf(true) }
 
-    Dialog(
-        onDismissRequest = { onClose() }   ,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+    Popup(
+        onDismissRequest = { onClose() },
+        properties = PopupProperties(dismissOnBackPress = true,focusable = true)
+
     ) {
         Box(
             modifier = Modifier.Companion
@@ -68,7 +68,7 @@ fun MediaViewer(
                                 onTap = { isActionsVisible = !isActionsVisible }
                             )
                         },
-                    contentScale = ContentScale.Fit,
+                    contentScale = ContentScale.FillWidth,
                     type = type,
                     maxSize = maxSize
                 )
