@@ -1,3 +1,8 @@
+## v1.1.2 – 08/08/2025
+
+### Changed
+- Clean, intuitive search UI with click-to-open media viewer and sharing features
+
 ## v1.1.1 – 11/06/2025
 
 ### Changed
