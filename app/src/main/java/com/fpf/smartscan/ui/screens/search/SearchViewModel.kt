@@ -27,15 +27,14 @@ import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.VideoIndexListener
 import com.fpf.smartscan.services.MediaIndexForegroundService
-import kotlinx.coroutines.CoroutineScope
 
-enum class SearchMode {
+enum class MediaType {
     IMAGE, VIDEO
 }
 
 val searchModeOptions = mapOf(
-    SearchMode.IMAGE to "Images",
-    SearchMode.VIDEO to "Videos",
+    MediaType.IMAGE to "Images",
+    MediaType.VIDEO to "Videos",
 )
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -69,8 +68,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    private val _mode = MutableLiveData<SearchMode>(SearchMode.IMAGE)
-    val mode: LiveData<SearchMode> = _mode
+    private val _mode = MutableLiveData<MediaType>(MediaType.IMAGE)
+    val mode: LiveData<MediaType> = _mode
+
+    private val _resultToView = MutableLiveData<Uri?>()
+    val resultToView: LiveData<Uri?> = _resultToView
 
     fun setQuery(newQuery: String) {
         _query.value = newQuery
@@ -83,13 +85,21 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    fun setMode(newMode: SearchMode) {
+    fun setMode(newMode: MediaType) {
         _mode.value = newMode
         _error.value = null
         _searchResults.value = emptyList()
     }
 
-    fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
+    fun search(n: Int, imageEmbeddings: List<ImageEmbedding>, videoEmbeddings: List<VideoEmbedding>, threshold: Float = 0.2f){
+        when (_mode.value) {
+            MediaType.IMAGE -> searchImages(n, imageEmbeddings, threshold)
+            MediaType.VIDEO -> searchVideos(n, videoEmbeddings, threshold)
+            null -> {}
+        }
+    }
+
+    private fun searchImages(n: Int, embeddings: List<ImageEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -150,7 +160,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun searchVideos(n: Int, embeddings: List<VideoEmbedding>, threshold: Float = 0.2f) {
+    private fun searchVideos(n: Int, embeddings: List<VideoEmbedding>, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isNullOrBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -229,6 +239,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             ).also { intent ->
                 application.startForegroundService(intent)
             }
+    }
+
+    fun toggleViewResult(uri: Uri?){
+        _resultToView.value = uri
     }
 
 

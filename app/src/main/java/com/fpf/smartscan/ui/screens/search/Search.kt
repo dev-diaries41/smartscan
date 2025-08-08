@@ -6,38 +6,33 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardActions
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ImageSearch
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
-import com.fpf.smartscan.ui.components.SettingsSelect
+import com.fpf.smartscan.ui.components.MediaViewer
+import com.fpf.smartscan.ui.components.ProgressBar
+import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
@@ -47,32 +42,35 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
+    // Index state
     val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
     val isIndexingImages by searchViewModel.isIndexingImages.collectAsState()
     val isIndexingVideos by searchViewModel.isIndexingVideos.collectAsState()
+
+    // Search state
     val searchQuery by searchViewModel.query.observeAsState("")
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
+    val mode by searchViewModel.mode.observeAsState(MediaType.IMAGE)
     val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
     val hasAnyIndexedVideos by searchViewModel.hasAnyVideos.observeAsState(null)
+    val hasIndexed = when(mode) {
+        MediaType.IMAGE -> hasAnyIndexedImages == true
+        MediaType.VIDEO -> hasAnyIndexedVideos == true
+    }
     val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
     val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
-    val mode by searchViewModel.mode.observeAsState(SearchMode.IMAGE)
-    val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
-    val scrollState = rememberScrollState()
-
-    // Search state
-    val hasIndexed = when(mode) {
-        SearchMode.IMAGE -> hasAnyIndexedImages == true
-        SearchMode.VIDEO -> hasAnyIndexedVideos == true
-    }
-    val embeddings = if (mode == SearchMode.IMAGE) imageEmbeddings else videoEmbeddings
+    val resultToView by searchViewModel.resultToView.observeAsState()
+    val embeddings = if (mode == MediaType.IMAGE) imageEmbeddings else videoEmbeddings
     val canSearch = hasIndexed && embeddings.isNotEmpty()
     val loadingIndexData = hasIndexed && embeddings.isEmpty()
     val showLoader = isLoading || loadingIndexData
 
+    val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
+
+    val scrollState = rememberScrollState()
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showFirstIndexImageDialog by remember { mutableStateOf(false) }
@@ -84,14 +82,14 @@ fun SearchScreen(
     }
 
     LaunchedEffect(hasIndexed, hasStoragePermission, mode) {
-        if(hasStoragePermission && !hasIndexed && (mode == SearchMode.IMAGE)){
+        if(hasStoragePermission && !hasIndexed && (mode == MediaType.IMAGE)){
             showFirstIndexImageDialog = true
-        }else if(hasStoragePermission && !hasIndexed && (mode == SearchMode.VIDEO)){
+        }else if(hasStoragePermission && !hasIndexed && (mode == MediaType.VIDEO)){
             showFirstIndexVideoDialog = true
         }
     }
 
-    val label = if (mode == SearchMode.IMAGE) "image" else "video"
+    val label = if (mode == MediaType.IMAGE) "image" else "video"
     val message = stringResource(R.string.first_indexing, label)
 
     if ( showFirstIndexImageDialog) {
@@ -143,53 +141,30 @@ fun SearchScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
     ) {
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(16.dp)
                 .verticalScroll(scrollState),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
-            if (isIndexingImages) {
-                Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                    Text(
-                        text = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    LinearProgressIndicator(
-                        progress = { imageIndexProgress},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        strokeCap = StrokeCap.Round,
-                    )
-                }
-            }
 
-            if (isIndexingVideos) {
-                Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                    Text(
-                        text = "Indexing videos ${"%.0f".format(videoIndexProgress * 100)}%",
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    LinearProgressIndicator(
-                        progress = { videoIndexProgress},
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(4.dp),
-                        color = MaterialTheme.colorScheme.primary,
-                        trackColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
-                        strokeCap = StrokeCap.Round,
-                    )
-                }
-            }
+            ProgressBar(
+                label = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
+                isVisible = isIndexingImages,
+                progress = imageIndexProgress
+            )
 
-            SettingsSelect(
+            ProgressBar(
+                label = "Indexing videos ${"%.0f".format(videoIndexProgress * 100)}%",
+                isVisible = isIndexingVideos,
+                progress = videoIndexProgress
+            )
+
+            SelectorItem(
                 enabled = (!isIndexingVideos && !isIndexingImages), // prevent switching modes when indexing in progress
                 showLabel = false,
                 label = "Search Mode",
@@ -198,62 +173,33 @@ fun SearchScreen(
                 onOptionSelected = { selected ->
                     val newMode = searchModeOptions.entries
                         .find { it.value == selected }
-                        ?.key ?: SearchMode.IMAGE
+                        ?.key ?: MediaType.IMAGE
                     searchViewModel.setMode(newMode)
                 }
             )
 
-            OutlinedTextField(
+            SearchBar(
+                query = searchQuery,
                 enabled = canSearch && hasStoragePermission,
-                value = searchQuery,
-                onValueChange = { newQuery ->
+                onSearch = searchViewModel::search,
+                onQueryChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
                 },
-                label = { Text(text=when(mode){
-                    SearchMode.IMAGE -> "Search images..."
-                    SearchMode.VIDEO -> "Search videos..."
-                }) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(8.dp),
-                keyboardActions = KeyboardActions (
-                    onSearch = {
-                        when (mode) {
-                            SearchMode.IMAGE ->
-                                searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold
-                                )
-
-                            SearchMode.VIDEO ->
-                                searchViewModel.searchVideos(appSettings.numberSimilarResults, videoEmbeddings, appSettings.similarityThreshold
-                                )
-                        }
-                    }
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Search
-                ),
-                trailingIcon = {
-                    IconButton(
-                        enabled = canSearch && hasStoragePermission && searchQuery.isNotEmpty(),
-                        onClick = {
-                            when (mode) {
-                                SearchMode.IMAGE ->
-                                    searchViewModel.searchImages(appSettings.numberSimilarResults, imageEmbeddings, appSettings.similarityThreshold
-                                    )
-
-                                SearchMode.VIDEO ->
-                                    searchViewModel.searchVideos(appSettings.numberSimilarResults, videoEmbeddings, appSettings.similarityThreshold
-                                    )
-                            }
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = Color(0xFFFC5C7D)
-                        )
-                    }
-                }
+                label = when(mode){
+                    MediaType.IMAGE -> "Search images..."
+                    MediaType.VIDEO -> "Search videos..."
+                },
+                imageEmbeddings = imageEmbeddings,
+                videoEmbeddings = videoEmbeddings,
+                nSimilarResult = appSettings.numberSimilarResults,
+                threshold = appSettings.similarityThreshold
             )
+
+            if(searchResults.isNotEmpty()){
+                TextButton(onClick = {searchViewModel.clearResults() }, modifier = Modifier.align(Alignment.End)) {
+                    Text("Clear Results")
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -274,57 +220,56 @@ fun SearchScreen(
             }
 
             if(loadingIndexData && hasStoragePermission){
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = when(mode){
-                    SearchMode.IMAGE -> "Loading indexed images..."
-                    SearchMode.VIDEO -> "Loading indexed videos..."
-                })
+                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
             }
 
             error?.let {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = it, color = Color.Red)
+                Text(text = it, color = Color.Red, modifier = Modifier.padding(top=16.dp))
             }
 
             if(!hasStoragePermission && !isLoading){
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(text = stringResource(R.string.storage_permissions), color = Color.Red)
+                Text(text = stringResource(R.string.storage_permissions), color = Color.Red, modifier = Modifier.padding(top=16.dp))
             }
 
-            if(searchResults.isEmpty()){
-                Spacer(modifier = Modifier.height(48.dp))
-                SearchPlaceholderDisplay()
-            }
+            SearchPlaceholderDisplay(isVisible = searchResults.isEmpty())
 
-            if (!isLoading && searchResults.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                val mainResult = searchResults.first()
-                val similarResults = if (searchResults.size > 1) searchResults.drop(1).take(appSettings.numberSimilarResults) else emptyList()
+            Spacer(modifier = Modifier.height(16.dp))
 
-                when(mode){
-                    SearchMode.IMAGE -> SearchResults(
-                        initialMainResult = mainResult,
-                        similarResults = similarResults,
-                        onClear = { searchViewModel.clearResults() }
-                    )
-                    SearchMode.VIDEO -> VideoSearchResults(
-                        initialMainResult = mainResult,
-                        similarResults = similarResults,
-                        onClear = { searchViewModel.clearResults() }
-                    )
-                }
+            SearchResults(
+                isVisible = !isLoading && searchResults.isNotEmpty(),
+                type = mode,
+                searchResults = searchResults,
+                maxResults = appSettings.numberSimilarResults,
+                toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
+            )
+        }
+        resultToView?.let { uri ->
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = tween(500)) + scaleIn(initialScale = 0.8f, animationSpec = tween(500)),
+                exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300))
+            ) {
+                MediaViewer(
+                    uri = uri,
+                    type = mode,
+                    onClose = { searchViewModel.toggleViewResult(null) },
+                )
             }
         }
     }
+
 }
 
+
 @Composable
-fun SearchPlaceholderDisplay() {
+fun SearchPlaceholderDisplay(isVisible: Boolean) {
+    if(!isVisible) return
+
     Box(
         contentAlignment = Alignment.Center,
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
