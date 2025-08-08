@@ -14,8 +14,8 @@ android {
         applicationId = "com.fpf.smartscan"
         minSdk = 30
         targetSdk = 34
-        versionCode = 9
-        versionName = "1.1.1"
+        versionCode = 10
+        versionName = "1.1.2"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -80,8 +80,8 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    implementation("androidx.media3:media3-exoplayer:1.8.0")
-    implementation("androidx.media3:media3-ui:1.8.0")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.ui)
 
 
 
