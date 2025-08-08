@@ -161,7 +161,7 @@ fun ActionRowWithFade(
         animationSpec = tween(durationMillis = 300)
     )
 
-    if (alpha > 0f) { // Optional optimization to skip drawing when fully invisible
+    if (alpha > 0f) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
