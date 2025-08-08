@@ -2,9 +2,11 @@ package com.fpf.smartscan.ui.screens.search
 
 import android.net.Uri
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextAlign
@@ -37,7 +39,12 @@ fun SearchResults(
                 uri = mainResult,
                 modifier = Modifier
                     .fillMaxSize()
-                    .clickable { toggleViewResult(mainResult) },
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        toggleViewResult(mainResult)
+                    },
                 contentScale = ContentScale.Crop,
                 type = type
             )
@@ -70,7 +77,10 @@ fun SearchResults(
                                 uri = uri,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clickable { toggleViewResult(uri) },
+                                    .clickable(
+                                        indication = null,
+                                        interactionSource = remember { MutableInteractionSource() }
+                                    ) { toggleViewResult(uri) },
                                 contentScale = ContentScale.Crop,
                                 type = type
                             )

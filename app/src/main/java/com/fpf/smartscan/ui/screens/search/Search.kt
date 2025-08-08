@@ -6,6 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -242,11 +244,17 @@ fun SearchScreen(
             )
         }
         resultToView?.let { uri ->
-            MediaViewer(
-                uri = uri,
-                type = mode,
-                onClose = { searchViewModel.toggleViewResult(null) },
-            )
+            AnimatedVisibility(
+                visible = true,
+                enter = fadeIn(animationSpec = tween(500)) + scaleIn(initialScale = 0.8f, animationSpec = tween(500)),
+                exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300))
+            ) {
+                MediaViewer(
+                    uri = uri,
+                    type = mode,
+                    onClose = { searchViewModel.toggleViewResult(null) },
+                )
+            }
         }
     }
 
