@@ -56,8 +56,21 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     var imageEmbeddings: List<Embedding> = emptyList()
     var videoEmbeddings: List<Embedding> = emptyList()
 
-    val hasAnyImages: LiveData<Boolean> = repository.hasAnyEmbedding
-    val hasAnyVideos: LiveData<Boolean> = videoRepository.hasAnyVideoEmbeddings
+    private val hasAnyImages: LiveData<Boolean> = repository.hasAnyEmbedding
+    private val hasAnyVideos: LiveData<Boolean> = videoRepository.hasAnyVideoEmbeddings
+    val hasIndexed = MediatorLiveData<Boolean>().apply {
+        fun update() {
+            value = when (_mode.value) {
+                MediaType.IMAGE -> hasAnyImages.value == true
+                MediaType.VIDEO -> hasAnyVideos.value == true
+                else -> false
+            }
+        }
+
+        addSource(_mode) { update() }
+        addSource(hasAnyImages) { update() }
+        addSource(hasAnyVideos) { update() }
+    }
 
     private val _query = MutableLiveData<String>("")
     val query: LiveData<String> = _query

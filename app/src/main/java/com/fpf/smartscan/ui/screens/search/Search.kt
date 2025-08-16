@@ -53,13 +53,7 @@ fun SearchScreen(
     val isLoading by searchViewModel.isLoading.observeAsState(false)
     val error by searchViewModel.error.observeAsState(null)
     val mode by searchViewModel.mode.observeAsState(MediaType.IMAGE)
-    val hasAnyIndexedImages by searchViewModel.hasAnyImages.observeAsState(null)
-    val hasAnyIndexedVideos by searchViewModel.hasAnyVideos.observeAsState(null)
-    val hasIndexed = when(mode) {
-        MediaType.IMAGE -> hasAnyIndexedImages == true
-        MediaType.VIDEO -> hasAnyIndexedVideos == true
-    }
-
+    val hasIndexed by searchViewModel.hasIndexed.observeAsState(null)
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val resultToView by searchViewModel.resultToView.observeAsState()
     val canSearch by searchViewModel.canSearch.observeAsState(false)
@@ -78,9 +72,9 @@ fun SearchScreen(
     }
 
     LaunchedEffect(hasIndexed, hasStoragePermission, mode) {
-        if(hasStoragePermission && !hasIndexed && (mode == MediaType.IMAGE)){
+        if(hasStoragePermission && hasIndexed == false && (mode == MediaType.IMAGE)){
             showFirstIndexImageDialog = true
-        }else if(hasStoragePermission && !hasIndexed && (mode == MediaType.VIDEO)){
+        }else if(hasStoragePermission && hasIndexed == false && (mode == MediaType.VIDEO)){
             showFirstIndexVideoDialog = true
         }
     }
