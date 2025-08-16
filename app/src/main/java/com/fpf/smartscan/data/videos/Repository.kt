@@ -3,13 +3,13 @@ package com.fpf.smartscan.data.videos
 import androidx.lifecycle.LiveData
 
 class VideoEmbeddingRepository(private val dao: VideoEmbeddingDao) {
-    val allVideoEmbeddings: LiveData<List<VideoEmbedding>> = dao.getAllVideoEmbeddings()
+    val allVideoEmbeddingsEntity: LiveData<List<VideoEmbeddingEntity>> = dao.getAllVideoEmbeddings()
     val hasAnyVideoEmbeddings: LiveData<Boolean> = dao.hasAnyVideoEmbeddings()
 
-    suspend fun getAllEmbeddingsSync(): List<VideoEmbedding> {
+    suspend fun getAllEmbeddingsSync(): List<VideoEmbeddingEntity> {
         return dao.getAllEmbeddingsSync()
     }
-    suspend fun insert(videoEmbedding: VideoEmbedding) {
+    suspend fun insert(videoEmbedding: VideoEmbeddingEntity) {
         dao.insertVideoEmbedding(videoEmbedding)
     }
 

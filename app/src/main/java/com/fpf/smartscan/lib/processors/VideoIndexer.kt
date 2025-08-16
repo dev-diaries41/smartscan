@@ -9,7 +9,7 @@ import android.net.Uri
 import android.provider.MediaStore
 import android.util.Log
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.videos.VideoEmbedding
+import com.fpf.smartscan.data.videos.VideoEmbeddingEntity
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.IMAGE_SIZE_X
@@ -83,7 +83,7 @@ class VideoIndexer(
                                 val embedding: FloatArray = embeddingHandler.generatePrototypeEmbedding(application, frameBitmaps)
 
                                 repository.insert(
-                                    VideoEmbedding(
+                                    VideoEmbeddingEntity(
                                         id = id,
                                         date = System.currentTimeMillis(),
                                         embeddings = embedding)
