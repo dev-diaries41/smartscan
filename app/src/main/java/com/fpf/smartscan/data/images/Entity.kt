@@ -1,7 +1,7 @@
 package com.fpf.smartscan.data.images
 
 import androidx.room.*
-import com.fpf.smartscan.lib.clip.ImageEmbedding
+import com.fpf.smartscan.lib.clip.Embedding
 
 @Entity(tableName = "image_embeddings")
 data class ImageEmbeddingEntity(
@@ -12,6 +12,6 @@ data class ImageEmbeddingEntity(
 )
 
 
-fun ImageEmbeddingEntity.toEmbedding() = ImageEmbedding(id, date, embeddings)
+fun ImageEmbeddingEntity.toEmbedding() = Embedding(id, date, embeddings)
 
-fun ImageEmbedding.toEntity() = ImageEmbeddingEntity(id, date, embeddings)
+fun Embedding.toEntity() = ImageEmbeddingEntity(id, date, embeddings)

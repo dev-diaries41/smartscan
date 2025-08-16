@@ -2,7 +2,6 @@ package com.fpf.smartscan.data.videos
 
 import android.content.Context
 import androidx.lifecycle.LiveData
-import com.fpf.smartscan.data.images.toEmbedding
 import com.fpf.smartscan.lib.clip.Embedding
 import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
 import kotlinx.coroutines.Dispatchers
