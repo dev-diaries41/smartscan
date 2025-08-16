@@ -1,7 +1,7 @@
 package com.fpf.smartscan.data.videos
 
 import androidx.room.*
-import com.fpf.smartscan.lib.clip.VideoEmbedding
+import com.fpf.smartscan.lib.clip.Embedding
 
 @Entity(tableName = "video_embeddings")
 data class VideoEmbeddingEntity(
@@ -11,6 +11,6 @@ data class VideoEmbeddingEntity(
     val embeddings: FloatArray
 )
 
-fun VideoEmbeddingEntity.toEmbedding() = VideoEmbedding(id, date, embeddings)
+fun VideoEmbeddingEntity.toEmbedding() = Embedding(id, date, embeddings)
 
-fun VideoEmbedding.toEntity() = VideoEmbeddingEntity(id, date, embeddings)
+fun Embedding.toEntity() = VideoEmbeddingEntity(id, date, embeddings)

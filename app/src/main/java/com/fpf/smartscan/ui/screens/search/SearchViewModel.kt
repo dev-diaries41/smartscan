@@ -22,9 +22,7 @@ import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.clip.Embedding
-import com.fpf.smartscan.lib.clip.ImageEmbedding
 import com.fpf.smartscan.lib.clip.ModelType
-import com.fpf.smartscan.lib.clip.VideoEmbedding
 import com.fpf.smartscan.lib.clip.loadEmbeddingsFromFile
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
@@ -107,7 +105,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 val imageIndexFilename = "image_index.bin"
                 val file = File(application.filesDir, imageIndexFilename)
                 imageEmbeddings = if(file.exists()){
-                    loadEmbeddingsFromFile(getApplication(), imageIndexFilename, 512, factory = ::ImageEmbedding)
+                    loadEmbeddingsFromFile(getApplication(), imageIndexFilename, 512)
                 }else{
                     repository.getAllEmbeddingsWithFileSync(application, imageIndexFilename)
                 }
@@ -126,7 +124,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 val videoIndexFilename = "video_index.bin"
                 val file = File(application.filesDir, videoIndexFilename)
                 videoEmbeddings = if(file.exists()){
-                    loadEmbeddingsFromFile(getApplication(), videoIndexFilename, 512, factory = ::VideoEmbedding)
+                    loadEmbeddingsFromFile(getApplication(), videoIndexFilename, 512)
                 }else{
                     videoRepository.getAllEmbeddingsWithFileSync(application, videoIndexFilename)
                 }

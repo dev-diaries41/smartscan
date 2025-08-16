@@ -11,7 +11,7 @@ import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 
 
-fun<T: Embedding> saveEmbeddingsToFile(context: Context, path: String, embeddingsList: List<T>) {
+fun saveEmbeddingsToFile(context: Context, path: String, embeddingsList: List<Embedding>) {
     // Calculate total bytes: count + (id + date + length + floats) per entry
     var totalFloats = 0
     for (e in embeddingsList) totalFloats += e.embeddings.size
@@ -40,12 +40,11 @@ fun<T: Embedding> saveEmbeddingsToFile(context: Context, path: String, embedding
     }
 }
 
-fun<T: Embedding> loadEmbeddingsFromFile(
+fun loadEmbeddingsFromFile(
     context: Context,
     path: String,
     size: Int? = null,
-    factory: (id: Long, date: Long, floats: FloatArray) -> T,
-    ): List<T> {
+    ): List<Embedding> {
     val file = File(context.filesDir, path)
 
     FileInputStream(file).channel.use { ch ->
@@ -54,7 +53,7 @@ fun<T: Embedding> loadEmbeddingsFromFile(
         val buffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, fileSize).order(ByteOrder.LITTLE_ENDIAN)
 
         val count = buffer.int
-        val list = ArrayList<T>(count)
+        val list = ArrayList<Embedding>(count)
 
         if (size != null) {
             val fixedLen = size
@@ -73,7 +72,7 @@ fun<T: Embedding> loadEmbeddingsFromFile(
                 // advance the original byte buffer position by length * 4 bytes
                 buffer.position(buffer.position() + length * 4)
 
-                list.add(factory(id, date, floats))
+                list.add(Embedding(id, date, floats))
             }
         } else {
             // Fallback to original per-float loop (works with variable-length entries)
@@ -85,7 +84,7 @@ fun<T: Embedding> loadEmbeddingsFromFile(
                 for (i in 0 until length) {
                     floats[i] = buffer.float
                 }
-                list.add(factory(id, date, floats))
+                list.add(Embedding(id, date, floats))
             }
         }
 

@@ -3,7 +3,6 @@ package com.fpf.smartscan.data.images
 import android.content.Context
 import androidx.lifecycle.LiveData
 import com.fpf.smartscan.lib.clip.Embedding
-import com.fpf.smartscan.lib.clip.Embeddings
 import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
