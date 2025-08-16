@@ -11,7 +11,7 @@ import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 
 
-fun saveImageEmbeddingsToFile(context: Context, path: String, embeddingsList: List<Embedding>) {
+fun<T: Embedding> saveEmbeddingsToFile(context: Context, path: String, embeddingsList: List<T>) {
     // Calculate total bytes: count + (id + date + length + floats) per entry
     var totalFloats = 0
     for (e in embeddingsList) totalFloats += e.embeddings.size
@@ -40,7 +40,12 @@ fun saveImageEmbeddingsToFile(context: Context, path: String, embeddingsList: Li
     }
 }
 
-fun loadImageEmbeddingsFromFile(context: Context, path: String, size: Int? = null): List<Embedding> {
+fun<T: Embedding> loadEmbeddingsFromFile(
+    context: Context,
+    path: String,
+    size: Int? = null,
+    factory: (id: Long, date: Long, floats: FloatArray) -> T,
+    ): List<T> {
     val file = File(context.filesDir, path)
 
     FileInputStream(file).channel.use { ch ->
@@ -49,7 +54,7 @@ fun loadImageEmbeddingsFromFile(context: Context, path: String, size: Int? = nul
         val buffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, fileSize).order(ByteOrder.LITTLE_ENDIAN)
 
         val count = buffer.int
-        val list = ArrayList<ImageEmbedding>(count)
+        val list = ArrayList<T>(count)
 
         if (size != null) {
             val fixedLen = size
@@ -68,7 +73,7 @@ fun loadImageEmbeddingsFromFile(context: Context, path: String, size: Int? = nul
                 // advance the original byte buffer position by length * 4 bytes
                 buffer.position(buffer.position() + length * 4)
 
-                list.add(ImageEmbedding(id, date, floats))
+                list.add(factory(id, date, floats))
             }
         } else {
             // Fallback to original per-float loop (works with variable-length entries)
@@ -80,7 +85,7 @@ fun loadImageEmbeddingsFromFile(context: Context, path: String, size: Int? = nul
                 for (i in 0 until length) {
                     floats[i] = buffer.float
                 }
-                list.add(ImageEmbedding(id, date, floats))
+                list.add(factory(id, date, floats))
             }
         }
 
@@ -93,13 +98,11 @@ fun appendEmbeddingsToFile(context: Context, path: String, newEmbeddings: List<E
     val file = File(context.filesDir, path)
 
     if (!file.exists()) {
-        // File doesn't exist yet, just save normally
-        saveImageEmbeddingsToFile(context, path, newEmbeddings)
+        saveEmbeddingsToFile(context, path, newEmbeddings)
         return
     }
 
     RandomAccessFile(file, "rw").use { raf ->
-        // Read the existing count
         val existingCount = raf.readInt()
         val newCount = existingCount + newEmbeddings.size
 
