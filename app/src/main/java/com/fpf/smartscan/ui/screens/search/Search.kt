@@ -59,14 +59,10 @@ fun SearchScreen(
         MediaType.IMAGE -> hasAnyIndexedImages == true
         MediaType.VIDEO -> hasAnyIndexedVideos == true
     }
-    val imageEmbeddings by searchViewModel.imageEmbeddings.observeAsState(emptyList())
-    val videoEmbeddings by searchViewModel.videoEmbeddings.observeAsState(emptyList())
+
     val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
     val resultToView by searchViewModel.resultToView.observeAsState()
-    val embeddings = if (mode == MediaType.IMAGE) imageEmbeddings else videoEmbeddings
-    val canSearch = hasIndexed && embeddings.isNotEmpty()
-    val loadingIndexData = hasIndexed && embeddings.isEmpty()
-    val showLoader = isLoading || loadingIndexData
+    val canSearch by searchViewModel.canSearch.observeAsState(false)
 
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
 
@@ -180,7 +176,7 @@ fun SearchScreen(
 
             SearchBar(
                 query = searchQuery,
-                enabled = canSearch && hasStoragePermission,
+                enabled = canSearch && hasStoragePermission && !isLoading,
                 onSearch = searchViewModel::search,
                 onQueryChange = { newQuery ->
                     searchViewModel.setQuery(newQuery)
@@ -189,8 +185,6 @@ fun SearchScreen(
                     MediaType.IMAGE -> "Search images..."
                     MediaType.VIDEO -> "Search videos..."
                 },
-                imageEmbeddings = imageEmbeddings,
-                videoEmbeddings = videoEmbeddings,
                 nSimilarResult = appSettings.numberSimilarResults,
                 threshold = appSettings.similarityThreshold
             )
@@ -204,7 +198,7 @@ fun SearchScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             AnimatedVisibility(
-                visible = showLoader,
+                visible = isLoading,
                 enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
                 exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
             ) {
@@ -219,9 +213,9 @@ fun SearchScreen(
                 }
             }
 
-            if(loadingIndexData && hasStoragePermission){
-                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
-            }
+//            if(isLoading && hasStoragePermission){
+//                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
+//            }
 
             error?.let {
                 Text(text = it, color = Color.Red, modifier = Modifier.padding(top=16.dp))
