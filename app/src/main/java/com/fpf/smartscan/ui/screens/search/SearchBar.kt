@@ -15,19 +15,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import com.fpf.smartscan.data.images.ImageEmbedding
-import com.fpf.smartscan.data.videos.VideoEmbedding
 
 @Composable
 fun SearchBar(
     query: String,
     enabled: Boolean,
     onQueryChange: (query: String) -> Unit,
-    imageEmbeddings: List<ImageEmbedding>,
-    videoEmbeddings: List<VideoEmbedding>,
     threshold: Float,
     nSimilarResult: Int,
-    onSearch: (n: Int, imageEmbeddings: List<ImageEmbedding>, videoEmbeddings: List<VideoEmbedding>, threshold: Float) -> Unit,
+    onSearch: (n: Int, threshold: Float) -> Unit,
     label: String,
 
     ){
@@ -39,7 +35,7 @@ fun SearchBar(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         keyboardActions = KeyboardActions (
-            onSearch = {onSearch(nSimilarResult, imageEmbeddings, videoEmbeddings, threshold)}
+            onSearch = {onSearch(nSimilarResult, threshold)}
         ),
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Search
@@ -47,7 +43,7 @@ fun SearchBar(
         trailingIcon = {
             IconButton(
                 enabled = enabled && query.isNotEmpty(),
-                onClick = {onSearch(nSimilarResult, imageEmbeddings, videoEmbeddings, threshold)}
+                onClick = {onSearch(nSimilarResult, threshold)}
             ) {
                 Icon(
                     imageVector = Icons.Default.Search,
