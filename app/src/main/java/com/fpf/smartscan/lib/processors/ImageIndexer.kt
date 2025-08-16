@@ -6,7 +6,7 @@ import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.images.ImageEmbedding
+import com.fpf.smartscan.data.images.ImageEmbeddingEntity
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.getBitmapFromUri
@@ -81,7 +81,7 @@ class ImageIndexer(
 
                                 bitmap.recycle()
                                 repository.insert(
-                                    ImageEmbedding(
+                                    ImageEmbeddingEntity(
                                         id = id,
                                         date = System.currentTimeMillis(),
                                         embeddings = embedding

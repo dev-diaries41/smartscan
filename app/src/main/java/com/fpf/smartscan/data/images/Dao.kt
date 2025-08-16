@@ -7,13 +7,13 @@ import androidx.room.*
 interface ImageEmbeddingDao {
 
     @Query("SELECT * FROM image_embeddings ORDER BY date DESC")
-    fun getAllImageEmbeddings(): LiveData<List<ImageEmbedding>>
+    fun getAllImageEmbeddings(): LiveData<List<ImageEmbeddingEntity>>
 
     @Query("SELECT * FROM image_embeddings ORDER BY date DESC")
-    suspend fun getAllEmbeddingsSync(): List<ImageEmbedding>
+    suspend fun getAllEmbeddingsSync(): List<ImageEmbeddingEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertImageEmbedding(imageEmbedding: ImageEmbedding)
+    suspend fun insertImageEmbedding(imageEmbedding: ImageEmbeddingEntity)
 
     @Query("DELETE FROM image_embeddings WHERE id = :id")
     suspend fun deleteById(id: Long)

@@ -3,14 +3,14 @@ package com.fpf.smartscan.data.images
 import androidx.lifecycle.LiveData
 
 class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
-    val allImageEmbeddings: LiveData<List<ImageEmbedding>> = dao.getAllImageEmbeddings()
+    val allImageEmbeddingsEntity: LiveData<List<ImageEmbeddingEntity>> = dao.getAllImageEmbeddings()
     val hasAnyEmbedding: LiveData<Boolean> = dao.hasAnyImageEmbedding()
 
-    suspend fun getAllEmbeddingsSync(): List<ImageEmbedding> {
+    suspend fun getAllEmbeddingsSync(): List<ImageEmbeddingEntity> {
         return dao.getAllEmbeddingsSync()
     }
-    suspend fun insert(imageEmbedding: ImageEmbedding) {
-        dao.insertImageEmbedding(imageEmbedding)
+    suspend fun insert(imageEmbeddingEntity: ImageEmbeddingEntity) {
+        dao.insertImageEmbedding(imageEmbeddingEntity)
     }
 
     suspend fun deleteById(id: Long) {
