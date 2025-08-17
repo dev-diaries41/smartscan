@@ -61,7 +61,6 @@ fun SearchScreen(
     val canSearch by searchViewModel.canSearch.observeAsState(false)
 
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
-    val context = LocalContext.current
 
     val scrollState = rememberScrollState()
     var hasNotificationPermission by remember { mutableStateOf(false) }
