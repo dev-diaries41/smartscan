@@ -7,3 +7,5 @@ interface IIndexListener {
     fun onComplete(context: Context, totalProcessed: Int, processingTime: Long)
     fun onError(context: Context, error: Exception)
 }
+
+enum class IndexStatus {IDLE, INDEXING, COMPLETE, ERROR }

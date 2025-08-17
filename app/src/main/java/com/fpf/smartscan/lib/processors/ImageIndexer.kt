@@ -138,12 +138,12 @@ object ImageIndexListener : IIndexListener {
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
-    private val _indexingInProgress = MutableStateFlow(false)
-    val indexingInProgress: StateFlow<Boolean> = _indexingInProgress
+    private val _indexingStatus = MutableStateFlow<IndexStatus>(IndexStatus.IDLE)
+    val indexingStatus: StateFlow<IndexStatus> = _indexingStatus
 
     override fun onProgress(processedCount: Int, total: Int) {
-        if(!_indexingInProgress.value){
-            _indexingInProgress.value = true
+        if(_indexingStatus.value != IndexStatus.INDEXING){
+            _indexingStatus.value = IndexStatus.INDEXING
         }
         val currentProgress = processedCount.toFloat() / total.toFloat()
         if(currentProgress - _progress.value >= 0.01f){
@@ -158,7 +158,7 @@ object ImageIndexListener : IIndexListener {
         if (totalProcessed == 0) return
 
         try {
-            _indexingInProgress.value = false
+            _indexingStatus.value = IndexStatus.COMPLETE
             _progress.value = 0f
             val (minutes, seconds) = getTimeInMinutesAndSeconds(processingTime)
             val notificationText = "Total images indexed: ${totalProcessed}, Time: ${minutes}m ${seconds}s"
@@ -171,7 +171,7 @@ object ImageIndexListener : IIndexListener {
 
     override fun onError(context: Context, error: Exception) {
         try {
-            _indexingInProgress.value = false
+            _indexingStatus.value = IndexStatus.ERROR
             _progress.value = 0f
             val title = context.getString(R.string.notif_title_index_error_service, "Image")
             val content = context.getString(R.string.notif_content_index_error_service, "image")
