@@ -27,9 +27,11 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
+import com.fpf.smartscan.lib.processors.IndexStatus
 import com.fpf.smartscan.ui.components.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorItem
@@ -45,8 +47,8 @@ fun SearchScreen(
     // Index state
     val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
-    val isIndexingImages by searchViewModel.isIndexingImages.collectAsState()
-    val isIndexingVideos by searchViewModel.isIndexingVideos.collectAsState()
+    val imageIndexStatus by searchViewModel.imageIndexStatus.collectAsState()
+    val videoIndexStatus by searchViewModel.videoIndexStatus.collectAsState()
 
     // Search state
     val searchQuery by searchViewModel.query.observeAsState("")
@@ -59,6 +61,7 @@ fun SearchScreen(
     val canSearch by searchViewModel.canSearch.observeAsState(false)
 
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
+    val context = LocalContext.current
 
     val scrollState = rememberScrollState()
     var hasNotificationPermission by remember { mutableStateOf(false) }
@@ -76,6 +79,18 @@ fun SearchScreen(
             showFirstIndexImageDialog = true
         }else if(hasStoragePermission && hasIndexed == false && (mode == MediaType.VIDEO)){
             showFirstIndexVideoDialog = true
+        }
+    }
+
+    LaunchedEffect(imageIndexStatus) {
+        if (imageIndexStatus == IndexStatus.COMPLETE) {
+            searchViewModel.refreshIndex(MediaType.IMAGE)
+        }
+    }
+
+    LaunchedEffect(videoIndexStatus) {
+        if (videoIndexStatus == IndexStatus.COMPLETE) {
+            searchViewModel.refreshIndex(MediaType.VIDEO)
         }
     }
 
@@ -144,18 +159,18 @@ fun SearchScreen(
 
             ProgressBar(
                 label = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
-                isVisible = isIndexingImages,
+                isVisible = imageIndexStatus == IndexStatus.INDEXING,
                 progress = imageIndexProgress
             )
 
             ProgressBar(
                 label = "Indexing videos ${"%.0f".format(videoIndexProgress * 100)}%",
-                isVisible = isIndexingVideos,
+                isVisible = videoIndexStatus == IndexStatus.INDEXING,
                 progress = videoIndexProgress
             )
 
             SelectorItem(
-                enabled = (!isIndexingVideos && !isIndexingImages), // prevent switching modes when indexing in progress
+                enabled = (videoIndexStatus != IndexStatus.INDEXING && imageIndexStatus != IndexStatus.INDEXING), // prevent switching modes when indexing in progress
                 showLabel = false,
                 label = "Search Mode",
                 options = searchModeOptions.values.toList(),

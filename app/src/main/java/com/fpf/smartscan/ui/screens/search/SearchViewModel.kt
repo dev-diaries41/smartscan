@@ -57,6 +57,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     var imageEmbeddings: List<Embedding> = emptyList()
     var videoEmbeddings: List<Embedding> = emptyList()
 
+    private val _hasRefreshedImageIndex = MutableLiveData<Boolean>(false)
+    private val _hasRefreshedVideoIndex = MutableLiveData<Boolean>(false)
+
     private val _mode = MutableLiveData<MediaType>(MediaType.IMAGE)
     val mode: LiveData<MediaType> = _mode
 
@@ -114,7 +117,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
 
-    fun loadImageIndex(){
+    private fun loadImageIndex(){
         viewModelScope.launch(Dispatchers.IO){
             _isLoading.postValue(true)
             val file = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
@@ -130,7 +133,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun loadVideoIndex(){
+    private fun loadVideoIndex(){
         viewModelScope.launch(Dispatchers.IO){
             _isLoading.postValue(true)
             val file = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
@@ -143,6 +146,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 _canSearchVideos.postValue(true)
             }
             _isLoading.postValue(false)
+        }
+    }
+
+    fun refreshIndex(mode : MediaType){
+        if(mode == MediaType.IMAGE && _hasRefreshedImageIndex.value == false){
+            loadImageIndex()
+            _hasRefreshedImageIndex.value = true
+        }else if (mode == MediaType.VIDEO && _hasRefreshedVideoIndex.value == false){
+            loadVideoIndex()
+            _hasRefreshedVideoIndex.value = true
         }
     }
 
