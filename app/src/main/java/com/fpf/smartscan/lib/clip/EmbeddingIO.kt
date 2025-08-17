@@ -1,5 +1,7 @@
 package com.fpf.smartscan.lib.clip
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -11,7 +13,7 @@ import java.nio.channels.FileChannel
 
 private const val EMBEDDING_LEN = 512
 
-fun saveEmbeddingsToFile(file: File, embeddingsList: List<Embedding>) {
+suspend fun saveEmbeddingsToFile(file: File, embeddingsList: List<Embedding>) = withContext(Dispatchers.IO){
     // total bytes: 4 (count) + per-entry (id(8) + date(8) + EMBEDDING_LEN*4)
     val totalBytes = 4 + embeddingsList.size * (8 + 8 + EMBEDDING_LEN * 4)
     val buffer = ByteBuffer.allocate(totalBytes).order(ByteOrder.LITTLE_ENDIAN)
@@ -34,7 +36,7 @@ fun saveEmbeddingsToFile(file: File, embeddingsList: List<Embedding>) {
     }
 }
 
-fun loadEmbeddingsFromFile(file: File): List<Embedding> {
+suspend fun loadEmbeddingsFromFile(file: File): List<Embedding> = withContext(Dispatchers.IO){
     FileInputStream(file).channel.use { ch ->
         val fileSize = ch.size()
         val buffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, fileSize).order(ByteOrder.LITTLE_ENDIAN)
@@ -52,14 +54,14 @@ fun loadEmbeddingsFromFile(file: File): List<Embedding> {
             list.add(Embedding(id, date, floats))
         }
 
-        return list
+        list
     }
 }
 
-fun appendEmbeddingsToFile(file: File, newEmbeddings: List<Embedding>) {
+suspend fun appendEmbeddingsToFile(file: File, newEmbeddings: List<Embedding>) = withContext(Dispatchers.IO) {
     if (!file.exists()) {
         saveEmbeddingsToFile(file, newEmbeddings)
-        return
+        return@withContext
     }
 
     RandomAccessFile(file, "rw").use { raf ->
