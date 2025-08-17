@@ -6,12 +6,13 @@ import android.content.Context
 import android.provider.MediaStore
 import android.util.Log
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.images.ImageEmbeddingEntity
-import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
-import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.MemoryUtils
+import com.fpf.smartscan.lib.clip.Embedding
 import com.fpf.smartscan.lib.clip.Embeddings
+import com.fpf.smartscan.lib.clip.appendEmbeddingsToFile
+import com.fpf.smartscan.lib.clip.loadEmbeddingsFromFile
+import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.CancellationException
@@ -24,6 +25,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 
 class ImageIndexer(
@@ -33,13 +35,9 @@ class ImageIndexer(
 
     companion object {
         private const val TAG = "ImageIndexer"
+        private const val IMAGE_INDEX_FILENAME = "image_index.bin"
+        private const val BATCH_SIZE = 10
     }
-
-    private val repository = ImageEmbeddingRepository(
-        ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
-    )
-
-    private val memoryUtils = MemoryUtils(application.applicationContext)
 
     suspend fun run(ids: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
         val processedCount = AtomicInteger(0)
@@ -50,23 +48,26 @@ class ImageIndexer(
                 Log.i(TAG, "No images found.")
                 return@withContext 0
             }
+            val file = File(application.filesDir, IMAGE_INDEX_FILENAME)
 
-            val existingIds: Set<Long> = repository.getAllEmbeddingsSync()
+            // don't store full embeddings in var here to reduce memory usage
+            val existingIds: Set<Long> = if(file.exists()){ loadEmbeddingsFromFile(file)
                 .map { it.id }
                 .toSet()
+            } else emptySet<Long>()
             val imagesToProcess = ids.filterNot { existingIds.contains(it) }
             val idsToPurge = existingIds.minus(ids.toSet()).toList()
-            // Always purge stale embeddings first to prevent issue with live data
-            purge(idsToPurge)
 
             var totalProcessed = 0
 
-            for (batch in imagesToProcess.chunked(10)) {
+            val memoryUtils = MemoryUtils(application.applicationContext)
+
+            for (batch in imagesToProcess.chunked(BATCH_SIZE)) {
                 val currentConcurrency = memoryUtils.calculateConcurrencyLevel()
                 // Log.i(TAG, "Current allowed concurrency: $currentConcurrency | Free Memory: ${memoryUtils.getFreeMemory() / (1024 * 1024)} MB")
 
                 val semaphore = Semaphore(currentConcurrency)
-
+                val batchEmb = ArrayList<Embedding>(BATCH_SIZE)
                 val deferredResults = batch.map { id ->
                     async {
                         semaphore.withPermit {
@@ -80,13 +81,13 @@ class ImageIndexer(
                                 }
 
                                 bitmap.recycle()
-                                repository.insert(
-                                    ImageEmbeddingEntity(
+                                batchEmb.add(
+                                    Embedding(
                                         id = id,
                                         date = System.currentTimeMillis(),
                                         embeddings = embedding
-                                        )
                                     )
+                                )
                                 val current = processedCount.incrementAndGet()
                                 listener?.onProgress(current, imagesToProcess.size)
                                 return@async 1
@@ -97,11 +98,14 @@ class ImageIndexer(
                         }
                     }
                 }
+
                 totalProcessed += deferredResults.awaitAll().sum()
+                appendEmbeddingsToFile(file, batchEmb)
             }
             val endTime = System.currentTimeMillis()
             val completionTime = endTime - startTime
             listener?.onComplete(application, totalProcessed, completionTime)
+            purge(idsToPurge, file)
             totalProcessed
         }
         catch (e: CancellationException) {
@@ -114,11 +118,13 @@ class ImageIndexer(
         }
     }
 
-    private suspend fun purge(idsToPurge: List<Long>) = withContext(Dispatchers.IO) {
+    private suspend fun purge(idsToPurge: List<Long>, file: File) = withContext(Dispatchers.IO) {
         if (idsToPurge.isEmpty()) return@withContext
 
         try {
-            repository.deleteByIds(idsToPurge)
+            val embs = loadEmbeddingsFromFile(file)
+            val remaining = embs.filter { it.id !in idsToPurge }
+            saveEmbeddingsToFile(file, remaining)
             Log.i(TAG, "Purged ${idsToPurge.size} stale embeddings")
         } catch (e: Exception) {
             Log.e(TAG, "Error purging embeddings", e)
