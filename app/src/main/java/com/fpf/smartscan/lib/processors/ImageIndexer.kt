@@ -35,8 +35,8 @@ class ImageIndexer(
 
     companion object {
         private const val TAG = "ImageIndexer"
-        private const val IMAGE_INDEX_FILENAME = "image_index.bin"
         private const val BATCH_SIZE = 10
+        const val INDEX_FILENAME = "image_index.bin"
     }
 
     suspend fun run(ids: List<Long>, embeddingHandler: Embeddings): Int = withContext(Dispatchers.IO) {
@@ -48,7 +48,7 @@ class ImageIndexer(
                 Log.i(TAG, "No images found.")
                 return@withContext 0
             }
-            val file = File(application.filesDir, IMAGE_INDEX_FILENAME)
+            val file = File(application.filesDir, INDEX_FILENAME)
 
             // don't store full embeddings in var here to reduce memory usage
             val existingIds: Set<Long> = if(file.exists()){ loadEmbeddingsFromFile(file)
