@@ -6,6 +6,7 @@ import com.fpf.smartscan.lib.clip.Embedding
 import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
     val allImageEmbeddingsEntity: LiveData<List<ImageEmbeddingEntity>> = dao.getAllImageEmbeddings()
@@ -32,12 +33,12 @@ class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
         dao.deleteAll()
     }
 
-    suspend fun getAllEmbeddingsWithFileSync(context: Context, filename: String): List<Embedding> {
+    suspend fun getAllEmbeddingsWithFileSync(file: File): List<Embedding> {
         val embeddings = dao.getAllEmbeddingsSync()
         val mappedEmbeddings = embeddings.map { it.toEmbedding() }
         if (mappedEmbeddings.isNotEmpty()) {
             withContext(Dispatchers.IO) {
-                saveEmbeddingsToFile(context, filename, mappedEmbeddings)
+                saveEmbeddingsToFile(file, mappedEmbeddings)
             }
         }
         return mappedEmbeddings
