@@ -1,10 +1,10 @@
 package com.fpf.smartscan.lib.clip
 
 import android.content.Context
-import java.io.DataOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.io.IOException
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -40,11 +40,7 @@ fun saveEmbeddingsToFile(context: Context, path: String, embeddingsList: List<Em
     }
 }
 
-fun loadEmbeddingsFromFile(
-    context: Context,
-    path: String,
-    size: Int? = null,
-    ): List<Embedding> {
+fun loadEmbeddingsFromFile(context: Context, path: String, size: Int? = null, ): List<Embedding> {
     val file = File(context.filesDir, path)
 
     FileInputStream(file).channel.use { ch ->
@@ -102,25 +98,51 @@ fun appendEmbeddingsToFile(context: Context, path: String, newEmbeddings: List<E
     }
 
     RandomAccessFile(file, "rw").use { raf ->
-        val existingCount = raf.readInt()
+        val channel = raf.channel
+
+        // Read the 4-byte header as little-endian
+        val headerBuf = ByteBuffer.allocate(4).order(ByteOrder.LITTLE_ENDIAN)
+        channel.position(0)
+        val read = channel.read(headerBuf)
+        if (read != 4) {
+            throw IOException("Failed to read header count (file too small/corrupted)")
+        }
+        headerBuf.flip()
+        val existingCount = headerBuf.int
+
+        // Basic validation: each existing entry is at least 20 bytes (id(8)+date(8)+len(4)).
+        // If the recorded count is wildly larger than file size, treat as corruption.
+        val minEntryBytes = 8 + 8 + 4
+        val maxCountFromSize = (channel.size() / minEntryBytes).toInt()
+        if (existingCount < 0 || existingCount > maxCountFromSize + 10_000) {
+            throw IOException("Corrupt embeddings header: count=$existingCount, fileSize=${channel.size()}")
+        }
+
         val newCount = existingCount + newEmbeddings.size
 
-        // Update the count at the start of the file
-        raf.seek(0)
-        raf.writeInt(newCount)
+        // Write the updated count back as little-endian
+        headerBuf.clear()
+        headerBuf.putInt(newCount).flip()
+        channel.position(0)
+        while (headerBuf.hasRemaining()) channel.write(headerBuf)
 
-        // Move to the end to append new embeddings
-        raf.seek(raf.length())
+        // Move to the end to append new entries
+        channel.position(channel.size())
 
-        val outputStream = DataOutputStream(FileOutputStream(raf.fd))
+        // Append each embedding using little-endian ByteBuffers
         for (embedding in newEmbeddings) {
-            outputStream.writeLong(embedding.id)
-            outputStream.writeLong(embedding.date)
-            outputStream.writeInt(embedding.embeddings.size)
-            for (f in embedding.embeddings) {
-                outputStream.writeFloat(f)
+            // allocate exact size for this entry to avoid extra copies
+            val entryBytes = (8 + 8 + 4) + embedding.embeddings.size * 4
+            val buf = ByteBuffer.allocate(entryBytes).order(ByteOrder.LITTLE_ENDIAN)
+            buf.putLong(embedding.id)
+            buf.putLong(embedding.date)
+            buf.putInt(embedding.embeddings.size)
+            for (f in embedding.embeddings) buf.putFloat(f)
+            buf.flip()
+            while (buf.hasRemaining()) {
+                channel.write(buf)
             }
         }
-        outputStream.flush()
+        channel.force(false)
     }
 }
