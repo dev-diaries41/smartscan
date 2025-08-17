@@ -63,9 +63,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val hasAnyVideos: LiveData<Boolean> = videoRepository.hasAnyVideoEmbeddings
     val hasIndexed = MediatorLiveData<Boolean>().apply {
         fun update() {
+            val (fileHasImages, fileHasVideos) = checkHasIndexed()
             value = when (_mode.value) {
-                MediaType.IMAGE -> hasAnyImages.value == true
-                MediaType.VIDEO -> hasAnyVideos.value == true
+                MediaType.IMAGE -> (hasAnyImages.value == true) || fileHasImages
+                MediaType.VIDEO -> (hasAnyVideos.value == true) || fileHasVideos
                 else -> false
             }
         }
@@ -74,6 +75,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         addSource(hasAnyImages) { update() }
         addSource(hasAnyVideos) { update() }
     }
+
 
     private val _query = MutableLiveData<String>("")
     val query: LiveData<String> = _query
@@ -109,6 +111,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     init {
         loadImageIndex()
     }
+
 
     private fun loadImageIndex(){
         viewModelScope.launch(Dispatchers.IO){
@@ -261,6 +264,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _resultToView.value = uri
     }
 
+    private fun checkHasIndexed(): Pair<Boolean, Boolean>{
+        val imageIndexFilename = "image_index.bin"
+        val imageIndexFile = File(application.filesDir, imageIndexFilename)
+        val videoIndexFilename = "video_index.bin"
+        val videoIndexFile = File(application.filesDir, videoIndexFilename)
+        return Pair<Boolean, Boolean>(imageIndexFile.exists(), videoIndexFile.exists())
+    }
 
     override fun onCleared() {
         embeddingsHandler?.closeSession()
