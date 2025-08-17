@@ -26,7 +26,9 @@ import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.clip.loadEmbeddingsFromFile
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
+import com.fpf.smartscan.lib.processors.ImageIndexer
 import com.fpf.smartscan.lib.processors.VideoIndexListener
+import com.fpf.smartscan.lib.processors.VideoIndexer
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import java.io.File
 import kotlin.system.measureTimeMillis
@@ -117,8 +119,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         viewModelScope.launch(Dispatchers.IO){
             _isLoading.postValue(true)
             val time = measureTimeMillis {
-                val imageIndexFilename = "image_index.bin"
-                val file = File(application.filesDir, imageIndexFilename)
+                val file = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
                 imageEmbeddings = if(file.exists()){
                     loadEmbeddingsFromFile(file)
                 }else{
@@ -126,9 +127,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
 //                Log.d("Diagnostics", "File Size: ${file.length().toDouble() / (1024 * 1024)} MB")
             }
-            Log.d("Diagnostics", "Size ${imageEmbeddings.size}")
-            Log.d("Diagnostics", "Loading complete in ${time}ms")
-            _canSearchImages.postValue(true)
+//            Log.d("Diagnostics", "Size ${imageEmbeddings.size}")
+//            Log.d("Diagnostics", "Loading complete in ${time}ms")
+            if(imageEmbeddings.isNotEmpty()){
+                _canSearchImages.postValue(true)
+            }
             _isLoading.postValue(false)
         }
     }
@@ -137,17 +140,18 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         viewModelScope.launch(Dispatchers.IO){
             _isLoading.postValue(true)
             val time = measureTimeMillis {
-                val videoIndexFilename = "video_index.bin"
-                val file = File(application.filesDir, videoIndexFilename)
+                val file = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
                 videoEmbeddings = if(file.exists()){
                     loadEmbeddingsFromFile(file)
                 }else{
                     videoRepository.getAllEmbeddingsWithFileSync(file)
                 }
             }
-            Log.d("Diagnostics", "Size ${videoEmbeddings.size}")
-            Log.d("Diagnostics", "Loading complete in ${time}ms")
-            _canSearchVideos.postValue(true)
+//            Log.d("Diagnostics", "Size ${videoEmbeddings.size}")
+//            Log.d("Diagnostics", "Loading complete in ${time}ms")
+            if(videoEmbeddings.isNotEmpty()){
+                _canSearchVideos.postValue(true)
+            }
             _isLoading.postValue(false)
         }
     }
@@ -265,10 +269,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     private fun checkHasIndexed(): Pair<Boolean, Boolean>{
-        val imageIndexFilename = "image_index.bin"
-        val imageIndexFile = File(application.filesDir, imageIndexFilename)
-        val videoIndexFilename = "video_index.bin"
-        val videoIndexFile = File(application.filesDir, videoIndexFilename)
+        val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
+        val videoIndexFile = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
         return Pair<Boolean, Boolean>(imageIndexFile.exists(), videoIndexFile.exists())
     }
 
