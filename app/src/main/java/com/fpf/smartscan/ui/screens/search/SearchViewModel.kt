@@ -117,10 +117,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 val imageIndexFilename = "image_index.bin"
                 val file = File(application.filesDir, imageIndexFilename)
                 imageEmbeddings = if(file.exists()){
-                    loadEmbeddingsFromFile(getApplication(), imageIndexFilename, 512)
+                    loadEmbeddingsFromFile(file)
                 }else{
                     repository.getAllEmbeddingsWithFileSync(application, imageIndexFilename)
                 }
+//                Log.d("Diagnostics", "File Size: ${file.length().toDouble() / (1024 * 1024)} MB")
             }
             Log.d("Diagnostics", "Size ${imageEmbeddings.size}")
             Log.d("Diagnostics", "Loading complete in ${time}ms")
@@ -136,7 +137,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 val videoIndexFilename = "video_index.bin"
                 val file = File(application.filesDir, videoIndexFilename)
                 videoEmbeddings = if(file.exists()){
-                    loadEmbeddingsFromFile(getApplication(), videoIndexFilename, 512)
+                    loadEmbeddingsFromFile(file)
                 }else{
                     videoRepository.getAllEmbeddingsWithFileSync(application, videoIndexFilename)
                 }
