@@ -1,6 +1,5 @@
 package com.fpf.smartscan.data.images
 
-import android.content.Context
 import androidx.lifecycle.LiveData
 import com.fpf.smartscan.lib.clip.Embedding
 import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
@@ -9,29 +8,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
-    val allImageEmbeddingsEntity: LiveData<List<ImageEmbeddingEntity>> = dao.getAllImageEmbeddings()
     val hasAnyEmbedding: LiveData<Boolean> = dao.hasAnyImageEmbedding()
-
-    suspend fun getAllEmbeddingsSync(): List<ImageEmbeddingEntity> {
-        return dao.getAllEmbeddingsSync()
-    }
-    suspend fun insert(imageEmbeddingEntity: ImageEmbeddingEntity) {
-        dao.insertImageEmbedding(imageEmbeddingEntity)
-    }
-
-    suspend fun deleteById(id: Long) {
-        dao.deleteById(id)
-    }
-
-    suspend fun deleteByIds(ids: List<Long>) {
-        if (ids.isNotEmpty()) {
-            dao.deleteByIds(ids)
-        }
-    }
-
-    suspend fun deleteAllEmbeddings() {
-        dao.deleteAll()
-    }
 
     suspend fun getAllEmbeddingsWithFileSync(file: File): List<Embedding> {
         val embeddings = dao.getAllEmbeddingsSync()
@@ -39,6 +16,7 @@ class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
         if (mappedEmbeddings.isNotEmpty()) {
             withContext(Dispatchers.IO) {
                 saveEmbeddingsToFile(file, mappedEmbeddings)
+                dao.deleteAll() // room db no longer needed
             }
         }
         return mappedEmbeddings
