@@ -119,33 +119,43 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private fun loadImageIndex(){
         viewModelScope.launch(Dispatchers.IO){
-            _isLoading.postValue(true)
-            val file = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
-            imageEmbeddings = if(file.exists()){
-                loadEmbeddingsFromFile(file)
-            }else{
-                repository.getAllEmbeddingsWithFileSync(file)
+            try {
+                _isLoading.postValue(true)
+                val file = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
+                imageEmbeddings = if(file.exists()){
+                    loadEmbeddingsFromFile(file)
+                }else{
+                    repository.getAllEmbeddingsWithFileSync(file)
+                }
+                if(imageEmbeddings.isNotEmpty()){
+                    _canSearchImages.postValue(true)
+                }
+                _isLoading.postValue(false)
+            }catch (e: Exception){
+                _error.postValue(application.getString(R.string.search_error_index_loading))
+                Log.e("loadImageIndex", "Error loading image index: $e")
             }
-            if(imageEmbeddings.isNotEmpty()){
-                _canSearchImages.postValue(true)
-            }
-            _isLoading.postValue(false)
         }
     }
 
     private fun loadVideoIndex(){
         viewModelScope.launch(Dispatchers.IO){
-            _isLoading.postValue(true)
-            val file = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
-            videoEmbeddings = if(file.exists()){
-                loadEmbeddingsFromFile(file)
-            }else{
-                videoRepository.getAllEmbeddingsWithFileSync(file)
+            try {
+                _isLoading.postValue(true)
+                val file = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
+                videoEmbeddings = if(file.exists()){
+                    loadEmbeddingsFromFile(file)
+                }else{
+                    videoRepository.getAllEmbeddingsWithFileSync(file)
+                }
+                if(videoEmbeddings.isNotEmpty()){
+                    _canSearchVideos.postValue(true)
+                }
+                _isLoading.postValue(false)
+            }catch (e: Exception){
+                _error.postValue(application.getString(R.string.search_error_index_loading))
+                Log.e("loadVideoIndex", "Error loading video index: $e")
             }
-            if(videoEmbeddings.isNotEmpty()){
-                _canSearchVideos.postValue(true)
-            }
-            _isLoading.postValue(false)
         }
     }
 
