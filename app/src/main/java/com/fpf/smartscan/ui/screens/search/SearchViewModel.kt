@@ -137,10 +137,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 if(imageEmbeddings.isNotEmpty()){
                     _canSearchImages.postValue(true)
                 }
-                _isLoading.postValue(false)
             }catch (e: Exception){
                 _error.postValue(application.getString(R.string.search_error_index_loading))
                 Log.e("loadImageIndex", "Error loading image index: $e")
+            }finally {
+                _isLoading.postValue(false)
             }
         }
     }
@@ -162,6 +163,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             }catch (e: Exception){
                 _error.postValue(application.getString(R.string.search_error_index_loading))
                 Log.e("loadVideoIndex", "Error loading video index: $e")
+            }finally {
+                _isLoading.postValue(false)
             }
         }
     }
