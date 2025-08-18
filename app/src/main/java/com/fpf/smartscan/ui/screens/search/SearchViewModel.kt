@@ -159,7 +159,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 if(videoEmbeddings.isNotEmpty()){
                     _canSearchVideos.postValue(true)
                 }
-                _isLoading.postValue(false)
             }catch (e: Exception){
                 _error.postValue(application.getString(R.string.search_error_index_loading))
                 Log.e("loadVideoIndex", "Error loading video index: $e")
