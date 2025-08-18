@@ -60,6 +60,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _hasRefreshedImageIndex = MutableLiveData<Boolean>(false)
     private val _hasRefreshedVideoIndex = MutableLiveData<Boolean>(false)
 
+    private val _hasShownImageIndexAlert = MutableLiveData<Boolean>(false)
+    private val _hasShownVideoIndexAlert = MutableLiveData<Boolean>(false)
+    private val _isVideoIndexAlertVisible = MutableLiveData<Boolean>(false)
+    val isVideoIndexAlertVisible: LiveData<Boolean> = _isVideoIndexAlertVisible
+    private val _isImageIndexAlertVisible = MutableLiveData<Boolean>(false)
+    val isImageIndexAlertVisible: LiveData<Boolean> = _isImageIndexAlertVisible
+
     private val _mode = MutableLiveData<MediaType>(MediaType.IMAGE)
     val mode: LiveData<MediaType> = _mode
 
@@ -279,6 +286,18 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun toggleViewResult(uri: Uri?){
         _resultToView.value = uri
+    }
+
+    fun toggleAlert(mode: MediaType){
+        if(mode == MediaType.IMAGE){
+            if(_isImageIndexAlertVisible.value == false && _hasShownImageIndexAlert.value == true ) return
+            _isImageIndexAlertVisible.value = !_isImageIndexAlertVisible.value!!
+            _hasShownImageIndexAlert.value = true
+        }else if(mode == MediaType.VIDEO){
+            if(_isVideoIndexAlertVisible.value == false && _hasShownVideoIndexAlert.value == true ) return
+            _isVideoIndexAlertVisible.value = !_isVideoIndexAlertVisible.value!!
+            _hasShownVideoIndexAlert.value = true
+        }
     }
 
     private fun checkHasIndexed(): Pair<Boolean, Boolean>{

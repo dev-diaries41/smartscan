@@ -48,6 +48,8 @@ fun SearchScreen(
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
     val imageIndexStatus by searchViewModel.imageIndexStatus.collectAsState()
     val videoIndexStatus by searchViewModel.videoIndexStatus.collectAsState()
+    val isImageIndexAlertVisible by searchViewModel.isImageIndexAlertVisible.observeAsState(false)
+    val isVideoIndexAlertVisible by searchViewModel.isVideoIndexAlertVisible.observeAsState(false)
 
     // Search state
     val searchQuery by searchViewModel.query.observeAsState("")
@@ -64,8 +66,6 @@ fun SearchScreen(
     val scrollState = rememberScrollState()
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
-    var showFirstIndexImageDialog by remember { mutableStateOf(false) }
-    var showFirstIndexVideoDialog by remember { mutableStateOf(false) }
 
     RequestPermissions { notificationGranted, storageGranted ->
         hasNotificationPermission = notificationGranted
@@ -74,9 +74,9 @@ fun SearchScreen(
 
     LaunchedEffect(hasIndexed, hasStoragePermission, mode) {
         if(hasStoragePermission && hasIndexed == false && (mode == MediaType.IMAGE)){
-            showFirstIndexImageDialog = true
+            searchViewModel.toggleAlert(MediaType.IMAGE)
         }else if(hasStoragePermission && hasIndexed == false && (mode == MediaType.VIDEO)){
-            showFirstIndexVideoDialog = true
+            searchViewModel.toggleAlert(MediaType.VIDEO)
         }
     }
 
@@ -95,21 +95,21 @@ fun SearchScreen(
     val label = if (mode == MediaType.IMAGE) "image" else "video"
     val message = stringResource(R.string.first_indexing, label)
 
-    if ( showFirstIndexImageDialog) {
+    if ( isImageIndexAlertVisible) {
         AlertDialog(
             onDismissRequest = { },
             title = { Text("Start Indexing Images") },
             text = { Text(message) },
             dismissButton = {
                 TextButton(onClick = {
-                    showFirstIndexImageDialog = false
+                    searchViewModel.toggleAlert(MediaType.IMAGE)
                 }) {
                     Text("Cancel")
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    showFirstIndexImageDialog = false
+                    searchViewModel.toggleAlert(MediaType.IMAGE)
                     searchViewModel.startIndexing()
                 }) {
                     Text("OK")
@@ -118,21 +118,21 @@ fun SearchScreen(
         )
     }
 
-    if ( showFirstIndexVideoDialog) {
+    if ( isVideoIndexAlertVisible) {
         AlertDialog(
             onDismissRequest = { },
             title = { Text("Start Indexing Videos") },
             text = { Text(message) },
             dismissButton = {
                 TextButton(onClick = {
-                    showFirstIndexVideoDialog = false
+                    searchViewModel.toggleAlert(MediaType.VIDEO)
                 }) {
                     Text("Cancel")
                 }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    showFirstIndexVideoDialog = false
+                    searchViewModel.toggleAlert(MediaType.VIDEO)
                     searchViewModel.startVideoIndexing()
                 }) {
                     Text("OK")
@@ -220,9 +220,9 @@ fun SearchScreen(
                 }
             }
 
-//            if(isLoading && hasStoragePermission){
-//                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
-//            }
+            if(!canSearch && isLoading && hasStoragePermission){
+                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
+            }
 
             error?.let {
                 Text(text = it, color = Color.Red, modifier = Modifier.padding(top=16.dp))
