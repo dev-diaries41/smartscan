@@ -25,7 +25,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -48,18 +47,18 @@ fun SearchScreen(
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
     val imageIndexStatus by searchViewModel.imageIndexStatus.collectAsState()
     val videoIndexStatus by searchViewModel.videoIndexStatus.collectAsState()
-    val isImageIndexAlertVisible by searchViewModel.isImageIndexAlertVisible.observeAsState(false)
-    val isVideoIndexAlertVisible by searchViewModel.isVideoIndexAlertVisible.observeAsState(false)
+    val isImageIndexAlertVisible by searchViewModel.isImageIndexAlertVisible.collectAsState(false)
+    val isVideoIndexAlertVisible by searchViewModel.isVideoIndexAlertVisible.collectAsState(false)
 
     // Search state
-    val searchQuery by searchViewModel.query.observeAsState("")
-    val isLoading by searchViewModel.isLoading.observeAsState(false)
-    val error by searchViewModel.error.observeAsState(null)
-    val mode by searchViewModel.mode.observeAsState(MediaType.IMAGE)
-    val hasIndexed by searchViewModel.hasIndexed.observeAsState(null)
-    val searchResults by searchViewModel.searchResults.observeAsState(emptyList())
-    val resultToView by searchViewModel.resultToView.observeAsState()
-    val canSearch by searchViewModel.canSearch.observeAsState(false)
+    val searchQuery by searchViewModel.query.collectAsState("")
+    val isLoading by searchViewModel.isLoading.collectAsState(false)
+    val error by searchViewModel.error.collectAsState(null)
+    val mode by searchViewModel.mode.collectAsState(MediaType.IMAGE)
+    val hasIndexed by searchViewModel.hasIndexed.collectAsState(null)
+    val searchResults by searchViewModel.searchResults.collectAsState(emptyList())
+    val resultToView by searchViewModel.resultToView.collectAsState()
+    val canSearch by searchViewModel.canSearch.collectAsState(false)
 
     val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
 

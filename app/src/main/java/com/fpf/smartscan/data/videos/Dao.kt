@@ -2,6 +2,7 @@ package com.fpf.smartscan.data.videos
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface VideoEmbeddingDao {
@@ -25,5 +26,5 @@ interface VideoEmbeddingDao {
     suspend fun deleteAll()
 
     @Query("SELECT EXISTS(SELECT 1 FROM video_embeddings)")
-    fun hasAnyVideoEmbeddings(): LiveData<Boolean>
+    fun hasAnyVideoEmbeddings(): Flow<Boolean>
 }
