@@ -8,12 +8,15 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.fpf.smartscan.lib.Storage
+import com.fpf.smartscan.lib.processors.ImageIndexer
+import com.fpf.smartscan.lib.processors.VideoIndexer
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.theme.MyAppTheme
 import kotlinx.serialization.json.Json
+import java.io.File
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
@@ -60,13 +63,14 @@ class MainActivity : ComponentActivity() {
         }
 
         if (shouldIndex) {
+            val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
+            val videoIndexFile = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
+            if(!imageIndexFile.exists() || !videoIndexFile.exists()) return // prevent full re-index due to migration incomplete
+
             val permissionType = getStorageAccess(application)
             if(permissionType == StorageAccess.Denied) return
             Intent(application, MediaIndexForegroundService::class.java)
-                .putExtra(
-                    MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                    MediaIndexForegroundService.TYPE_BOTH
-                ).also { intent ->
+                .putExtra(MediaIndexForegroundService.EXTRA_MEDIA_TYPE, MediaIndexForegroundService.TYPE_BOTH).also { intent ->
                     application.startForegroundService(intent)
                 }
         }
