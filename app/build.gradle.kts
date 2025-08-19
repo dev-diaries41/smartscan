@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.fpf.smartscan"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.fpf.smartscan"
@@ -43,7 +43,6 @@ android {
     buildFeatures {
         compose = true
         viewBinding = false
-        mlModelBinding = true
     }
 
     composeOptions {
@@ -72,7 +71,6 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.onnxruntime.android)
 
@@ -82,8 +80,6 @@ dependencies {
 
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
-
-
 
     debugImplementation(libs.androidx.ui.tooling)
     testImplementation(libs.junit)
