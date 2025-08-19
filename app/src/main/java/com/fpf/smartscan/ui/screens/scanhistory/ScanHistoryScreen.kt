@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -42,10 +41,10 @@ import com.fpf.smartscan.lib.toDateString
 
 @Composable
 fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
-    val items by viewModel.scanDataList.observeAsState(initial = emptyList())
-    val hasMoveHistoryForLastScan by viewModel.hasMoveHistoryForLastScan.observeAsState(false)
-    val undoMessage by viewModel.undoResultEvent.observeAsState()
-    val isLoading by viewModel.isLoading.observeAsState(false)
+    val items by viewModel.scanDataList.collectAsState(emptyList())
+    val hasMoveHistoryForLastScan by viewModel.hasMoveHistoryForLastScan.collectAsState(false)
+    val undoMessage by viewModel.undoResultEvent.collectAsState(null)
+    val isLoading by viewModel.isLoading.collectAsState(false)
     val context = LocalContext.current
 
     LaunchedEffect(items) {
@@ -95,8 +94,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                     }
                 }
 
-                LazyColumn(
-                ) {
+                LazyColumn{
                     items(
                         items = items,
                         key = { it.id }

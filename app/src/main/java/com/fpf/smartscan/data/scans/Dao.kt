@@ -1,13 +1,15 @@
 package com.fpf.smartscan.data.scans
 
-import androidx.lifecycle.*
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ScanDataDao {
 
     @Query("SELECT * FROM scan_data ORDER BY date DESC")
-    fun getAllScanData(): LiveData<List<ScanData>>
+    fun getAllScanData(): Flow<List<ScanData>>
 
     @Insert
     suspend fun insert(scanData: ScanData): Long

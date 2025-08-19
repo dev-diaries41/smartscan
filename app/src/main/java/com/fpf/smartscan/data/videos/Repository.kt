@@ -1,14 +1,14 @@
 package com.fpf.smartscan.data.videos
 
-import androidx.lifecycle.LiveData
 import com.fpf.smartscan.lib.clip.Embedding
 import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.io.File
 
 class VideoEmbeddingRepository(private val dao: VideoEmbeddingDao) {
-    val hasAnyVideoEmbeddings: LiveData<Boolean> = dao.hasAnyVideoEmbeddings()
+    val hasAnyVideoEmbeddings: Flow<Boolean> = dao.hasAnyVideoEmbeddings()
 
     suspend fun getAllEmbeddingsWithFileSync(file: File): List<Embedding> {
         val embeddings = dao.getAllEmbeddingsSync()
