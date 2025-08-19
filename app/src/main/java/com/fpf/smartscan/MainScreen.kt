@@ -8,10 +8,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavType
-import androidx.navigation.compose.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
@@ -19,10 +17,15 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Science
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.help.HelpScreen
 import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryViewModel
@@ -45,7 +48,7 @@ fun MainScreen() {
     val settingsViewModel: SettingsViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
     val classificationViewModel: ClassificationViewModel = viewModel()
-    val isOrganiseActive by classificationViewModel.organisationActive.observeAsState(false)
+    val isOrganiseActive by classificationViewModel.organisationActive.collectAsState(false)
 
     val headerTitle = when {
         currentRoute == "search" -> stringResource(R.string.title_search)

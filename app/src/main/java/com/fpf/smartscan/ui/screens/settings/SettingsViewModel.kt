@@ -21,7 +21,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
-import androidx.lifecycle.LiveData
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
@@ -39,6 +38,8 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 
@@ -54,9 +55,8 @@ data class AppSettings(
     )
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
-    private val repository: PrototypeEmbeddingRepository =
-        PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
-    val prototypeList: LiveData<List<PrototypeEmbedding>> = repository.allEmbeddings
+    private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
+    val prototypeList: StateFlow<List<PrototypeEmbedding>> = repository.allEmbeddings.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     private val storage = Storage.getInstance(getApplication())
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings

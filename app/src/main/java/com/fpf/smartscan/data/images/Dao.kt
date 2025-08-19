@@ -2,6 +2,7 @@ package com.fpf.smartscan.data.images
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ImageEmbeddingDao {
@@ -25,5 +26,5 @@ interface ImageEmbeddingDao {
     suspend fun deleteAll()
 
     @Query("SELECT EXISTS(SELECT 1 FROM image_embeddings)")
-    fun hasAnyImageEmbedding(): LiveData<Boolean>
+    fun hasAnyImageEmbedding(): Flow<Boolean>
 }

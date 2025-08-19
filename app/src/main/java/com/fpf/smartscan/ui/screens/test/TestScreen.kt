@@ -3,7 +3,6 @@ package com.fpf.smartscan.ui.screens.test
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -17,12 +16,12 @@ import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 @Composable
 fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
-    val imageUri by viewModel.imageUri.observeAsState(null)
-    val inferenceResult by viewModel.predictedClass.observeAsState(null)
-    val prototypes by settingsViewModel.prototypeList.observeAsState(emptyList())
+    val imageUri by viewModel.imageUri.collectAsState(null)
+    val inferenceResult by viewModel.predictedClass.collectAsState(null)
+    val prototypes by settingsViewModel.prototypeList.collectAsState(emptyList())
 
     Box(
-            modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
         ) {
             Column(
                 modifier = Modifier
