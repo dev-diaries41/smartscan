@@ -1,11 +1,17 @@
 package com.fpf.smartscan.data.images
 
 import androidx.room.*
+import com.fpf.smartscan.lib.clip.Embedding
 
 @Entity(tableName = "image_embeddings")
-data class ImageEmbedding(
+data class ImageEmbeddingEntity(
     @PrimaryKey
     val id: Long,     // Mediastore id
-    val date: Long,     // Timestamp of when the embedding was created
+    val date: Long,
     val embeddings: FloatArray
 )
+
+
+fun ImageEmbeddingEntity.toEmbedding() = Embedding(id, date, embeddings)
+
+fun Embedding.toEntity() = ImageEmbeddingEntity(id, date, embeddings)

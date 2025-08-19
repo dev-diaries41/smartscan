@@ -7,13 +7,13 @@ import androidx.room.*
 interface VideoEmbeddingDao {
 
     @Query("SELECT * FROM video_embeddings ORDER BY date DESC")
-    fun getAllVideoEmbeddings(): LiveData<List<VideoEmbedding>>
+    fun getAllVideoEmbeddings(): LiveData<List<VideoEmbeddingEntity>>
 
     @Query("SELECT * FROM video_embeddings ORDER BY date DESC")
-    suspend fun getAllEmbeddingsSync(): List<VideoEmbedding>
+    suspend fun getAllEmbeddingsSync(): List<VideoEmbeddingEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertVideoEmbedding(videoEmbedding: VideoEmbedding)
+    suspend fun insertVideoEmbedding(videoEmbeddingEntity: VideoEmbeddingEntity)
 
     @Query("DELETE FROM video_embeddings WHERE id = :id")
     suspend fun deleteById(id: Long)
