@@ -75,7 +75,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val hasAnyImages: Flow<Boolean> = repository.hasAnyEmbedding
     private val hasAnyVideos: Flow<Boolean> = videoRepository.hasAnyVideoEmbeddings
-    val hasIndexed: StateFlow<Boolean> =
+    val hasIndexed: StateFlow<Boolean?> =
         combine(_mode, hasAnyImages, hasAnyVideos) { mode, anyImages, anyVideos ->
             val (fileHasImages, fileHasVideos) = checkHasIndexed()
             when (mode) {
@@ -85,7 +85,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }.stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = false
+            initialValue = null
         )
 
     private val _query = MutableStateFlow<String>("")

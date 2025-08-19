@@ -1,13 +1,17 @@
 package com.fpf.smartscan.data.prototypes
 
-import androidx.lifecycle.LiveData
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface PrototypeEmbeddingDao {
 
     @Query("SELECT * FROM prototype_embeddings ORDER BY date DESC")
-    fun getAllEmbeddings(): LiveData<List<PrototypeEmbedding>>
+    fun getAllEmbeddings(): Flow<List<PrototypeEmbedding>>
 
     @Query("SELECT * FROM prototype_embeddings ORDER BY date DESC")
     suspend fun getAllEmbeddingsSync(): List<PrototypeEmbedding>

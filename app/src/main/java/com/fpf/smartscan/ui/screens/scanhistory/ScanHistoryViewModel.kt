@@ -4,10 +4,7 @@ import android.app.Application
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.work.Operation
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.data.scans.*
 import com.fpf.smartscan.data.movehistory.*
@@ -16,6 +13,10 @@ import com.fpf.smartscan.lib.moveFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.atomic.AtomicInteger
@@ -29,22 +30,22 @@ object Status {
 class ScanHistoryViewModel(application: Application) : AndroidViewModel(application) {
     private val scansRepository: ScanDataRepository = ScanDataRepository(AppDatabase.getDatabase(application).scanDataDao())
     private val movesRepository: MoveHistoryRepository = MoveHistoryRepository(MoveHistoryDatabase.getDatabase(application).moveHistoryDao())
-    val scanDataList: LiveData<List<ScanData>> = scansRepository.allScanData
+    val scanDataList: StateFlow<List<ScanData>> = scansRepository.allScanData.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    private val _hasMoveHistoryForLastScan = MutableLiveData<Boolean>(false)
-    val hasMoveHistoryForLastScan: LiveData<Boolean> = _hasMoveHistoryForLastScan
+    private val _hasMoveHistoryForLastScan = MutableStateFlow<Boolean>(false)
+    val hasMoveHistoryForLastScan: StateFlow<Boolean> = _hasMoveHistoryForLastScan
 
-    private val _undoResultEvent = MutableLiveData<String?>(null)
-    val undoResultEvent: LiveData<String?> = _undoResultEvent
+    private val _undoResultEvent = MutableStateFlow<String?>(null)
+    val undoResultEvent: StateFlow<String?> = _undoResultEvent
 
-    private val _isLoading = MutableLiveData<Boolean>(false)
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
     fun checkHasMoveHistory(scanId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val hasHistory = movesRepository.hasMoveHistory(scanId)
-                _hasMoveHistoryForLastScan.postValue(hasHistory)
+                _hasMoveHistoryForLastScan.emit(hasHistory)
             }catch (e: Exception){
             }
         }
@@ -53,7 +54,7 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
     fun undoLastScan(scanHistory: List<ScanData>) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                _isLoading.postValue(true)
+                _isLoading.emit(true)
                 val lastScanId = scanHistory.maxOf { it.id }
                 val movesForScan = movesRepository.getMoveHistory(lastScanId)
                 val processedCount = AtomicInteger(0)
@@ -103,12 +104,12 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
                 movesRepository.deleteMoveHistory(lastScanId)
                 scansRepository.delete(lastScanId)
 
-                _undoResultEvent.postValue(message)
+                _undoResultEvent.emit(message)
             } catch (e: Exception) {
                 Log.e("ScanHistoryViewModel", "Error undoing last scan", e)
-                _undoResultEvent.postValue("Failed to undo scan")
+                _undoResultEvent.emit("Failed to undo scan")
             }finally {
-                _isLoading.postValue(false)
+                _isLoading.emit(false)
             }
         }
     }

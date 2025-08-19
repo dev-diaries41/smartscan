@@ -1,9 +1,9 @@
 package com.fpf.smartscan.data.scans
 
-import androidx.lifecycle.*
+import kotlinx.coroutines.flow.Flow
 
 class ScanDataRepository(private val dao: ScanDataDao) {
-    val allScanData: LiveData<List<ScanData>> = dao.getAllScanData()
+    val allScanData: Flow<List<ScanData>> = dao.getAllScanData()
 
     suspend fun insert(scanData: ScanData): Int {
         return dao.insert(scanData).toInt()

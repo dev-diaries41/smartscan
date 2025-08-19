@@ -1,9 +1,10 @@
 package com.fpf.smartscan.data.prototypes
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
+
 
 class PrototypeEmbeddingRepository(private val dao: PrototypeEmbeddingDao) {
-    val allEmbeddings: LiveData<List<PrototypeEmbedding>> = dao.getAllEmbeddings()
+    val allEmbeddings: Flow<List<PrototypeEmbedding>> = dao.getAllEmbeddings()
 
     suspend fun getAllEmbeddingsSync(): List<PrototypeEmbedding> {
         return dao.getAllEmbeddingsSync()
