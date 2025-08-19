@@ -26,12 +26,7 @@ class ClassificationViewModel(
             }
 
             val runningWorker = infos.firstOrNull { it.state == WorkInfo.State.RUNNING  || it.state == WorkInfo.State.ENQUEUED }
-            if (runningWorker != null) {
-                _organisationActive.value = true
-
-            } else {
-                _organisationActive.value = false
-            }
+            _organisationActive.value = runningWorker != null
         }
     }
 }
