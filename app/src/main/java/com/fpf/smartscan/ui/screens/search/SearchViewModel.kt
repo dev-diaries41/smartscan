@@ -4,11 +4,8 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import kotlinx.coroutines.launch
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
@@ -30,6 +27,12 @@ import com.fpf.smartscan.lib.processors.ImageIndexer
 import com.fpf.smartscan.lib.processors.VideoIndexListener
 import com.fpf.smartscan.lib.processors.VideoIndexer
 import com.fpf.smartscan.services.MediaIndexForegroundService
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import java.io.File
 
 enum class MediaType {
@@ -57,77 +60,71 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     var imageEmbeddings: List<Embedding> = emptyList()
     var videoEmbeddings: List<Embedding> = emptyList()
 
-    private val _hasRefreshedImageIndex = MutableLiveData<Boolean>(false)
-    private val _hasRefreshedVideoIndex = MutableLiveData<Boolean>(false)
+    private val _hasRefreshedImageIndex = MutableStateFlow<Boolean>(false)
+    private val _hasRefreshedVideoIndex = MutableStateFlow<Boolean>(false)
 
-    private val _hasShownImageIndexAlert = MutableLiveData<Boolean>(false)
-    private val _hasShownVideoIndexAlert = MutableLiveData<Boolean>(false)
-    private val _isVideoIndexAlertVisible = MutableLiveData<Boolean>(false)
-    val isVideoIndexAlertVisible: LiveData<Boolean> = _isVideoIndexAlertVisible
-    private val _isImageIndexAlertVisible = MutableLiveData<Boolean>(false)
-    val isImageIndexAlertVisible: LiveData<Boolean> = _isImageIndexAlertVisible
+    private val _hasShownImageIndexAlert = MutableStateFlow<Boolean>(false)
+    private val _hasShownVideoIndexAlert = MutableStateFlow<Boolean>(false)
+    private val _isVideoIndexAlertVisible = MutableStateFlow<Boolean>(false)
+    val isVideoIndexAlertVisible: StateFlow<Boolean> = _isVideoIndexAlertVisible
+    private val _isImageIndexAlertVisible = MutableStateFlow<Boolean>(false)
+    val isImageIndexAlertVisible: StateFlow<Boolean> = _isImageIndexAlertVisible
 
-    private val _mode = MutableLiveData<MediaType>(MediaType.IMAGE)
-    val mode: LiveData<MediaType> = _mode
+    private val _mode = MutableStateFlow<MediaType>(MediaType.IMAGE)
+    val mode: StateFlow<MediaType> = _mode
 
-    private val hasAnyImages: LiveData<Boolean> = repository.hasAnyEmbedding
-    private val hasAnyVideos: LiveData<Boolean> = videoRepository.hasAnyVideoEmbeddings
-    val hasIndexed = MediatorLiveData<Boolean>().apply {
-        fun update() {
+    private val hasAnyImages: Flow<Boolean> = repository.hasAnyEmbedding
+    private val hasAnyVideos: Flow<Boolean> = videoRepository.hasAnyVideoEmbeddings
+    val hasIndexed: StateFlow<Boolean> =
+        combine(_mode, hasAnyImages, hasAnyVideos) { mode, anyImages, anyVideos ->
             val (fileHasImages, fileHasVideos) = checkHasIndexed()
-            value = when (_mode.value) {
-                MediaType.IMAGE -> (hasAnyImages.value == true) || fileHasImages
-                MediaType.VIDEO -> (hasAnyVideos.value == true) || fileHasVideos
-                else -> false
+            when (mode) {
+                MediaType.IMAGE -> (anyImages == true) || fileHasImages
+                MediaType.VIDEO -> (anyVideos == true) || fileHasVideos
             }
-        }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
-        addSource(_mode) { update() }
-        addSource(hasAnyImages) { update() }
-        addSource(hasAnyVideos) { update() }
-    }
+    private val _query = MutableStateFlow<String>("")
+    val query: StateFlow<String> = _query
 
+    private val _searchResults = MutableStateFlow<List<Uri>>(emptyList())
+    val searchResults: StateFlow<List<Uri>> = _searchResults
 
-    private val _query = MutableLiveData<String>("")
-    val query: LiveData<String> = _query
+    private val _isLoading = MutableStateFlow<Boolean>(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _searchResults = MutableLiveData<List<Uri>>(emptyList())
-    val searchResults: LiveData<List<Uri>> = _searchResults
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error
 
-    private val _isLoading = MutableLiveData<Boolean>(false)
-    val isLoading: LiveData<Boolean> = _isLoading
-
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
-
-    private val _canSearchImages = MutableLiveData<Boolean>(false)
-    private val _canSearchVideos = MutableLiveData<Boolean>(false)
-    val canSearch = MediatorLiveData<Boolean>().apply {
-        fun update() {
-            value = when (_mode.value) {
-                MediaType.IMAGE -> _canSearchImages.value == true
-                MediaType.VIDEO -> _canSearchVideos.value == true
-                else -> false
+    private val _canSearchImages = MutableStateFlow<Boolean>(false)
+    private val _canSearchVideos = MutableStateFlow<Boolean>(false)
+    val canSearch: StateFlow<Boolean> =
+        combine(_mode, _canSearchImages, _canSearchVideos) { mode, canImages, canVideos ->
+            when (mode) {
+                MediaType.IMAGE -> canImages
+                MediaType.VIDEO -> canVideos
             }
-        }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
 
-        addSource(_mode) { update() }
-        addSource(_canSearchImages) { update() }
-        addSource(_canSearchVideos) { update() }
-    }
-
-    private val _resultToView = MutableLiveData<Uri?>()
-    val resultToView: LiveData<Uri?> = _resultToView
+    private val _resultToView = MutableStateFlow<Uri?>(null)
+    val resultToView: StateFlow<Uri?> = _resultToView
 
     init {
         loadImageIndex()
     }
 
-
     private fun loadImageIndex(){
         viewModelScope.launch(Dispatchers.IO){
             try {
-                _isLoading.postValue(true)
+                _isLoading.emit(true)
                 val file = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
                 imageEmbeddings = if(file.exists()){
                     loadEmbeddingsFromFile(file)
@@ -135,13 +132,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     repository.getAllEmbeddingsWithFileSync(file)
                 }
                 if(imageEmbeddings.isNotEmpty()){
-                    _canSearchImages.postValue(true)
+                    _canSearchImages.emit(true)
                 }
             }catch (e: Exception){
-                _error.postValue(application.getString(R.string.search_error_index_loading))
+                _error.emit(application.getString(R.string.search_error_index_loading))
                 Log.e("loadImageIndex", "Error loading image index: $e")
             }finally {
-                _isLoading.postValue(false)
+                _isLoading.emit(false)
             }
         }
     }
@@ -149,7 +146,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private fun loadVideoIndex(){
         viewModelScope.launch(Dispatchers.IO){
             try {
-                _isLoading.postValue(true)
+                _isLoading.emit(true)
                 val file = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
                 videoEmbeddings = if(file.exists()){
                     loadEmbeddingsFromFile(file)
@@ -157,13 +154,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     videoRepository.getAllEmbeddingsWithFileSync(file)
                 }
                 if(videoEmbeddings.isNotEmpty()){
-                    _canSearchVideos.postValue(true)
+                    _canSearchVideos.emit(true)
                 }
             }catch (e: Exception){
-                _error.postValue(application.getString(R.string.search_error_index_loading))
+                _error.emit(application.getString(R.string.search_error_index_loading))
                 Log.e("loadVideoIndex", "Error loading video index: $e")
             }finally {
-                _isLoading.postValue(false)
+                _isLoading.emit(false)
             }
         }
     }
@@ -227,16 +224,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 val similarities = getSimilarities(textEmbedding, embeddings.map { it.embeddings })
 
                 if (similarities.isEmpty()) {
-                    _error.postValue(application.getString(R.string.search_error_no_results))
-                    _searchResults.postValue(emptyList())
+                    _error.emit(application.getString(R.string.search_error_no_results))
+                    _searchResults.emit(emptyList())
                     return@launch
                 }
 
                 val results = getTopN(similarities, n, threshold)
 
                 if (results.isEmpty()) {
-                    _error.postValue(application.getString(R.string.search_error_no_results))
-                    _searchResults.postValue(emptyList())
+                    _error.emit(application.getString(R.string.search_error_no_results))
+                    _searchResults.emit(emptyList())
                     return@launch
                 }
 
@@ -250,18 +247,18 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
 
                 if (filteredSearchResultsUris.isEmpty()) {
-                    _error.postValue(application.getString(R.string.search_error_no_results))
-                    _searchResults.postValue(emptyList())
+                    _error.emit(application.getString(R.string.search_error_no_results))
+                    _searchResults.emit(emptyList())
                     return@launch
                 }
 
-                _searchResults.postValue(filteredSearchResultsUris)
+                _searchResults.emit(filteredSearchResultsUris)
 
             } catch (e: Exception) {
                 Log.e("SearchViewModel", "$e")
-                _error.postValue(application.getString(R.string.search_error_unknown))
+                _error.emit(application.getString(R.string.search_error_unknown))
             } finally {
-                _isLoading.postValue(false)
+                _isLoading.emit(false)
             }
         }
     }

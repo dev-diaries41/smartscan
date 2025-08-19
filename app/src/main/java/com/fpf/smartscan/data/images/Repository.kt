@@ -1,14 +1,14 @@
 package com.fpf.smartscan.data.images
 
-import androidx.lifecycle.LiveData
 import com.fpf.smartscan.lib.clip.Embedding
 import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.io.File
 
 class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
-    val hasAnyEmbedding: LiveData<Boolean> = dao.hasAnyImageEmbedding()
+    val hasAnyEmbedding: Flow<Boolean> = dao.hasAnyImageEmbedding()
 
     suspend fun getAllEmbeddingsWithFileSync(file: File): List<Embedding> {
         val embeddings = dao.getAllEmbeddingsSync()
