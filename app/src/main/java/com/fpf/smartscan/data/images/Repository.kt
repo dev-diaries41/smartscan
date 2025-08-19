@@ -1,29 +1,25 @@
 package com.fpf.smartscan.data.images
 
 import androidx.lifecycle.LiveData
+import com.fpf.smartscan.lib.clip.Embedding
+import com.fpf.smartscan.lib.clip.saveEmbeddingsToFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.File
 
 class ImageEmbeddingRepository(private val dao: ImageEmbeddingDao) {
-    val allImageEmbeddings: LiveData<List<ImageEmbedding>> = dao.getAllImageEmbeddings()
     val hasAnyEmbedding: LiveData<Boolean> = dao.hasAnyImageEmbedding()
 
-    suspend fun getAllEmbeddingsSync(): List<ImageEmbedding> {
-        return dao.getAllEmbeddingsSync()
-    }
-    suspend fun insert(imageEmbedding: ImageEmbedding) {
-        dao.insertImageEmbedding(imageEmbedding)
-    }
-
-    suspend fun deleteById(id: Long) {
-        dao.deleteById(id)
-    }
-
-    suspend fun deleteByIds(ids: List<Long>) {
-        if (ids.isNotEmpty()) {
-            dao.deleteByIds(ids)
+    suspend fun getAllEmbeddingsWithFileSync(file: File): List<Embedding> {
+        val embeddings = dao.getAllEmbeddingsSync()
+        val mappedEmbeddings = embeddings.map { it.toEmbedding() }
+        if (mappedEmbeddings.isNotEmpty()) {
+            withContext(Dispatchers.IO) {
+                saveEmbeddingsToFile(file, mappedEmbeddings)
+                dao.deleteAll() // room db no longer needed
+            }
         }
+        return mappedEmbeddings
     }
 
-    suspend fun deleteAllEmbeddings() {
-        dao.deleteAll()
-    }
 }

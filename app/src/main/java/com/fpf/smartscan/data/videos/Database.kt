@@ -3,7 +3,7 @@ package com.fpf.smartscan.data.videos
 import android.app.Application
 import androidx.room.*
 
-@Database(entities = [VideoEmbedding::class], version = 1, exportSchema = false)
+@Database(entities = [VideoEmbeddingEntity::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class VideoEmbeddingDatabase : RoomDatabase() {
     abstract fun videoEmbeddingDao(): VideoEmbeddingDao

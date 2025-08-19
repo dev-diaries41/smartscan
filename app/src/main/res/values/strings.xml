@@ -40,6 +40,7 @@
     <string name="search_error_missing_permissions_for_results">Missing storage permissions for 1 or more images.</string>
     <string name="search_error_empty_query">Query cannot be empty.</string>
     <string name="search_error_unknown">An unknown error occurred.</string>
+    <string name="search_error_index_loading">Error loading index.</string>
 
     <!-- Donate screen -->
     <string name="label_btc">Bitcoin</string>

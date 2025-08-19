@@ -3,7 +3,7 @@ package com.fpf.smartscan.data.images
 import android.app.Application
 import androidx.room.*
 
-@Database(entities = [ImageEmbedding::class], version = 1, exportSchema = false)
+@Database(entities = [ImageEmbeddingEntity::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class ImageEmbeddingDatabase : RoomDatabase() {
     abstract fun imageEmbeddingDao(): ImageEmbeddingDao
