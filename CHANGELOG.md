@@ -1,3 +1,9 @@
+## v1.1.3 – 20/08/2025
+
+### Changed
+- Replace Room DB with file-based index storage for faster loading
+- Minor UI changes
+
 ## v1.1.2 – 08/08/2025
 
 ### Changed
