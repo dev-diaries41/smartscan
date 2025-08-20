@@ -198,7 +198,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun search(n: Int, threshold: Float = 0.2f) {
         val currentQuery = _query.value
-        if (currentQuery.isNullOrBlank()) {
+        if (currentQuery.isBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
             return
         }
@@ -290,11 +290,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     fun toggleAlert(mode: MediaType){
         if(mode == MediaType.IMAGE){
             if(_isImageIndexAlertVisible.value == false && _hasShownImageIndexAlert.value == true ) return
-            _isImageIndexAlertVisible.value = !_isImageIndexAlertVisible.value!!
+            _isImageIndexAlertVisible.value = !_isImageIndexAlertVisible.value
             _hasShownImageIndexAlert.value = true
         }else if(mode == MediaType.VIDEO){
             if(_isVideoIndexAlertVisible.value == false && _hasShownVideoIndexAlert.value == true ) return
-            _isVideoIndexAlertVisible.value = !_isVideoIndexAlertVisible.value!!
+            _isVideoIndexAlertVisible.value = !_isVideoIndexAlertVisible.value
             _hasShownVideoIndexAlert.value = true
         }
     }
