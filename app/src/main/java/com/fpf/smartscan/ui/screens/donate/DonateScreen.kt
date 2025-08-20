@@ -78,11 +78,11 @@ fun CryptoWalletOption(
         colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp)
+            .padding(vertical = 8.dp)
     ) {
         Row (
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(16.dp)
+//            modifier = Modifier.padding(16.dp)
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
