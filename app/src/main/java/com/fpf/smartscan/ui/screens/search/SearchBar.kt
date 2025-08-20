@@ -41,7 +41,10 @@ fun SearchBar(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         keyboardActions = KeyboardActions (
-            onSearch = {onSearch(nSimilarResult, threshold)}
+            onSearch = {
+                if(query.isBlank()) return@KeyboardActions
+                onSearch(nSimilarResult, threshold)
+            }
         ),
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Search
@@ -50,7 +53,7 @@ fun SearchBar(
             Icon(
                 imageVector = Icons.Filled.Search,
                 contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = if (enabled) 1f else 0.3f),
             )
         },
         trailingIcon = if (query.isNotBlank()) { {
