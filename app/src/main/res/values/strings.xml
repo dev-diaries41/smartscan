@@ -121,7 +121,7 @@
     <string name="help_disable_and_report">If persistent issues occur, disable auto-organisation and open a GitHub issue.</string>
 
     <!-- Media Search -->
-    <string name="help_media_search_title">Media Search</string>
+    <string name="help_search_title">Search</string>
     <string name="help_media_search_intro">Search across both images and videos with the following behavior:</string>
     <string name="help_indexing_first_time">First-time use requires indexing of media files. This may take several minutes depending on your library size.</string>
     <string name="help_indexing_schedule">Indexing occurs automatically on a schedule (daily or weekly) based on your settings.</string>

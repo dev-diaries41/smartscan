@@ -51,7 +51,7 @@ fun HelpScreen() {
 
             Spacer(Modifier.height(24.dp))
             Text(
-                text = stringResource(R.string.help_media_search_title),
+                text = stringResource(R.string.help_search_title),
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(Modifier.height(8.dp))
