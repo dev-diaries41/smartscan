@@ -219,7 +219,7 @@ fun SearchScreen(
                 }
             }
 
-            if(!canSearch && isLoading && hasStoragePermission){
+            if(!canSearch && hasIndexed == true && isLoading && hasStoragePermission){
                 Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
             }
 
