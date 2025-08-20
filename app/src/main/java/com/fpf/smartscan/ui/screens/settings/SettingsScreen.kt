@@ -117,41 +117,6 @@ fun SettingsScreen(
 
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(
-                    text = stringResource(id = R.string.image_management_settings),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                SwitchItem(
-                    text = stringResource(id = R.string.setting_enable_scan),
-                    checked = appSettings.enableScan,
-                    onCheckedChange = { checked ->
-                        viewModel.updateEnableScan(checked)
-                    }
-                )
-                ActionItem(
-                    enabled = appSettings.enableScan,
-                    text = stringResource(id = R.string.setting_target_folders),
-                    onClick = { onNavigate("settingsDetail/targets") }
-                )
-                ActionItem(
-                    enabled = appSettings.enableScan,
-                    text = stringResource(id = R.string.setting_destination_folders),
-                    onClick = { onNavigate("settingsDetail/destinations") }
-                )
-                SelectorItem(
-                    enabled = appSettings.enableScan,
-                    label = stringResource(id = R.string.setting_scan_frequency),
-                    options = listOf(
-                        stringResource(id = R.string.scan_frequency_1d),
-                        stringResource(id = R.string.scan_frequency_1w)
-                    ),
-                    selectedOption = appSettings.frequency,
-                    onOptionSelected = { selected ->
-                        viewModel.updateFrequency(selected)
-                    }
-                )
-                Text(
                     text = stringResource(id = R.string.media_search_settings),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp),
@@ -214,6 +179,45 @@ fun SettingsScreen(
                     }
                 )
 
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = stringResource(id = R.string.image_management_settings),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                SwitchItem(
+                    text = stringResource(id = R.string.setting_enable_scan),
+                    checked = appSettings.enableScan,
+                    onCheckedChange = { checked ->
+                        viewModel.updateEnableScan(checked)
+                    }
+                )
+                ActionItem(
+                    enabled = appSettings.enableScan,
+                    text = stringResource(id = R.string.setting_target_folders),
+                    onClick = { onNavigate("settingsDetail/targets") }
+                )
+                ActionItem(
+                    enabled = appSettings.enableScan,
+                    text = stringResource(id = R.string.setting_destination_folders),
+                    onClick = { onNavigate("settingsDetail/destinations") }
+                )
+                SelectorItem(
+                    enabled = appSettings.enableScan,
+                    label = stringResource(id = R.string.setting_scan_frequency),
+                    options = listOf(
+                        stringResource(id = R.string.scan_frequency_1d),
+                        stringResource(id = R.string.scan_frequency_1w)
+                    ),
+                    selectedOption = appSettings.frequency,
+                    onOptionSelected = { selected ->
+                        viewModel.updateFrequency(selected)
+                    }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
                     text = stringResource(id = R.string.other_settings),
