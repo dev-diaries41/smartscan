@@ -117,7 +117,7 @@ fun SettingsScreen(
 
             Column(modifier = Modifier.padding(8.dp)) {
                 Text(
-                    text = stringResource(id = R.string.media_search_settings),
+                    text = stringResource(id = R.string.search_settings),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(vertical = 8.dp),
                     color = MaterialTheme.colorScheme.primary
