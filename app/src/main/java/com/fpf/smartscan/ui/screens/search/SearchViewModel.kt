@@ -190,6 +190,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _mode.value = newMode
         _error.value = null
         _searchResults.value = emptyList()
+        _query.value = ""
         if(newMode == MediaType.VIDEO && videoEmbeddings.isEmpty()){
             loadVideoIndex()
         }
