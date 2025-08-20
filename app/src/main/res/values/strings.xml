@@ -59,7 +59,7 @@
 
     <!-- Settings-related strings -->
     <string name="image_management_settings">Image Management</string>
-    <string name="media_search_settings">Media Search</string>
+    <string name="search_settings">Search</string>
     <string name="advanced_settings">Advanced</string>
     <string name="other_settings">Other</string>
 
