@@ -8,13 +8,13 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.fpf.smartscan.lib.Storage
-import com.fpf.smartscan.lib.processors.ImageIndexer
-import com.fpf.smartscan.lib.processors.VideoIndexer
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.theme.MyAppTheme
+import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
+import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.util.concurrent.TimeUnit
