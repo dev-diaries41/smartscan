@@ -12,12 +12,12 @@ import androidx.core.app.NotificationCompat
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.Storage
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.processors.ImageIndexListener
-import com.fpf.smartscan.lib.processors.ImageIndexer
 import com.fpf.smartscan.lib.processors.VideoIndexListener
-import com.fpf.smartscan.lib.processors.VideoIndexer
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
+import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,7 +37,7 @@ class MediaIndexForegroundService : Service() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
 
-    private var embeddingHandler: Embeddings? = null
+    val embeddingHandler = ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
 
     override fun onCreate() {
         super.onCreate()
@@ -79,20 +79,19 @@ class MediaIndexForegroundService : Service() {
         serviceScope.launch {
             val storage = Storage.getInstance(application)
             try {
-                embeddingHandler = Embeddings(application.resources, ModelType.IMAGE)
 
-                if(embeddingHandler == null) throw IllegalStateException("Embedding handler not initialised")
+                embeddingHandler.initialize()
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
-                    val imageIndexer = ImageIndexer(application, ImageIndexListener)
+                    val imageIndexer = ImageIndexer(embeddingHandler, application, ImageIndexListener)
                     val ids = queryAllImageIds()
-                    imageIndexer.run(ids, embeddingHandler!!)
+                    imageIndexer.run(ids)
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
-                    val videoIndexer = VideoIndexer(application, VideoIndexListener)
+                    val videoIndexer = VideoIndexer(embeddingHandler, application=application, listener = VideoIndexListener)
                     val ids = queryAllVideoIds()
-                    videoIndexer.run(ids, embeddingHandler!!)
+                    videoIndexer.run(ids)
                 }
             } catch (e: CancellationException) {
                 // cancelled
