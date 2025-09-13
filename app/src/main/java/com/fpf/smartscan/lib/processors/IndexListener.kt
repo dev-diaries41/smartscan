@@ -11,6 +11,9 @@ import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.processors.IProcessorListener
 import com.fpf.smartscansdk.core.processors.Metrics
 import com.fpf.smartscansdk.core.processors.ProcessorStatus
+import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
+import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
+import java.io.File
 
 
 object ImageIndexListener : IProcessorListener<Long, Embedding> {
@@ -18,6 +21,8 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
     const val TAG = "ImageIndexListener"
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
+
+    var store: FileEmbeddingStore? = null
 
     private val _indexingStatus = MutableStateFlow<ProcessorStatus>(ProcessorStatus.IDLE)
     val indexingStatus: StateFlow<ProcessorStatus> = _indexingStatus
@@ -27,6 +32,15 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
             _indexingStatus.value = ProcessorStatus.ACTIVE
         }
         _progress.value = progress
+    }
+
+    override suspend fun onBatchComplete(context: Context, batch: List<Embedding>) {
+        if(store == null){
+            val file = File(context.filesDir, ImageIndexer.INDEX_FILENAME)
+            store = FileEmbeddingStore(file, 512)
+
+        }
+        store?.add(batch)
     }
 
     override suspend fun onComplete(context: Context, metrics: Metrics.Success) {
