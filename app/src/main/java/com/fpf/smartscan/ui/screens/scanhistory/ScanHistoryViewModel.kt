@@ -8,8 +8,9 @@ import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.data.scans.*
 import com.fpf.smartscan.data.movehistory.*
-import com.fpf.smartscan.lib.MemoryUtils
 import com.fpf.smartscan.lib.moveFile
+import com.fpf.smartscansdk.core.utils.MemoryOptions
+import com.fpf.smartscansdk.core.utils.MemoryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -58,7 +59,7 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
                 val lastScanId = scanHistory.maxOf { it.id }
                 val movesForScan = movesRepository.getMoveHistory(lastScanId)
                 val processedCount = AtomicInteger(0)
-                val memoryUtils = MemoryUtils(getApplication(), minConcurrency = 2, maxConcurrency = 8)
+                val memoryUtils = MemoryUtils(getApplication(), MemoryOptions(minConcurrency = 2, maxConcurrency = 8))
 
                 val batches = movesForScan.chunked(10)
                 for (batch in batches) {
