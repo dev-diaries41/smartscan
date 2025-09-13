@@ -26,9 +26,13 @@ import com.fpf.smartscan.data.movehistory.MoveHistory
 import com.fpf.smartscan.data.movehistory.MoveHistoryDatabase
 import com.fpf.smartscan.data.movehistory.MoveHistoryRepository
 import com.fpf.smartscan.workers.ClassificationWorker
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscan.R
 
 class Organiser(private val context: Context) {
-    var embeddingHandler: Embeddings? = null
+    val embeddingHandler = ClipImageEmbedder(context.resources, ResourceId(R.raw.image_encoder_quant_int8))
+
 
     companion object {
         private const val TAG = "Organiser"
@@ -39,10 +43,6 @@ class Organiser(private val context: Context) {
     private val moveHistoryRepository: MoveHistoryRepository = MoveHistoryRepository(MoveHistoryDatabase.getDatabase(context.applicationContext as Application).moveHistoryDao())
 
     private val memoryUtils = MemoryUtils(context)
-
-    init {
-        embeddingHandler = Embeddings(context.resources, ModelType.IMAGE)
-    }
 
     suspend fun processBatch(imageUris: List<Uri>, scanId: Int): Int = withContext(Dispatchers.IO) {
         if (imageUris.isEmpty()) {
@@ -55,6 +55,9 @@ class Organiser(private val context: Context) {
             Log.e(TAG, "No prototype embeddings available.")
             return@withContext 0
         }
+
+        embeddingHandler.initialize()
+
         val lastUsedDestinationDirectories = prototypeList.map { it.id }
 
         var totalProcessed = 0
@@ -97,10 +100,9 @@ class Organiser(private val context: Context) {
     private suspend fun processImage(imageUri: Uri, prototypeEmbeddings: List<PrototypeEmbedding>, scanId: Int): Boolean {
         return try {
             val bitmap = getBitmapFromUri(context, imageUri)
-            val imageEmbedding = embeddingHandler?.generateImageEmbedding(bitmap)
+            val imageEmbedding = embeddingHandler.embed(bitmap)
             bitmap.recycle()
 
-            if (imageEmbedding == null) return false
 
             val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
             val top2 = getTopN(similarities, 2)
