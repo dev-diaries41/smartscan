@@ -136,11 +136,18 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 if(file.exists()){
                     imageRetriever = FileEmbeddingRetriever(imageStore!!)
                     imageEmbeddings = imageStore!!.load()
+                    Log.d("SVM", "Embedding size: ${imageEmbeddings.size}")
                 }else{
                     repository.getAllEmbeddingsWithFileSync(imageStore!!)
                 }
+                imageRetriever = FileEmbeddingRetriever(imageStore!!)
+
                 if(imageEmbeddings.isNotEmpty()){
+                    Log.d("SVM", "can search true")
                     _canSearchImages.emit(true)
+                }else{
+                    Log.d("SVM", "can search false")
+
                 }
             }catch (e: Exception){
                 _error.emit(application.getString(R.string.search_error_index_loading))
@@ -231,6 +238,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 // Add method isInitialised() to check first
                 if(embeddingsHandler == null){
                     embeddingsHandler = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
+                    embeddingsHandler?.initialize()
                 }
 
                 val textEmbedding = embeddingsHandler!!.embed(currentQuery)
