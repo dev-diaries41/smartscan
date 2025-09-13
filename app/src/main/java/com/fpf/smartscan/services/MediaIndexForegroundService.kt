@@ -36,11 +36,12 @@ class MediaIndexForegroundService : Service() {
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
+    private lateinit var embeddingHandler: ClipImageEmbedder
 
-    val embeddingHandler = ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
 
     override fun onCreate() {
         super.onCreate()
+        embeddingHandler = ClipImageEmbedder(resources, ResourceId(R.raw.image_encoder_quant_int8))
         createNotificationChannel()
         startForegroundServiceNotification()
     }
