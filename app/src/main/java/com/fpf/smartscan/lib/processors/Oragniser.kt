@@ -8,13 +8,8 @@ import androidx.core.net.toUri
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
-import com.fpf.smartscan.lib.clip.getSimilarities
-import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
 import com.fpf.smartscan.lib.moveFile
-import com.fpf.smartscan.lib.MemoryUtils
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
@@ -29,6 +24,9 @@ import com.fpf.smartscan.workers.ClassificationWorker
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
 import com.fpf.smartscan.R
+import com.fpf.smartscansdk.core.ml.embeddings.getSimilarities
+import com.fpf.smartscansdk.core.ml.embeddings.getTopN
+import com.fpf.smartscansdk.core.utils.MemoryUtils
 
 class Organiser(private val context: Context) {
     val embeddingHandler = ClipImageEmbedder(context.resources, ResourceId(R.raw.image_encoder_quant_int8))
