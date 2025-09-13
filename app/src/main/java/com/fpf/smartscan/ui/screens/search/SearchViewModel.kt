@@ -9,24 +9,23 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.getSimilarities
-import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getImageUriFromId
 import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
-import com.fpf.smartscan.lib.clip.Embedding
-import com.fpf.smartscan.lib.clip.ModelType
-import com.fpf.smartscan.lib.clip.loadEmbeddingsFromFile
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
-import com.fpf.smartscan.lib.processors.ImageIndexer
 import com.fpf.smartscan.lib.processors.VideoIndexListener
-import com.fpf.smartscan.lib.processors.VideoIndexer
 import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscansdk.core.ml.embeddings.Embedding
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipTextEmbedder
+import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingRetriever
+import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
+import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
+import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -50,7 +49,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoIndexProgress = VideoIndexListener.progress
     val videoIndexStatus = VideoIndexListener.indexingStatus
 
-    private var embeddingsHandler: Embeddings? = null
+    var imageStore: FileEmbeddingStore? = null
+    var videoStore: FileEmbeddingStore? = null
+    var imageRetriever: FileEmbeddingRetriever? = null
+    var videoRetriever: FileEmbeddingRetriever? = null
+
+
+    private var embeddingsHandler: ClipTextEmbedder? = null
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
@@ -126,10 +131,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             try {
                 _isLoading.emit(true)
                 val file = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
-                imageEmbeddings = if(file.exists()){
-                    loadEmbeddingsFromFile(file)
+                imageStore = FileEmbeddingStore(file, 512)
+
+                if(file.exists()){
+                    imageRetriever = FileEmbeddingRetriever(imageStore!!)
+                    imageEmbeddings = imageStore!!.load()
                 }else{
-                    repository.getAllEmbeddingsWithFileSync(file)
+                    repository.getAllEmbeddingsWithFileSync(imageStore!!)
                 }
                 if(imageEmbeddings.isNotEmpty()){
                     _canSearchImages.emit(true)
@@ -148,10 +156,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             try {
                 _isLoading.emit(true)
                 val file = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
-                videoEmbeddings = if(file.exists()){
-                    loadEmbeddingsFromFile(file)
-                }else{
-                    videoRepository.getAllEmbeddingsWithFileSync(file)
+                videoStore = FileEmbeddingStore(file, 512)
+
+                if(file.exists()){
+                    videoRetriever = FileEmbeddingRetriever(videoStore!!)
+                    videoEmbeddings = videoStore!!.load()
+                }
+                else{
+                    videoRepository.getAllEmbeddingsWithFileSync(videoStore!!)
                 }
                 if(videoEmbeddings.isNotEmpty()){
                     _canSearchVideos.emit(true)
@@ -216,21 +228,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         viewModelScope.launch((Dispatchers.IO)) {
             try {
-                if (embeddingsHandler == null) {
-                    embeddingsHandler = Embeddings(application.resources, ModelType.TEXT)
-                }
-                val textEmbedding = embeddingsHandler?.generateTextEmbedding(currentQuery)
-                    ?: throw IllegalArgumentException("Failed to generate text embedding.")
-
-                val similarities = getSimilarities(textEmbedding, embeddings.map { it.embeddings })
-
-                if (similarities.isEmpty()) {
-                    _error.emit(application.getString(R.string.search_error_no_results))
-                    _searchResults.emit(emptyList())
-                    return@launch
+                // Add method isInitialised() to check first
+                if(embeddingsHandler == null){
+                    embeddingsHandler = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
                 }
 
-                val results = getTopN(similarities, n, threshold)
+                val textEmbedding = embeddingsHandler!!.embed(currentQuery)
+                val retriever = if(_mode.value == MediaType.VIDEO)videoRetriever else imageRetriever
+                val results = retriever!!.query(textEmbedding, n, threshold)
 
                 if (results.isEmpty()) {
                     _error.emit(application.getString(R.string.search_error_no_results))
@@ -239,9 +244,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
 
                 val searchResultsUris = if(_mode.value == MediaType.VIDEO) {
-                    results.map { idx -> getVideoUriFromId(embeddings[idx].id) }}
+                    results.map { embed -> getVideoUriFromId(embed.id) }}
                 else {
-                    results.map { idx -> getImageUriFromId(embeddings[idx].id) }
+                    results.map { embed -> getImageUriFromId(embed.id ) }
                 }
                 val filteredSearchResultsUris = searchResultsUris.filter { uri ->
                     canOpenUri(application, uri)
