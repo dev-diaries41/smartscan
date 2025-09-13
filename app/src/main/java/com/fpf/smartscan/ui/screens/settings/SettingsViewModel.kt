@@ -23,15 +23,17 @@ import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.workers.ClassificationBatchWorker
 import com.fpf.smartscan.workers.ClassificationWorker
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.embeddings.generatePrototypeEmbedding
+import com.fpf.smartscansdk.core.ml.models.ResourceId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -196,7 +198,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             if (missingUris.isEmpty()) return@launch
 
-            val embeddingsHandler = Embeddings(context.resources, ModelType.IMAGE)
+            val embeddingsHandler = ClipImageEmbedder(context.resources, ResourceId(R.raw.image_encoder_quant_int8))
             val semaphore = Semaphore(1)
 
             try {
@@ -205,7 +207,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                         semaphore.withPermit {
                             try {
                                 val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri(), 30)
-                                val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(context, bitmaps)
+                                val rawEmbeddings = embeddingsHandler.embedBatch(context, bitmaps)
+                                val prototypeEmbedding = generatePrototypeEmbedding(context, rawEmbeddings)
                                 repository.insert(
                                     PrototypeEmbedding(
                                         id = uri,
