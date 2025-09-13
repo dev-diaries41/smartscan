@@ -80,7 +80,6 @@ class MediaIndexForegroundService : Service() {
         serviceScope.launch {
             val storage = Storage.getInstance(application)
             try {
-
                 embeddingHandler.initialize()
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
@@ -100,7 +99,7 @@ class MediaIndexForegroundService : Service() {
                 Log.e(TAG, "Indexing failed:", e)
             } finally {
                 storage.setItem("lastIndexed", System.currentTimeMillis().toString())
-                embeddingHandler?.closeSession()
+                embeddingHandler.closeSession()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
             }
