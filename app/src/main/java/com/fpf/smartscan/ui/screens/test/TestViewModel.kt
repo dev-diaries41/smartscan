@@ -10,18 +10,19 @@ import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.getSimilarities
-import com.fpf.smartscan.lib.clip.getTopN
 import com.fpf.smartscan.lib.getBitmapFromUri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.R
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.embeddings.getSimilarities
+import com.fpf.smartscansdk.core.ml.embeddings.getTopN
+import com.fpf.smartscansdk.core.ml.models.ResourceId
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class TestViewModel(application: Application) : AndroidViewModel(application){
-    private var embeddingsHandler: Embeddings? = null
+    private var embeddingsHandler =  ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
 
     private val _predictedClass = MutableStateFlow<String?>(null)
     val predictedClass: StateFlow<String?> = _predictedClass
@@ -31,7 +32,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            embeddingsHandler = Embeddings(application.resources)
+            embeddingsHandler.initialize()
         }
     }
 
@@ -53,7 +54,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
             try {
                 val uri = _imageUri.value ?: return@launch
                 val bitmap = getBitmapFromUri(context, uri)
-                val imageEmbedding = embeddingsHandler?.generateImageEmbedding(bitmap) ?: return@launch
+                val imageEmbedding = embeddingsHandler.embed(bitmap)
                 val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
                 val top2 = getTopN(similarities, 2)
                 if(top2.isEmpty()) {
@@ -90,6 +91,6 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
     }
     override fun onCleared() {
         super.onCleared()
-        embeddingsHandler?.closeSession()
+        embeddingsHandler.closeSession()
     }
 }
