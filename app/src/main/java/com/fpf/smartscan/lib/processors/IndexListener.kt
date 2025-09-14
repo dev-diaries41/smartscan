@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import com.fpf.smartscan.R
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.processors.IProcessorListener
 import com.fpf.smartscansdk.core.processors.Metrics
 import com.fpf.smartscansdk.core.processors.ProcessorStatus
@@ -67,7 +68,7 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
     }
 
     private fun getStore(context: Context): FileEmbeddingStore {
-        return store ?: FileEmbeddingStore(File(context.filesDir, ImageIndexer.INDEX_FILENAME), 512)
+        return store ?: FileEmbeddingStore(context.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
             .also { store = it }
     }
 
@@ -125,7 +126,7 @@ object VideoIndexListener : IProcessorListener<Long, Embedding> {
     }
 
     private fun getStore(context: Context): FileEmbeddingStore {
-        return store ?: FileEmbeddingStore(File(context.filesDir, VideoIndexer.INDEX_FILENAME), 512)
+        return store ?: FileEmbeddingStore(context.filesDir, VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
             .also { store = it }
     }
 
