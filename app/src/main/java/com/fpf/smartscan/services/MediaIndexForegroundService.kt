@@ -12,8 +12,8 @@ import androidx.core.app.NotificationCompat
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.Storage
-import com.fpf.smartscan.lib.processors.ImageIndexListener
-import com.fpf.smartscan.lib.processors.VideoIndexListener
+import com.fpf.smartscan.lib.ImageIndexListener
+import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
