@@ -24,7 +24,7 @@ import androidx.core.net.toUri
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
@@ -58,7 +58,7 @@ data class AppSettings(
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
-    val prototypeList: StateFlow<List<PrototypeEmbedding>> = repository.allEmbeddings.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val prototypeList: StateFlow<List<PrototypeEmbeddingEntity>> = repository.allEmbeddings.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     private val storage = Storage.getInstance(getApplication())
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
@@ -210,7 +210,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                                 val rawEmbeddings = embeddingsHandler.embedBatch(context, bitmaps)
                                 val prototypeEmbedding = generatePrototypeEmbedding(context, rawEmbeddings)
                                 repository.insert(
-                                    PrototypeEmbedding(
+                                    PrototypeEmbeddingEntity(
                                         id = uri,
                                         date = System.currentTimeMillis(),
                                         embeddings = prototypeEmbedding

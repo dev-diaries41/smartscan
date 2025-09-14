@@ -9,15 +9,16 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
-import com.fpf.smartscan.lib.getBitmapFromUri
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.R
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.embeddings.getSimilarities
 import com.fpf.smartscansdk.core.ml.embeddings.getTopN
 import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.core.utils.getBitmapFromUri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -44,7 +45,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
         _predictedClass.value = null
     }
 
-    fun inference(context: Context, prototypeEmbeddings:  List<PrototypeEmbedding>) {
+    fun inference(context: Context, prototypeEmbeddings:  List<PrototypeEmbeddingEntity>) {
         if (prototypeEmbeddings.isEmpty()) {
             Toast.makeText(context, context.getString(R.string.test_no_prototype_embeddings), Toast.LENGTH_SHORT).show()
             return
@@ -53,7 +54,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val uri = _imageUri.value ?: return@launch
-                val bitmap = getBitmapFromUri(context, uri)
+                val bitmap = getBitmapFromUri(context, uri, ClipConfig.CLIP_EMBEDDING_LENGTH)
                 val imageEmbedding = embeddingsHandler.embed(bitmap)
                 val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
                 val top2 = getTopN(similarities, 2)
