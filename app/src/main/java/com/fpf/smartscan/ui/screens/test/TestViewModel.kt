@@ -17,8 +17,6 @@ import com.fpf.smartscan.data.prototypes.toEmbedding
 import com.fpf.smartscansdk.core.ml.embeddings.classify
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
-import com.fpf.smartscansdk.core.ml.embeddings.getSimilarities
-import com.fpf.smartscansdk.core.ml.embeddings.getTopN
 import com.fpf.smartscansdk.core.ml.models.ResourceId
 import com.fpf.smartscansdk.core.utils.getBitmapFromUri
 import kotlinx.coroutines.flow.MutableStateFlow
