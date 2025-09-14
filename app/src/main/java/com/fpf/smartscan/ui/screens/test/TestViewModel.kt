@@ -13,6 +13,8 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.prototypes.toEmbedding
+import com.fpf.smartscansdk.core.ml.embeddings.classify
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.embeddings.getSimilarities
@@ -56,33 +58,13 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
                 val uri = _imageUri.value ?: return@launch
                 val bitmap = getBitmapFromUri(context, uri, ClipConfig.CLIP_EMBEDDING_LENGTH)
                 val imageEmbedding = embeddingsHandler.embed(bitmap)
-                val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-                val top2 = getTopN(similarities, 2)
-                if(top2.isEmpty()) {
+                val classId = classify(imageEmbedding, prototypeEmbeddings.map { it.toEmbedding() } )
+
+                if (classId == null) {
                     _predictedClass.emit("No match")
                     return@launch
                 }
-
-                val bestIndex = top2[0]
-                val bestSim = similarities[bestIndex]
-                val secondSim = top2.getOrNull(1)?.let { similarities[it] } ?: 0f
-
-                val threshold = 0.4f
-                val minMargin = 0.05f
-
-                if (bestSim < threshold) {
-                    _predictedClass.emit("No match")
-                    return@launch
-                }
-
-                if((bestSim - secondSim) < minMargin) {
-                    _predictedClass.emit("No match")
-                    return@launch
-                }
-
-                val result = prototypeEmbeddings.getOrNull(bestIndex)?.id?.let {
-                    DocumentFile.fromTreeUri(context, it.toUri())?.name ?: "No match"
-                } ?: "No match"
+                val result = DocumentFile.fromTreeUri(context, classId.toUri())?.name
                 _predictedClass.emit(result)
             } catch (e: Exception) {
                 Log.e("TestViewModel", "Inference failed: ${e.message}", e)
