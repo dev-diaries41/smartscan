@@ -10,6 +10,8 @@ import android.provider.MediaStore
 import androidx.core.graphics.scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import com.fpf.smartscansdk.core.utils.getScaledDimensions
+
 
 fun getVideoUriFromId(id: Long): Uri {
     return ContentUris.withAppendedId(
