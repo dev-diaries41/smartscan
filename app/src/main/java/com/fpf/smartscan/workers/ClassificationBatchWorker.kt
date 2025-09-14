@@ -3,6 +3,7 @@ package com.fpf.smartscan.workers
 import android.app.Application
 import android.content.Context
 import android.util.Log
+import androidx.core.content.edit
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.fpf.smartscan.R
@@ -53,8 +54,9 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val embeddingHandler = ClipImageEmbedder(applicationContext.resources, ResourceId(R.raw.image_encoder_quant_int8))
+        val prototypes = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()}
 
-        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId, listener = OrganiserListener, prototypeList = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()})
+        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId, listener = OrganiserListener, prototypeList = prototypes)
         val startResult = jobManager.onStart(JOB_NAME)
         previousProcessingCount = startResult.initialProcessedCount
 
@@ -124,6 +126,14 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             return@withContext Result.retry()
         } finally {
             organiser.close()
+            saveLastUsedDestinations(applicationContext, prototypes.map { it.id })
+        }
+    }
+
+    private fun saveLastUsedDestinations(context: Context, files: List<String>) {
+        val prefs = context.getSharedPreferences(ClassificationWorker.JOB_NAME, Context.MODE_PRIVATE)
+        prefs.edit() {
+            putStringSet(Organiser.PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, files.toSet())
         }
     }
 
