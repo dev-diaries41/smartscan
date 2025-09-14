@@ -54,7 +54,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         val embeddingHandler = ClipImageEmbedder(applicationContext.resources, ResourceId(R.raw.image_encoder_quant_int8))
 
-        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId.toLong(), listener = OrganiserListener, prototypeList = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()})
+        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId, listener = OrganiserListener, prototypeList = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()})
         val startResult = jobManager.onStart(JOB_NAME)
         previousProcessingCount = startResult.initialProcessedCount
 
