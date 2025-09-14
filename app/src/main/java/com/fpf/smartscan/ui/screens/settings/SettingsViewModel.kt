@@ -199,6 +199,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             if (missingUris.isEmpty()) return@launch
 
             val embeddingsHandler = ClipImageEmbedder(context.resources, ResourceId(R.raw.image_encoder_quant_int8))
+            embeddingsHandler.initialize()
+
             val semaphore = Semaphore(1)
 
             try {
