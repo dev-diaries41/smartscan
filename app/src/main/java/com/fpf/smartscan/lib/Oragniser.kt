@@ -1,4 +1,4 @@
-package com.fpf.smartscan.lib.processors
+package com.fpf.smartscan.lib
 
 import android.app.Application
 import android.content.Context
@@ -8,8 +8,6 @@ import androidx.core.net.toUri
 import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
-import com.fpf.smartscan.lib.getBitmapFromUri
-import com.fpf.smartscan.lib.moveFile
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.sync.Semaphore
@@ -24,9 +22,11 @@ import com.fpf.smartscan.workers.ClassificationWorker
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
 import com.fpf.smartscan.R
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.getSimilarities
 import com.fpf.smartscansdk.core.ml.embeddings.getTopN
 import com.fpf.smartscansdk.core.utils.MemoryUtils
+import com.fpf.smartscansdk.core.utils.getBitmapFromUri
 
 class Organiser(private val context: Context) {
     val embeddingHandler = ClipImageEmbedder(context.resources, ResourceId(R.raw.image_encoder_quant_int8))
@@ -97,7 +97,7 @@ class Organiser(private val context: Context) {
 
     private suspend fun processImage(imageUri: Uri, prototypeEmbeddings: List<PrototypeEmbedding>, scanId: Int): Boolean {
         return try {
-            val bitmap = getBitmapFromUri(context, imageUri)
+            val bitmap = getBitmapFromUri(context, imageUri, ClipConfig.IMAGE_SIZE_X)
             val imageEmbedding = embeddingHandler.embed(bitmap)
             bitmap.recycle()
 
