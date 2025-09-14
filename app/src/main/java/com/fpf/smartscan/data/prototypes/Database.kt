@@ -5,7 +5,7 @@ import androidx.room.*
 
 
 // 4. Room Database
-@Database(entities = [PrototypeEmbedding::class], version = 1, exportSchema = false)
+@Database(entities = [PrototypeEmbeddingEntity::class], version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class PrototypeEmbeddingDatabase : RoomDatabase() {
     abstract fun prototypeEmbeddingDao(): PrototypeEmbeddingDao
