@@ -1,12 +1,10 @@
-package com.fpf.smartscan.lib.processors
+package com.fpf.smartscan.lib
 
 import android.content.Context
 import android.util.Log
-import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.fpf.smartscan.R
-import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.processors.IProcessorListener
@@ -15,7 +13,6 @@ import com.fpf.smartscansdk.core.processors.ProcessorStatus
 import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
-import java.io.File
 
 object ImageIndexListener : IProcessorListener<Long, Embedding> {
     const val NOTIFICATION_ID = 1002
