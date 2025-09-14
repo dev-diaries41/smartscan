@@ -11,15 +11,15 @@ import kotlinx.coroutines.flow.Flow
 interface PrototypeEmbeddingDao {
 
     @Query("SELECT * FROM prototype_embeddings ORDER BY date DESC")
-    fun getAllEmbeddings(): Flow<List<PrototypeEmbedding>>
+    fun getAllEmbeddings(): Flow<List<PrototypeEmbeddingEntity>>
 
     @Query("SELECT * FROM prototype_embeddings ORDER BY date DESC")
-    suspend fun getAllEmbeddingsSync(): List<PrototypeEmbedding>
+    suspend fun getAllEmbeddingsSync(): List<PrototypeEmbeddingEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPrototype(prototype: PrototypeEmbedding)
+    suspend fun insertPrototype(prototype: PrototypeEmbeddingEntity)
 
     @Delete
-    suspend fun deletePrototype(prototype: PrototypeEmbedding)
+    suspend fun deletePrototype(prototype: PrototypeEmbeddingEntity)
 }
 
