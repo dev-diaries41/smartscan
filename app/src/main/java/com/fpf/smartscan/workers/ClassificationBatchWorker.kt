@@ -6,14 +6,21 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.data.prototypes.toEmbedding
 import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
+import com.fpf.smartscan.lib.OrganiserListener
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
-import com.fpf.smartscan.lib.Organiser
 import com.fpf.smartscan.lib.readUriListFromFile
 import com.fpf.smartscan.lib.showNotification
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.core.processors.Metrics
+import com.fpf.smartscansdk.extensions.organisers.Organiser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -42,11 +49,13 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     private val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
     private val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: ""
     private val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
+    private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application).prototypeEmbeddingDao())
 
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
-        val organiser = Organiser(applicationContext)
+        val embeddingHandler = ClipImageEmbedder(applicationContext.resources, ResourceId(R.raw.image_encoder_quant_int8))
+
+        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId.toLong(), listener = OrganiserListener, prototypeList = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()})
         val startResult = jobManager.onStart(JOB_NAME)
-        startTime = startResult.startTime
         previousProcessingCount = startResult.initialProcessedCount
 
         try {
@@ -63,15 +72,25 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             val batchUriList = uriList.subList(startIndex, endIndex)
 
             Log.i(TAG, "Processing classification batch $batchIndex with ${batchUriList.size} images.")
-            val processedCount = organiser.processBatch(batchUriList, scanId)
-            val finishTime = System.currentTimeMillis()
+            val results = organiser.run(batchUriList)
+            val end = System.currentTimeMillis()
 
-            jobManager.onComplete(
-                jobName = JOB_NAME,
-                startTime = startTime,
-                finishTime = finishTime,
-                processedCount = processedCount
-            )
+            when(results){
+                is Metrics.Success -> {
+                    jobManager.onComplete(
+                        jobName = JOB_NAME,
+                        startTime = end - results.timeElapsed,
+                        finishTime = end,
+                        processedCount = results.totalProcessed
+                    )
+                }
+                // Let worker handle batch errors
+                is Metrics.Failure -> {
+                    throw results.error
+                }
+            }
+
+
 
             if (isLastBatch) {
                 onAllJobsComplete()
