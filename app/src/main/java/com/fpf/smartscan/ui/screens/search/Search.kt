@@ -109,7 +109,7 @@ fun SearchScreen(
             confirmButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.IMAGE)
-                    searchViewModel.startIndexing()
+                    searchViewModel.startIndexing(MediaType.IMAGE)
                 }) {
                     Text("OK")
                 }
@@ -132,7 +132,7 @@ fun SearchScreen(
             confirmButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.VIDEO)
-                    searchViewModel.startVideoIndexing()
+                    searchViewModel.startIndexing(MediaType.VIDEO)
                 }) {
                     Text("OK")
                 }
