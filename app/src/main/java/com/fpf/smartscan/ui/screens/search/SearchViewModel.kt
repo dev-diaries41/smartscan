@@ -16,8 +16,8 @@ import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.getVideoUriFromId
-import com.fpf.smartscan.lib.processors.ImageIndexListener
-import com.fpf.smartscan.lib.processors.VideoIndexListener
+import com.fpf.smartscan.lib.ImageIndexListener
+import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH

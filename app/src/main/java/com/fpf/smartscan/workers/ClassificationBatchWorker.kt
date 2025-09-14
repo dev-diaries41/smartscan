@@ -11,7 +11,7 @@ import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.getTimeInMinutesAndSeconds
-import com.fpf.smartscan.lib.processors.Organiser
+import com.fpf.smartscan.lib.Organiser
 import com.fpf.smartscan.lib.readUriListFromFile
 import com.fpf.smartscan.lib.showNotification
 import kotlinx.coroutines.Dispatchers
