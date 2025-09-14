@@ -19,6 +19,7 @@ import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.processors.ImageIndexListener
 import com.fpf.smartscan.lib.processors.VideoIndexListener
 import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipTextEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
@@ -32,7 +33,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import java.io.File
 
 enum class MediaType {
     IMAGE, VIDEO
@@ -49,12 +49,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoIndexProgress = VideoIndexListener.progress
     val videoIndexStatus = VideoIndexListener.indexingStatus
 
-    val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
-    val imageStore = FileEmbeddingStore(imageIndexFile, CLIP_EMBEDDING_LENGTH)
+    val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
     val imageRetriever = FileEmbeddingRetriever(imageStore)
 
-    val videoIndexFile = File(application.filesDir, VideoIndexer.INDEX_FILENAME)
-    val videoStore = FileEmbeddingStore(videoIndexFile, CLIP_EMBEDDING_LENGTH)
+    val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH )
     val videoRetriever = FileEmbeddingRetriever(videoStore)
 
     private val embeddingsHandler = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
@@ -82,10 +80,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val hasAnyVideos: Flow<Boolean> = videoRepository.hasAnyVideoEmbeddings
     val hasIndexed: StateFlow<Boolean?> =
         combine(_mode, hasAnyImages, hasAnyVideos) { mode, anyImages, anyVideos ->
-            val (fileHasImages, fileHasVideos) = checkHasIndexed()
             when (mode) {
-                MediaType.IMAGE -> (anyImages == true) || fileHasImages
-                MediaType.VIDEO -> (anyVideos == true) || fileHasVideos
+                MediaType.IMAGE -> (anyImages == true) || imageStore.exists
+                MediaType.VIDEO -> (anyVideos == true) || videoStore.exists
             }
         }.stateIn(
             scope = viewModelScope,
@@ -127,45 +124,36 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     private fun loadImageIndex(){
-        viewModelScope.launch(Dispatchers.IO){
-            try {
-                _isLoading.emit(true)
-
-                if(imageIndexFile.exists()){
-                    imageStore.getAll()
-                }else{
-                    repository.getAllEmbeddingsWithFileSync(imageStore)
-                }
-
-                if(imageStore.getAll().isNotEmpty()){
-                    _canSearchImages.emit(true)
-                }
-            }catch (e: Exception){
-                _error.emit(application.getString(R.string.search_error_index_loading))
-                Log.e("loadImageIndex", "Error loading image index: $e")
-            }finally {
-                _isLoading.emit(false)
-            }
-        }
+        loadIndex(imageStore, { repository.getAllEmbeddingsWithFileSync() }, _canSearchImages)
     }
 
     private fun loadVideoIndex(){
+        loadIndex(videoStore, { videoRepository.getAllEmbeddingsWithFileSync() }, _canSearchVideos)
+    }
+
+    private fun loadIndex(
+        store: FileEmbeddingStore,
+        fetchFromRoom: suspend () -> List<Embedding>,
+        canSearchEmitter: MutableStateFlow<Boolean>
+    ){
         viewModelScope.launch(Dispatchers.IO){
             try {
                 _isLoading.emit(true)
 
-                if(videoIndexFile.exists()){
-                    videoStore.getAll()
+                val embeddings = if(store.exists) {
+                    store.getAll()
+                } else  {
+                    // For backwards compatibility with old Room storage
+                    val embs = fetchFromRoom()
+                    store.add(embs)
+                    embs
                 }
-                else{
-                    videoRepository.getAllEmbeddingsWithFileSync(videoStore)
-                }
-                if(videoStore.getAll().isNotEmpty()){
-                    _canSearchVideos.emit(true)
+                if(embeddings.isNotEmpty()){
+                    canSearchEmitter.emit(true)
                 }
             }catch (e: Exception){
                 _error.emit(application.getString(R.string.search_error_index_loading))
-                Log.e("loadVideoIndex", "Error loading video index: $e")
+                Log.e("loadIndex", "Error loading index: $e")
             }finally {
                 _isLoading.emit(false)
             }
@@ -195,13 +183,18 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun setMode(newMode: MediaType) {
         _mode.value = newMode
-        _error.value = null
-        _searchResults.value = emptyList()
-        _query.value = ""
+        reset()
 
+        // saves memory by lazy loading video index ensure its not prematurely loaded
         if(newMode == MediaType.VIDEO && !videoStore.isLoaded){
             viewModelScope.launch(Dispatchers.IO){loadVideoIndex()}
         }
+    }
+
+    private fun reset(){
+        _error.value = null
+        _query.value = ""
+        clearResults()
     }
 
 
@@ -262,21 +255,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun startIndexing() {
+    fun startIndexing(mediaType: MediaType) {
         Intent(application, MediaIndexForegroundService::class.java)
             .putExtra(
                 MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                MediaIndexForegroundService.TYPE_IMAGE
-            ).also { intent ->
-                application.startForegroundService(intent)
-            }
-    }
-
-    fun startVideoIndexing() {
-        Intent(application, MediaIndexForegroundService::class.java)
-            .putExtra(
-                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                MediaIndexForegroundService.TYPE_VIDEO
+               if(mediaType == MediaType.VIDEO)  MediaIndexForegroundService.TYPE_VIDEO else MediaIndexForegroundService.TYPE_IMAGE
             ).also { intent ->
                 application.startForegroundService(intent)
             }
@@ -296,10 +279,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             _isVideoIndexAlertVisible.value = !_isVideoIndexAlertVisible.value
             _hasShownVideoIndexAlert.value = true
         }
-    }
-
-    private fun checkHasIndexed(): Pair<Boolean, Boolean>{
-        return Pair<Boolean, Boolean>(imageIndexFile.exists(), videoIndexFile.exists())
     }
 
     override fun onCleared() {
