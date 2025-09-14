@@ -44,6 +44,10 @@ val searchModeOptions = mapOf(
 )
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
+    companion object {
+        private const val TAG = "SearchViewModel"
+    }
+
     val imageIndexProgress = ImageIndexListener.progress
     val imageIndexStatus = ImageIndexListener.indexingStatus
     val videoIndexProgress = VideoIndexListener.progress
@@ -153,7 +157,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
             }catch (e: Exception){
                 _error.emit(application.getString(R.string.search_error_index_loading))
-                Log.e("loadIndex", "Error loading index: $e")
+                Log.e(TAG, "Error loading index: $e")
             }finally {
                 _isLoading.emit(false)
             }
@@ -247,7 +251,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 _searchResults.emit(filteredSearchResultsUris)
 
             } catch (e: Exception) {
-                Log.e("SearchViewModel", "$e")
+                Log.e(TAG, "$e")
                 _error.emit(application.getString(R.string.search_error_unknown))
             } finally {
                 _isLoading.emit(false)
