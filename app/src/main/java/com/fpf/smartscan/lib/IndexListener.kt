@@ -6,13 +6,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.fpf.smartscan.R
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
-import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.processors.IProcessorListener
 import com.fpf.smartscansdk.core.processors.Metrics
 import com.fpf.smartscansdk.core.processors.ProcessorStatus
-import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
-import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
-import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 
 object ImageIndexListener : IProcessorListener<Long, Embedding> {
     const val NOTIFICATION_ID = 1002
@@ -20,7 +16,6 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
-    private var store: FileEmbeddingStore? = null
 
     private val _indexingStatus = MutableStateFlow<ProcessorStatus>(ProcessorStatus.IDLE)
     val indexingStatus: StateFlow<ProcessorStatus> = _indexingStatus
@@ -30,10 +25,6 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
             _indexingStatus.value = ProcessorStatus.ACTIVE
         }
         _progress.value = progress
-    }
-
-    override suspend fun onBatchComplete(context: Context, batch: List<Embedding>) {
-        getStore(context).add(batch)
     }
 
     override suspend fun onComplete(context: Context, metrics: Metrics.Success) {
@@ -51,7 +42,7 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
         }
     }
 
-    override suspend fun onError(context: Context, metrics: Metrics.Failure) {
+    override suspend fun onFail(context: Context, metrics: Metrics.Failure) {
         try {
             _indexingStatus.value = ProcessorStatus.FAILED
             _progress.value = 0f
@@ -64,11 +55,6 @@ object ImageIndexListener : IProcessorListener<Long, Embedding> {
         }
     }
 
-    private fun getStore(context: Context): FileEmbeddingStore {
-        return store ?: FileEmbeddingStore(context.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
-            .also { store = it }
-    }
-
 }
 
 
@@ -78,8 +64,6 @@ object VideoIndexListener : IProcessorListener<Long, Embedding> {
     private val _progress = MutableStateFlow(0f)
     val progress: StateFlow<Float> = _progress
 
-    private var store: FileEmbeddingStore? = null
-
     private val _indexingStatus = MutableStateFlow<ProcessorStatus>(ProcessorStatus.IDLE)
     val indexingStatus: StateFlow<ProcessorStatus> = _indexingStatus
 
@@ -88,10 +72,6 @@ object VideoIndexListener : IProcessorListener<Long, Embedding> {
             _indexingStatus.value = ProcessorStatus.ACTIVE
         }
         _progress.value = progress
-    }
-
-    override suspend fun onBatchComplete(context: Context, batch: List<Embedding>) {
-        getStore(context).add(batch)
     }
 
     override suspend fun onComplete(context: Context, metrics: Metrics.Success) {
@@ -109,7 +89,7 @@ object VideoIndexListener : IProcessorListener<Long, Embedding> {
         }
     }
 
-    override suspend fun onError(context: Context, metrics: Metrics.Failure) {
+    override suspend fun onFail(context: Context, metrics: Metrics.Failure) {
         try {
             _indexingStatus.value = ProcessorStatus.FAILED
             _progress.value = 0f
@@ -120,11 +100,6 @@ object VideoIndexListener : IProcessorListener<Long, Embedding> {
         catch (e: Exception){
             Log.e(TAG, "Error in onError: ${e.message}", e)
         }
-    }
-
-    private fun getStore(context: Context): FileEmbeddingStore {
-        return store ?: FileEmbeddingStore(context.filesDir, VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
-            .also { store = it }
     }
 
 }
