@@ -11,7 +11,7 @@ import org.json.JSONArray
 import java.io.File
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
-import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.data.scans.AppDatabase
@@ -58,7 +58,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             val targetDirectories = uriStrings.map { it.toUri() }
             val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
             val fileUriList = getFilesFromDir(applicationContext, targetDirectories, imageExtensions)
-            val prototypeList: List<PrototypeEmbedding> = prototypeRepository.getAllEmbeddingsSync()
+            val prototypeList: List<PrototypeEmbeddingEntity> = prototypeRepository.getAllEmbeddingsSync()
             val currentDestinationDirectories = prototypeList.map { it.id }
             val  filteredFileUriList = getFilteredUriList(applicationContext, fileUriList, currentDestinationDirectories)
             if (filteredFileUriList.isEmpty()) {
