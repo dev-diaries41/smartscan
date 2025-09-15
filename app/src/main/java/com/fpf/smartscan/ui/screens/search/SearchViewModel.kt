@@ -209,7 +209,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             return
         }
 
-        if (hasIndexed.value == false) {
+        //TODO: Replace this with `.exist` on stores as single source of truth
+
+        val store = if(_mode.value == MediaType.VIDEO) videoStore else imageStore
+        if(!store.exists) {
             _error.value = application.getString(R.string.search_error_not_indexed)
             return
         }
