@@ -210,7 +210,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                             try {
                                 val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri(), 30)
                                 val rawEmbeddings = embeddingsHandler.embedBatch(context, bitmaps)
-                                val prototypeEmbedding = generatePrototypeEmbedding(context, rawEmbeddings)
+                                val prototypeEmbedding = generatePrototypeEmbedding(rawEmbeddings)
                                 repository.insert(
                                     PrototypeEmbeddingEntity(
                                         id = uri,
