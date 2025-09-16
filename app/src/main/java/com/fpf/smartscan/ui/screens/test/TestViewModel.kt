@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.prototypes.toEmbedding
+import com.fpf.smartscansdk.core.ml.embeddings.ClassificationResult
 import com.fpf.smartscansdk.core.ml.embeddings.classify
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
@@ -56,14 +57,19 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
                 val uri = _imageUri.value ?: return@launch
                 val bitmap = getBitmapFromUri(context, uri, ClipConfig.CLIP_EMBEDDING_LENGTH)
                 val imageEmbedding = embeddingsHandler.embed(bitmap)
-                val classId = classify(imageEmbedding, prototypeEmbeddings.map { it.toEmbedding() } )
+                val classResult =
+                    classify(imageEmbedding, prototypeEmbeddings.map { it.toEmbedding() })
 
-                if (classId == null) {
-                    _predictedClass.emit("No match")
-                    return@launch
+                when (classResult){
+                    is ClassificationResult.Failure -> {
+                        _predictedClass.emit("No match")
+                        return@launch
                 }
-                val result = DocumentFile.fromTreeUri(context, classId.toUri())?.name
-                _predictedClass.emit(result)
+                    is ClassificationResult.Success -> {
+                        val result = DocumentFile.fromTreeUri(context, classResult.classId.toUri())?.name
+                        _predictedClass.emit(result)
+                    }
+                }
             } catch (e: Exception) {
                 Log.e("TestViewModel", "Inference failed: ${e.message}", e)
             }
