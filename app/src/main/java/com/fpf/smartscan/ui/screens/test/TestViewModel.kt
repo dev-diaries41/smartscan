@@ -9,19 +9,22 @@ import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.getSimilarities
-import com.fpf.smartscan.lib.clip.getTopN
-import com.fpf.smartscan.lib.getBitmapFromUri
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.prototypes.toEmbedding
+import com.fpf.smartscansdk.core.ml.embeddings.ClassificationResult
+import com.fpf.smartscansdk.core.ml.embeddings.classify
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.core.utils.getBitmapFromUri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class TestViewModel(application: Application) : AndroidViewModel(application){
-    private var embeddingsHandler: Embeddings? = null
+    private var embeddingsHandler =  ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
 
     private val _predictedClass = MutableStateFlow<String?>(null)
     val predictedClass: StateFlow<String?> = _predictedClass
@@ -31,7 +34,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
 
     init {
         viewModelScope.launch(Dispatchers.Default) {
-            embeddingsHandler = Embeddings(application.resources)
+            embeddingsHandler.initialize()
         }
     }
 
@@ -43,7 +46,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
         _predictedClass.value = null
     }
 
-    fun inference(context: Context, prototypeEmbeddings:  List<PrototypeEmbedding>) {
+    fun inference(context: Context, prototypeEmbeddings:  List<PrototypeEmbeddingEntity>) {
         if (prototypeEmbeddings.isEmpty()) {
             Toast.makeText(context, context.getString(R.string.test_no_prototype_embeddings), Toast.LENGTH_SHORT).show()
             return
@@ -52,36 +55,21 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val uri = _imageUri.value ?: return@launch
-                val bitmap = getBitmapFromUri(context, uri)
-                val imageEmbedding = embeddingsHandler?.generateImageEmbedding(bitmap) ?: return@launch
-                val similarities = getSimilarities(imageEmbedding, prototypeEmbeddings.map { it.embeddings })
-                val top2 = getTopN(similarities, 2)
-                if(top2.isEmpty()) {
-                    _predictedClass.emit("No match")
-                    return@launch
+                val bitmap = getBitmapFromUri(context, uri, ClipConfig.CLIP_EMBEDDING_LENGTH)
+                val imageEmbedding = embeddingsHandler.embed(bitmap)
+                val classResult =
+                    classify(imageEmbedding, prototypeEmbeddings.map { it.toEmbedding() })
+
+                when (classResult){
+                    is ClassificationResult.Failure -> {
+                        _predictedClass.emit("No match")
+                        return@launch
                 }
-
-                val bestIndex = top2[0]
-                val bestSim = similarities[bestIndex]
-                val secondSim = top2.getOrNull(1)?.let { similarities[it] } ?: 0f
-
-                val threshold = 0.4f
-                val minMargin = 0.05f
-
-                if (bestSim < threshold) {
-                    _predictedClass.emit("No match")
-                    return@launch
+                    is ClassificationResult.Success -> {
+                        val result = DocumentFile.fromTreeUri(context, classResult.classId.toUri())?.name
+                        _predictedClass.emit(result)
+                    }
                 }
-
-                if((bestSim - secondSim) < minMargin) {
-                    _predictedClass.emit("No match")
-                    return@launch
-                }
-
-                val result = prototypeEmbeddings.getOrNull(bestIndex)?.id?.let {
-                    DocumentFile.fromTreeUri(context, it.toUri())?.name ?: "No match"
-                } ?: "No match"
-                _predictedClass.emit(result)
             } catch (e: Exception) {
                 Log.e("TestViewModel", "Inference failed: ${e.message}", e)
             }
@@ -90,6 +78,6 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
     }
     override fun onCleared() {
         super.onCleared()
-        embeddingsHandler?.closeSession()
+        embeddingsHandler.closeSession()
     }
 }

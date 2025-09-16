@@ -29,13 +29,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
-import com.fpf.smartscan.lib.processors.IndexStatus
 import com.fpf.smartscan.ui.components.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
+import com.fpf.smartscansdk.core.processors.ProcessorStatus
 
 @Composable
 fun SearchScreen(
@@ -80,13 +80,13 @@ fun SearchScreen(
     }
 
     LaunchedEffect(imageIndexStatus) {
-        if (imageIndexStatus == IndexStatus.COMPLETE) {
+        if (imageIndexStatus == ProcessorStatus.COMPLETE) {
             searchViewModel.refreshIndex(MediaType.IMAGE)
         }
     }
 
     LaunchedEffect(videoIndexStatus) {
-        if (videoIndexStatus == IndexStatus.COMPLETE) {
+        if (videoIndexStatus == ProcessorStatus.COMPLETE) {
             searchViewModel.refreshIndex(MediaType.VIDEO)
         }
     }
@@ -109,7 +109,7 @@ fun SearchScreen(
             confirmButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.IMAGE)
-                    searchViewModel.startIndexing()
+                    searchViewModel.startIndexing(MediaType.IMAGE)
                 }) {
                     Text("OK")
                 }
@@ -132,7 +132,7 @@ fun SearchScreen(
             confirmButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.VIDEO)
-                    searchViewModel.startVideoIndexing()
+                    searchViewModel.startIndexing(MediaType.VIDEO)
                 }) {
                     Text("OK")
                 }
@@ -156,18 +156,18 @@ fun SearchScreen(
 
             ProgressBar(
                 label = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
-                isVisible = imageIndexStatus == IndexStatus.INDEXING,
+                isVisible = imageIndexStatus == ProcessorStatus.ACTIVE,
                 progress = imageIndexProgress
             )
 
             ProgressBar(
                 label = "Indexing videos ${"%.0f".format(videoIndexProgress * 100)}%",
-                isVisible = videoIndexStatus == IndexStatus.INDEXING,
+                isVisible = videoIndexStatus == ProcessorStatus.ACTIVE,
                 progress = videoIndexProgress
             )
 
             SelectorItem(
-                enabled = (videoIndexStatus != IndexStatus.INDEXING && imageIndexStatus != IndexStatus.INDEXING), // prevent switching modes when indexing in progress
+                enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                 showLabel = false,
                 label = "Search Mode",
                 options = searchModeOptions.values.toList(),
