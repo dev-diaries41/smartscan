@@ -11,7 +11,7 @@ import org.json.JSONArray
 import java.io.File
 import java.util.concurrent.TimeUnit
 import androidx.core.net.toUri
-import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.data.scans.AppDatabase
@@ -21,6 +21,7 @@ import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getFilesFromDir
 import com.fpf.smartscan.lib.readUriListFromFile
+import com.fpf.smartscansdk.extensions.organisers.Organiser
 
 /**
  * Orchestrator worker that scans directory URIs for image files,
@@ -41,7 +42,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
         const val TAG = "ClassificationWorker"
         const val JOB_NAME = "classification"
         private const val BATCH_SIZE = 500
-        private const val PREF_KEY_LAST_USED_CLASSIFICATION_DIRS = "last_used_destinations"
         private const val IMAGE_URI_FILE_PREFIX = "classification_image_uris"
     }
 
@@ -58,7 +58,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
             val targetDirectories = uriStrings.map { it.toUri() }
             val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
             val fileUriList = getFilesFromDir(applicationContext, targetDirectories, imageExtensions)
-            val prototypeList: List<PrototypeEmbedding> = prototypeRepository.getAllEmbeddingsSync()
+            val prototypeList: List<PrototypeEmbeddingEntity> = prototypeRepository.getAllEmbeddingsSync()
             val currentDestinationDirectories = prototypeList.map { it.id }
             val  filteredFileUriList = getFilteredUriList(applicationContext, fileUriList, currentDestinationDirectories)
             if (filteredFileUriList.isEmpty()) {
@@ -148,7 +148,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
     private fun getLastUsedDestinations(context: Context): List<String> {
         val prefs = context.getSharedPreferences(JOB_NAME, Context.MODE_PRIVATE)
-        val uriSet = prefs.getStringSet(PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, emptySet()) ?: emptySet()
+        val uriSet = prefs.getStringSet(Organiser.PREF_KEY_LAST_USED_CLASSIFICATION_DIRS, emptySet()) ?: emptySet()
         return uriSet.toList()
     }
 

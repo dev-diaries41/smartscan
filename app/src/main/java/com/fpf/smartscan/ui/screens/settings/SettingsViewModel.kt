@@ -23,15 +23,17 @@ import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.fpf.smartscan.data.prototypes.PrototypeEmbedding
+import com.fpf.smartscan.R
+import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
-import com.fpf.smartscan.lib.clip.Embeddings
-import com.fpf.smartscan.lib.clip.ModelType
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.workers.ClassificationBatchWorker
 import com.fpf.smartscan.workers.ClassificationWorker
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.core.ml.embeddings.generatePrototypeEmbedding
+import com.fpf.smartscansdk.core.ml.models.ResourceId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
@@ -56,7 +58,7 @@ data class AppSettings(
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
-    val prototypeList: StateFlow<List<PrototypeEmbedding>> = repository.allEmbeddings.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val prototypeList: StateFlow<List<PrototypeEmbeddingEntity>> = repository.allEmbeddings.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     private val storage = Storage.getInstance(getApplication())
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
@@ -196,7 +198,9 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             if (missingUris.isEmpty()) return@launch
 
-            val embeddingsHandler = Embeddings(context.resources, ModelType.IMAGE)
+            val embeddingsHandler = ClipImageEmbedder(context.resources, ResourceId(R.raw.image_encoder_quant_int8))
+            embeddingsHandler.initialize()
+
             val semaphore = Semaphore(1)
 
             try {
@@ -205,9 +209,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                         semaphore.withPermit {
                             try {
                                 val bitmaps = fetchBitmapsFromDirectory(context, uri.toUri(), 30)
-                                val prototypeEmbedding = embeddingsHandler.generatePrototypeEmbedding(context, bitmaps)
+                                val rawEmbeddings = embeddingsHandler.embedBatch(context, bitmaps)
+                                val prototypeEmbedding = generatePrototypeEmbedding(rawEmbeddings)
                                 repository.insert(
-                                    PrototypeEmbedding(
+                                    PrototypeEmbeddingEntity(
                                         id = uri,
                                         date = System.currentTimeMillis(),
                                         embeddings = prototypeEmbedding
