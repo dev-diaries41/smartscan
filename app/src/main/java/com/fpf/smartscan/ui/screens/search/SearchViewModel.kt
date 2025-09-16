@@ -189,8 +189,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _mode.value = newMode
         reset()
 
-        // saves memory by lazy loading video index ensure its not prematurely loaded
-        if(newMode == MediaType.VIDEO && !videoStore.isLoaded){
+        // saves memory by lazy loading video index
+        // This check is only valid if useCache true, which is default
+        if(newMode == MediaType.VIDEO && !videoStore.isCached){
             viewModelScope.launch(Dispatchers.IO){loadVideoIndex()}
         }
     }
@@ -208,8 +209,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             _error.value = application.getString(R.string.search_error_empty_query)
             return
         }
-
-        //TODO: Replace this with `.exist` on stores as single source of truth
 
         val store = if(_mode.value == MediaType.VIDEO) videoStore else imageStore
         if(!store.exists) {
@@ -236,23 +235,22 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     return@launch
                 }
 
-                val searchResultsUris = if(_mode.value == MediaType.VIDEO) {
-                    results.map { embed -> getVideoUriFromId(embed.id) }}
-                else {
-                    results.map { embed -> getImageUriFromId(embed.id ) }
-                }
-                val filteredSearchResultsUris = searchResultsUris.filter { uri ->
-                    canOpenUri(application, uri)
-                }
+                val (filteredUris, idsToPurge) = results.map { embed ->
+                    val uri = if (_mode.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
+                    embed.id to uri
+                }.partition { (_, uri) -> canOpenUri(application, uri) }
 
-                if (filteredSearchResultsUris.isEmpty()) {
+                if (filteredUris.isEmpty()) {
                     _error.emit(application.getString(R.string.search_error_no_results))
-                    _searchResults.emit(emptyList())
-                    return@launch
                 }
 
-                _searchResults.emit(filteredSearchResultsUris)
+                _searchResults.emit(filteredUris.map { it.second })
 
+                if(idsToPurge.isNotEmpty()){
+                    viewModelScope.launch(Dispatchers.IO) {
+                        store.remove(idsToPurge.map { it.first })
+                    }
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
                 _error.emit(application.getString(R.string.search_error_unknown))
@@ -277,15 +275,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     fun toggleAlert(mode: MediaType){
-        if(mode == MediaType.IMAGE){
-            if(_isImageIndexAlertVisible.value == false && _hasShownImageIndexAlert.value == true ) return
-            _isImageIndexAlertVisible.value = !_isImageIndexAlertVisible.value
-            _hasShownImageIndexAlert.value = true
-        }else if(mode == MediaType.VIDEO){
-            if(_isVideoIndexAlertVisible.value == false && _hasShownVideoIndexAlert.value == true ) return
-            _isVideoIndexAlertVisible.value = !_isVideoIndexAlertVisible.value
-            _hasShownVideoIndexAlert.value = true
-        }
+        val isVisible = if (mode == MediaType.IMAGE) _isImageIndexAlertVisible else _isVideoIndexAlertVisible
+        val hasShown = if (mode == MediaType.IMAGE) _hasShownImageIndexAlert else _hasShownVideoIndexAlert
+
+        if (!isVisible.value && hasShown.value) return
+
+        isVisible.value = !isVisible.value
+        hasShown.value = true
     }
 
     override fun onCleared() {
