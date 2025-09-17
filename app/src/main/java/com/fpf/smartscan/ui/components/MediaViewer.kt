@@ -1,5 +1,6 @@
 package com.fpf.smartscan.ui.components
 
+import android.content.ClipData
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -35,7 +36,9 @@ import com.fpf.smartscan.ui.screens.search.MediaType
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 
@@ -99,6 +102,7 @@ fun ActionRow(
         this.putExtra(Intent.EXTRA_STREAM, uri)
         this.type = mime
     }
+    val clipboard = LocalClipboard.current
 
     ActionRowWithFade(visible = isVisible) {
         IconButton(
@@ -116,6 +120,16 @@ fun ActionRow(
             horizontalArrangement = Arrangement.End,
         )
         {
+            IconButton(onClick = {
+               clipboard.nativeClipboard.setPrimaryClip(ClipData.newUri(context.contentResolver, "smartscan_media", uri))
+            }) {
+                Icon(
+                    Icons.Filled.ContentCopy,
+                    contentDescription = "Copy to clipboard",
+                    tint = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
             IconButton(onClick = {
                 if (type == MediaType.IMAGE) {
                     openImageInGallery(context, uri)
