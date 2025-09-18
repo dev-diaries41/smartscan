@@ -383,6 +383,7 @@ fun SelectorIconItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             IconButton (
+                enabled = enabled,
                 onClick = { showDialog = true }
             ) {
                 Icon(
