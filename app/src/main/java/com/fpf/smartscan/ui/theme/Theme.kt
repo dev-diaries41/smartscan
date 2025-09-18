@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 // Color scheme for light mode
 private val LightColorPalette = lightColorScheme(
-    primary = Blue500,
+    primary = Peach,
     onPrimary = Color.White,
     secondary = Teal200,
     onSecondary = Color.Black,
@@ -18,7 +18,7 @@ private val LightColorPalette = lightColorScheme(
 
 // Color scheme for dark mode
 private val DarkColorPalette = darkColorScheme(
-    primary = Blue200,
+    primary = Peach,
     onPrimary = Color.Black,
     secondary = Teal200,
     onSecondary = Color.Black,
