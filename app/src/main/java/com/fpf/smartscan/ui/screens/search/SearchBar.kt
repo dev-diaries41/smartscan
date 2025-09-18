@@ -1,6 +1,10 @@
 package com.fpf.smartscan.ui.screens.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,8 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
@@ -32,18 +36,21 @@ fun SearchBar(
     onSearch: (n: Int, threshold: Float) -> Unit,
     onClearQuery: () -> Unit,
     label: String,
-    ){
+    trailingIcon: @Composable (() -> Unit)? = null
+) {
     OutlinedTextField(
+        singleLine = true,
         enabled = enabled,
         value = query,
         onValueChange = onQueryChange,
-        label = { Text(label)},
+        label = { Text(label) },
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
-        keyboardActions = KeyboardActions (
+        keyboardActions = KeyboardActions(
             onSearch = {
-                if(query.isBlank()) return@KeyboardActions
-                onSearch(nSimilarResult, threshold)
+                if (query.isNotBlank()) {
+                    onSearch(nSimilarResult, threshold)
+                }
             }
         ),
         keyboardOptions = KeyboardOptions.Default.copy(
@@ -53,24 +60,43 @@ fun SearchBar(
             Icon(
                 imageVector = Icons.Filled.Search,
                 contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = if (enabled) 1f else 0.3f),
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = if (enabled) 1f else 0.3f)
             )
         },
-        trailingIcon = if (query.isNotBlank()) { {
-            IconButton(
-                enabled = enabled && query.isNotEmpty(),
-                onClick = {onClearQuery()},
-                modifier = Modifier.size(18.dp)
+        trailingIcon = {
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Close,
-                    contentDescription = "Clear query",
-                    tint = MaterialTheme.colorScheme.surface,
-                    modifier = Modifier
-                        .background(MaterialTheme.colorScheme.onBackground, shape = CircleShape)
-                        .padding(2.dp)
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (query.isNotBlank()) {
+                        IconButton(
+                            enabled = enabled,
+                            onClick = onClearQuery,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .padding(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Clear query",
+                                tint = MaterialTheme.colorScheme.surface,
+                                modifier = Modifier
+                                    .background(
+                                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                                        shape = CircleShape
+                                    )
+                                    .padding(2.dp)
+                            )
+                        }
+                    }
+                    trailingIcon?.invoke()
+                }
             }
-        } }else null,
+
+        }
     )
 }
