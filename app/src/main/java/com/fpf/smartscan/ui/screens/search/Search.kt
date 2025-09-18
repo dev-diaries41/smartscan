@@ -8,10 +8,12 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
@@ -23,6 +25,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -31,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
+import com.fpf.smartscan.ui.components.SelectorIconItem
 import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.AppSettings
@@ -166,20 +170,6 @@ fun SearchScreen(
                 progress = videoIndexProgress
             )
 
-            SelectorItem(
-                enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
-                showLabel = false,
-                label = "Search Mode",
-                options = searchModeOptions.values.toList(),
-                selectedOption = searchModeOptions[mode]!!,
-                onOptionSelected = { selected ->
-                    val newMode = searchModeOptions.entries
-                        .find { it.value == selected }
-                        ?.key ?: MediaType.IMAGE
-                    searchViewModel.setMode(newMode)
-                }
-            )
-
             SearchBar(
                 query = searchQuery,
                 enabled = canSearch && hasStoragePermission && !isLoading,
@@ -193,7 +183,35 @@ fun SearchScreen(
                     MediaType.VIDEO -> "Search videos..."
                 },
                 nSimilarResult = appSettings.numberSimilarResults,
-                threshold = appSettings.similarityThreshold
+                threshold = appSettings.similarityThreshold,
+                trailingIcon = {
+                    val alpha = if(canSearch && hasStoragePermission && !isLoading) 0.6f else 0.1f
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .height(IntrinsicSize.Min).padding(vertical = 1.dp)
+                        ){
+                        Box(
+                            modifier = Modifier
+                                .width(1.5.dp)
+                                .fillMaxHeight()
+                                .background(MaterialTheme.colorScheme.onBackground.copy(alpha = alpha))
+                        )
+                        SelectorIconItem(
+                            enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
+                            label = "Search Mode",
+                            options = searchModeOptions.values.toList(),
+                            selectedOption = searchModeOptions[mode]!!,
+                            onOptionSelected = { selected ->
+                                val newMode = searchModeOptions.entries
+                                    .find { it.value == selected }
+                                    ?.key ?: MediaType.IMAGE
+                                searchViewModel.setMode(newMode)
+                            }
+                        )
+                    }
+                }
             )
 
             if(searchResults.isNotEmpty()){
