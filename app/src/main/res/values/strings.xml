@@ -3,6 +3,7 @@
     <string name="app_name">SmartScan</string>
     <string name="copyright">© 2025 D41 Dev</string>
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
+    <string name="reddit_url">https://www.reddit.com/r/SmartScan/</string>
 
     <!-- Screen titles-->
     <string name="title_search">Search</string>
@@ -133,4 +134,6 @@
     <string name="help_include_text_from_media">Include specific text from the media (e.g. subtitles, overlay text) when available.</string>
     <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
 
+    <string name = "update_copy_to_clipboard">Copy media to clipboard</string>
+    <string name="update_reddit">Join <a href="%1$s">r/SmartScan</a> for updates and give feedback on upcoming potential changes.</string>
 </resources>
