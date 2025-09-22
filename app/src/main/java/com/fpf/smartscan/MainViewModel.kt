@@ -8,18 +8,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class MainViewModel( application: Application) : AndroidViewModel(application) {
-
     companion object {
         const val UPDATES_KEY = "UPDATES_KEY"
     }
-    private val _isUpdatePopUpVisible = MutableStateFlow(false)
-    val  isUpdatePopUpVisible: StateFlow<Boolean> = _isUpdatePopUpVisible
-
     val storage = Storage.getInstance(application)
 
-    fun showUpdatePopUp(){
-        _isUpdatePopUpVisible.value = true
-    }
+    private val _isUpdatePopUpVisible = MutableStateFlow(!storage.getItem(MainViewModel.UPDATES_KEY).toBoolean())
+    val  isUpdatePopUpVisible: StateFlow<Boolean> = _isUpdatePopUpVisible
 
     fun closeUpdatePopUp(){
         _isUpdatePopUpVisible.value = false
