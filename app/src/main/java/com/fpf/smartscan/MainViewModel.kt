@@ -15,23 +15,15 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
     private val _isUpdatePopUpVisible = MutableStateFlow(false)
     val  isUpdatePopUpVisible: StateFlow<Boolean> = _isUpdatePopUpVisible
 
-    private val _isLoading = MutableStateFlow<Boolean>(true)
-    val isLoading: StateFlow<Boolean> = _isLoading
-
     val storage = Storage.getInstance(application)
 
-    val hasShownUpdatePopUp: Boolean
-        get() = storage.getItem(UPDATES_KEY).toBoolean()
-
     fun showUpdatePopUp(){
-        if (hasShownUpdatePopUp) return
         _isUpdatePopUpVisible.value = true
     }
 
     fun closeUpdatePopUp(){
         _isUpdatePopUpVisible.value = false
         storage.setItem(UPDATES_KEY, true.toString())
-        stopLoading()
     }
 
     fun getUpdates(): List<String>{
@@ -39,9 +31,5 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
             application.getString(R.string.update_copy_to_clipboard),
             application.getString(R.string.update_reddit, application.getString(R.string.reddit_url),
         ))
-    }
-
-    fun stopLoading(){
-        _isLoading.value = false
     }
 }
