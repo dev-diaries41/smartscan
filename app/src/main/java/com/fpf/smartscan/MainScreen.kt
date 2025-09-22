@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fpf.smartscan.ui.components.UpdatePopUp
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.help.HelpScreen
 import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryViewModel
@@ -45,10 +46,12 @@ fun MainScreen() {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val typeVal = navBackStackEntry?.arguments?.getString("type")
+    val mainViewModel: MainViewModel = viewModel()
     val settingsViewModel: SettingsViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
     val classificationViewModel: ClassificationViewModel = viewModel()
     val isOrganiseActive by classificationViewModel.organisationActive.collectAsState(false)
+    val isUpdatePopUpVisible by mainViewModel.isUpdatePopUpVisible.collectAsState()
 
     val headerTitle = when {
         currentRoute == "search" -> stringResource(R.string.title_search)
@@ -65,107 +68,120 @@ fun MainScreen() {
         else -> ""
     }
 
+    if(isUpdatePopUpVisible) {
+        UpdatePopUp(
+            isVisible = true,
+            updates = mainViewModel.getUpdates(),
+            onClose = { mainViewModel.closeUpdatePopUp() }
+        )
+    }else{
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = headerTitle) },
+                    navigationIcon = {
+                        if (currentRoute?.startsWith("settingsDetail") == true || currentRoute?.startsWith(
+                                "test"
+                            ) == true || currentRoute == "donate" || currentRoute == "scanhistory" || currentRoute == "help"
+                        ) {
+                            IconButton(onClick = { navController.popBackStack() }) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = "Back"
+                                )
+                            }
+                        }
+                    },
+                    actions = {
+                        if (currentRoute != "scanhistory") {
+                            IconButton(onClick = { navController.navigate("scanhistory") }) {
+                                Icon(
+                                    imageVector = Icons.Filled.History,
+                                    contentDescription = "Scan History"
+                                )
+                            }
+                        }
+                        if (currentRoute != "test") {
+                            IconButton(onClick = { navController.navigate("test") }) {
+                                Icon(
+                                    imageVector = Icons.Filled.Science,
+                                    contentDescription = "Test Model"
+                                )
+                            }
+                        }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = headerTitle) },
-                navigationIcon = {
-                    if (currentRoute?.startsWith("settingsDetail") == true || currentRoute?.startsWith("test") == true || currentRoute == "donate" || currentRoute == "scanhistory" || currentRoute == "help") {
-                        IconButton(onClick = { navController.popBackStack() }) {
+                        if (isOrganiseActive) {
+                            val infiniteTransition = rememberInfiniteTransition()
+                            val rotation by infiniteTransition.animateFloat(
+                                initialValue = 0f,
+                                targetValue = 360f,
+                                animationSpec = infiniteRepeatable(
+                                    animation = tween(
+                                        durationMillis = 10000,
+                                        easing = LinearEasing
+                                    ),
+                                    repeatMode = RepeatMode.Restart
+                                )
+                            )
                             Icon(
-                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back"
+                                imageVector = Icons.Filled.Sync,
+                                modifier = Modifier.rotate(rotation),
+                                tint = MaterialTheme.colorScheme.primary,
+                                contentDescription = "Organisation is active"
                             )
                         }
                     }
-                },
-                actions = {
-                    if (currentRoute != "scanhistory") {
-                        IconButton(onClick = { navController.navigate("scanhistory") }) {
-                            Icon(
-                                imageVector = Icons.Filled.History,
-                                contentDescription = "Scan History"
-                            )
-                        }
-                    }
-                    if (currentRoute != "test") {
-                        IconButton(onClick = { navController.navigate("test") }) {
-                            Icon(
-                                imageVector = Icons.Filled.Science,
-                                contentDescription = "Test Model"
-                            )
-                        }
-                    }
-
-                    if (isOrganiseActive) {
-                        val infiniteTransition = rememberInfiniteTransition()
-                        val rotation by infiniteTransition.animateFloat(
-                            initialValue = 0f,
-                            targetValue = 360f,
-                            animationSpec = infiniteRepeatable(
-                                animation = tween(durationMillis = 10000, easing = LinearEasing),
-                                repeatMode = RepeatMode.Restart
-                            )
-                        )
-                        Icon(
-                            imageVector = Icons.Filled.Sync,
-                            modifier = Modifier.rotate(rotation),
-                            tint = MaterialTheme.colorScheme.primary,
-                            contentDescription = "Organisation is active"
-                        )
-                    }
+                )
+            },
+            bottomBar = { BottomNavigationBar(navController) }
+        ) { paddingValues ->
+            NavHost(
+                navController = navController,
+                startDestination = "search",
+                modifier = Modifier.padding(paddingValues)
+            ) {
+                composable("search") {
+                    SearchScreen(
+                        searchViewModel = searchViewModel,
+                        settingsViewModel = settingsViewModel
+                    )
                 }
-            )
-        },
-        bottomBar = { BottomNavigationBar(navController) }
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = "search",
-            modifier = Modifier.padding(paddingValues)
-        ) {
-            composable("search") {
-                SearchScreen(
-                    searchViewModel=searchViewModel,
-                    settingsViewModel=settingsViewModel
-                )
-            }
-            composable("scanhistory") {
-                val scanHistoryViewModel: ScanHistoryViewModel = viewModel()
-                ScanHistoryScreen(
-                    viewModel = scanHistoryViewModel,
-                )
-            }
-            composable("settings") {
-                SettingsScreen(
-                    viewModel = settingsViewModel,
-                    onNavigate = { route: String ->
-                        navController.navigate(route)
-                    }
-                )
-            }
-            composable(
-                route = "settingsDetail/{type}",
-                arguments = listOf(navArgument("type") { type = NavType.StringType })
-            ) { backStackEntry ->
-                val type = backStackEntry.arguments?.getString("type") ?: ""
-                SettingsDetailScreen(
-                    type = type,
-                    viewModel = settingsViewModel,
-                )
-            }
-            composable("test"){
-                TestScreen(
-                    settingsViewModel = settingsViewModel
-                )
-            }
-            composable("donate"){
-                DonateScreen()
-            }
+                composable("scanhistory") {
+                    val scanHistoryViewModel: ScanHistoryViewModel = viewModel()
+                    ScanHistoryScreen(
+                        viewModel = scanHistoryViewModel,
+                    )
+                }
+                composable("settings") {
+                    SettingsScreen(
+                        viewModel = settingsViewModel,
+                        onNavigate = { route: String ->
+                            navController.navigate(route)
+                        }
+                    )
+                }
+                composable(
+                    route = "settingsDetail/{type}",
+                    arguments = listOf(navArgument("type") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val type = backStackEntry.arguments?.getString("type") ?: ""
+                    SettingsDetailScreen(
+                        type = type,
+                        viewModel = settingsViewModel,
+                    )
+                }
+                composable("test") {
+                    TestScreen(
+                        settingsViewModel = settingsViewModel
+                    )
+                }
+                composable("donate") {
+                    DonateScreen()
+                }
 
-            composable("help"){
-                HelpScreen()
+                composable("help") {
+                    HelpScreen()
+                }
             }
         }
     }
