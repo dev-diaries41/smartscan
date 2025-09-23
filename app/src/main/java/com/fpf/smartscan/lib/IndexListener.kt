@@ -53,7 +53,6 @@ abstract class BaseIndexListener(private val notificationId: Int, private val ta
     }
 }
 
-// Singletons
 object ImageIndexListener : BaseIndexListener(
     notificationId = 1002,
     tag = "ImageIndexListener"
