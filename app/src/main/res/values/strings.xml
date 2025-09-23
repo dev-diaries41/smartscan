@@ -3,6 +3,7 @@
     <string name="app_name">SmartScan</string>
     <string name="copyright">© 2025 D41 Dev</string>
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
+    <string name="reddit_url">https://www.reddit.com/r/SmartScan/</string>
 
     <!-- Screen titles-->
     <string name="title_search">Search</string>
@@ -64,6 +65,7 @@
     <string name="other_settings">Other</string>
 
     <string name="setting_source_code">Source code</string>
+    <string name="setting_social_reddit">Reddit</string>
     <string name="setting_enable_scan">Enable auto-organisation</string>
     <string name="setting_enable_scan_description">Enable periodic scanning of the folder you want to organise.</string>
     <string name="setting_target_folders">Target folders</string>
@@ -133,4 +135,6 @@
     <string name="help_include_text_from_media">Include specific text from the media (e.g. subtitles, overlay text) when available.</string>
     <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
 
+    <string name = "update_copy_to_clipboard">Copy media to clipboard</string>
+    <string name="update_reddit">Join r/SmartScan subreddit to stay up-to-date, discuss features and get support.</string>
 </resources>

@@ -40,6 +40,7 @@ fun SettingsScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current // Access the current context
     val sourceCodeUrl = stringResource(R.string.source_code_url)
+    val redditUrl = stringResource(R.string.reddit_url)
     val versionName: String? = try {
         val packageInfo = context.packageManager.getPackageInfo(context.packageName, 0)
         packageInfo.versionName
@@ -239,6 +240,13 @@ fun SettingsScreen(
                     text = stringResource(id = R.string.setting_source_code),
                     onClick = {
                         val intent = Intent(Intent.ACTION_VIEW, sourceCodeUrl.toUri())
+                        context.startActivity(intent)
+                    },
+                )
+                ActionItem(
+                    text = stringResource(id = R.string.setting_social_reddit),
+                    onClick = {
+                        val intent = Intent(Intent.ACTION_VIEW, redditUrl.toUri())
                         context.startActivity(intent)
                     },
                 )
