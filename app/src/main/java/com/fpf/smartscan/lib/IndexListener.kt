@@ -33,7 +33,7 @@ abstract class BaseIndexListener(private val notificationId: Int, private val ta
             _indexingStatus.value = ProcessorStatus.COMPLETE
             _progress.value = 0f
             val (minutes, seconds) = getTimeInMinutesAndSeconds(metrics.timeElapsed)
-            val notificationText = "Total $itemName indexed: ${metrics.totalProcessed}, Time: ${minutes}m ${seconds}s"
+            val notificationText = "Total ${itemName.lowercase()}s indexed: ${metrics.totalProcessed}, Time: ${minutes}m ${seconds}s"
             showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, notificationId)
         } catch (e: Exception) {
             Log.e(tag, "Error in onComplete: ${e.message}", e)
