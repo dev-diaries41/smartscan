@@ -20,10 +20,11 @@ abstract class BaseIndexListener(private val notificationId: Int, private val ta
     abstract val itemName: String
 
     override suspend fun onProgress(context: Context, progress: Float) {
-        if (_indexingStatus.value != ProcessorStatus.ACTIVE) {
-            _indexingStatus.value = ProcessorStatus.ACTIVE
-        }
         _progress.value = progress
+    }
+
+    override suspend fun onActive(context: Context) {
+        _indexingStatus.value = ProcessorStatus.ACTIVE
     }
 
     override suspend fun onComplete(context: Context, metrics: Metrics.Success) {
@@ -39,7 +40,7 @@ abstract class BaseIndexListener(private val notificationId: Int, private val ta
         }
     }
 
-    override suspend fun onFail(context: Context, metrics: Metrics.Failure) {
+    override suspend fun onFail(context: Context, failureMetrics: Metrics.Failure) {
         try {
             _indexingStatus.value = ProcessorStatus.FAILED
             _progress.value = 0f
