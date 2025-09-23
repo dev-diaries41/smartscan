@@ -3,6 +3,7 @@ package com.fpf.smartscan.ui.screens.scanhistory
 import android.app.Application
 import android.util.Log
 import androidx.core.net.toUri
+import androidx.documentfile.provider.DocumentFile
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.launch
@@ -70,10 +71,19 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
                         async {
                             semaphore.withPermit {
                                 try {
+                                    val fileUri = move.sourceUri.toUri()
+                                    val parentTreeUri = fileUri.toString()
+                                        .substringBeforeLast("/document/")
+                                        .toUri()
+
+                                    val parentDir = DocumentFile.fromTreeUri(getApplication(), parentTreeUri)
+
+                                    if(parentDir == null) throw IllegalArgumentException("Invalid parent dir")
+
                                     val resultUri = moveFile(
                                         getApplication(),
                                         move.destinationUri.toUri(),
-                                        move.sourceUri.toUri()
+                                        parentDir.uri
                                     )
                                     if (resultUri != null) {
                                         processedCount.incrementAndGet()
