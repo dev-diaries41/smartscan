@@ -17,6 +17,7 @@ media3Exoplayer = "1.8.0"
 navigationCompose = "2.9.3"
 onnxruntimeAndroid = "1.22.0"
 roomRuntime = "2.7.2"
+smartscanExtensions = "1.0.0"
 ui = "1.9.0"
 workRuntimeKtx = "2.10.3"
 
@@ -45,6 +46,7 @@ kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serializa
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 onnxruntime-android = { module = "com.microsoft.onnxruntime:onnxruntime-android", version.ref = "onnxruntimeAndroid" }
+smartscan-extensions = { module = "com.github.dev-diaries41.smartscan-sdk:smartscan-extensions", version.ref = "smartscanExtensions" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
