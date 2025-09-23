@@ -35,7 +35,7 @@
       Start first %1$s index to enable search, this may take a few minutes. Searching will be limited until the process is complete. You can start it manually at anytime in settings.
     </string>
 
-    <string name="storage_permissions">Storage permission required to search images.</string>
+    <string name="storage_permissions">Storage permission required to search.</string>
     <string name="search_error_not_indexed">Index is empty.</string>
     <string name="search_error_no_results">No matching results found.</string>
     <string name="search_error_missing_permissions_for_results">Missing storage permissions for 1 or more images.</string>
