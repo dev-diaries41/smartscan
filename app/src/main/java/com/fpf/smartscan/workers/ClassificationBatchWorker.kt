@@ -68,6 +68,8 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 throw IllegalArgumentException("IMAGE_URI_FILE not provided")
             }
 
+            embeddingHandler.initialize()
+
             val uriList = readUriListFromFile(imageUriFilePath)
             val startIndex = batchIndex * batchSize
             val endIndex = kotlin.math.min(startIndex + batchSize, uriList.size)
