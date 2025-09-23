@@ -85,8 +85,9 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                         jobName = JOB_NAME,
                         startTime = end - results.timeElapsed,
                         finishTime = end,
-                        processedCount = results.totalProcessed
+                        processedCount = results.totalProcessed -  OrganiserListener.failedMoveCount
                     )
+                    Log.d(TAG, "FAILED MOVE COUNT FOR BATCH $batchIndex: ${OrganiserListener.failedMoveCount}")
                 }
                 // Let worker handle batch errors
                 is Metrics.Failure -> {
