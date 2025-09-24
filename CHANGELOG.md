@@ -1,3 +1,14 @@
+## v1.1.4 – 24/09/2025
+
+### Added
+- Integrated SmartScan SDK
+- Copy to clipboard in media viewer
+- SmartScan subreddit link in settings
+- Updates pop up
+
+### Changed
+- Minor UI changes
+
 ## v1.1.3 – 20/08/2025
 
 ### Changed
