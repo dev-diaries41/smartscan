@@ -63,7 +63,9 @@ fun MainScreen() {
         currentRoute?.startsWith("settingsDetail") == true -> when (typeVal) {
             "targets" -> stringResource(R.string.setting_target_folders)
             "threshold" -> stringResource(R.string.setting_similarity_threshold)
-            else -> stringResource(R.string.setting_destination_folders)
+            "destinations" -> stringResource(R.string.setting_destination_folders)
+            "organiserAccuracy" -> stringResource(R.string.setting_organisation_organiser_accuracy)
+            else -> ""
         }
         else -> ""
     }
