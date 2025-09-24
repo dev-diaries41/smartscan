@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,11 +61,24 @@ fun DirectoryPicker(
                 modifier = Modifier.alpha(0.8f).padding(bottom = 16.dp),
             )
         }
+
+
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            Button(onClick = { launcher.launch(null) }) {
+                Icon(Icons.Default.Add, contentDescription = "Add folder")
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = "Add Folder")
+            }
+        }
+
         if (directories.isEmpty()) {
             Text(
                 text = "No directories selected.",
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.alpha(0.5f),
+                modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
             )
         } else {
             Card (
@@ -75,7 +87,7 @@ fun DirectoryPicker(
                 shape = RoundedCornerShape(8.dp),
                 colors= CardDefaults.cardColors(Color.Transparent)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
+                Column(modifier = Modifier.padding(vertical = 16.dp)) {
                     directories.forEach { dir ->
                         val displayName = getDirectoryName(context, dir.toUri())
                         Row(
@@ -93,19 +105,6 @@ fun DirectoryPicker(
                         }
                     }
                 }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            Button(onClick = { launcher.launch(null) }) {
-                Icon(Icons.Default.Add, contentDescription = "Add folder")
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(text = "Add Folder")
             }
         }
     }
