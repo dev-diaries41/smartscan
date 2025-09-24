@@ -137,21 +137,6 @@ fun SettingsScreen(
                     text = stringResource(id = R.string.setting_similarity_threshold),
                     onClick = { onNavigate("settingsDetail/threshold") }
                 )
-
-
-                SelectorItem(
-                    label = stringResource(id = R.string.setting_index_frequency),
-                    options = listOf(
-                        stringResource(id = R.string.scan_frequency_1d),
-                        stringResource(id = R.string.scan_frequency_1w)
-                    ),
-                    selectedOption = appSettings.indexFrequency,
-                    onOptionSelected = { selected ->
-                        viewModel.updateIndexFrequency(selected)
-                    },
-//                    description = stringResource(id = R.string.setting_index_frequency_description)
-                )
-
                 ActionItem(
                     text = stringResource(id = R.string.setting_refresh_image_index),
                     onClick = {
@@ -179,6 +164,18 @@ fun SettingsScreen(
                         showRefreshVideoIndexDialog = true
                     }
                 )
+                SelectorItem(
+                    label = stringResource(id = R.string.setting_index_frequency),
+                    options = listOf(
+                        stringResource(id = R.string.scan_frequency_1d),
+                        stringResource(id = R.string.scan_frequency_1w)
+                    ),
+                    selectedOption = appSettings.indexFrequency,
+                    onOptionSelected = { selected ->
+                        viewModel.updateIndexFrequency(selected)
+                    },
+//                    description = stringResource(id = R.string.setting_index_frequency_description)
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -205,6 +202,11 @@ fun SettingsScreen(
                     text = stringResource(id = R.string.setting_destination_folders),
                     onClick = { onNavigate("settingsDetail/destinations") }
                 )
+                ActionItem(
+                    enabled = appSettings.enableScan,
+                    text = stringResource(id = R.string.setting_organisation_organiser_accuracy),
+                    onClick = { onNavigate("settingsDetail/organiserAccuracy") }
+                )
                 SelectorItem(
                     enabled = appSettings.enableScan,
                     label = stringResource(id = R.string.setting_scan_frequency),
@@ -216,11 +218,6 @@ fun SettingsScreen(
                     onOptionSelected = { selected ->
                         viewModel.updateFrequency(selected)
                     }
-                )
-
-                ActionItem(
-                    text = stringResource(id = R.string.setting_organisation_organiser_accuracy),
-                    onClick = { onNavigate("settingsDetail/organiserAccuracy") }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
