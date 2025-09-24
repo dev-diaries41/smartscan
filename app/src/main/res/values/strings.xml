@@ -131,6 +131,7 @@
     <string name="help_include_text_from_media">Include specific text from the media (e.g. subtitles, overlay text) when available.</string>
     <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
 
-    <string name = "update_copy_to_clipboard">Copy media to clipboard</string>
+    <string name="update_copy_to_clipboard">Copy media to clipboard</string>
     <string name="update_reddit">Join r/SmartScan subreddit to stay up-to-date, help shape the app and get support.</string>
+    <string name="update_settings_organiser_accuracy">Configure organiser accuracy in settings under Image Management.</string>
 </resources>
