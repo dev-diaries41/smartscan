@@ -49,6 +49,8 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
     private val totalImages = inputData.getInt("TOTAL_IMAGES", -1)
     private val isLastBatch = inputData.getBoolean("IS_LAST_BATCH", false)
     private val imageUriFilePath = inputData.getString("IMAGE_URI_FILE") ?: ""
+    private val threshold = inputData.getFloat("THRESHOLD", 0.4f)
+    private val confidenceMargin = inputData.getFloat("CONFIDENCE_MARGIN", 0.03f)
     private val repository = ScanDataRepository(AppDatabase.getDatabase(applicationContext as Application).scanDataDao())
     private val prototypeRepository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(context.applicationContext as Application).prototypeEmbeddingDao())
 
@@ -56,7 +58,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         val embeddingHandler = ClipImageEmbedder(applicationContext.resources, ResourceId(R.raw.image_encoder_quant_int8))
         val prototypes = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()}
 
-        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId, listener = OrganiserListener, prototypeList = prototypes)
+        val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId, listener = OrganiserListener, prototypeList = prototypes, threshold = threshold, confidenceMargin = confidenceMargin)
         val startResult = jobManager.onStart(JOB_NAME)
         previousProcessingCount = startResult.initialProcessedCount
 
