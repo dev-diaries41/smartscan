@@ -268,7 +268,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
                 // Big 12 hour buffer used to account for image AND video indexing.
                 val delayInHour = if (indexingInProgress) 12L else null
-                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInHour)
+                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, confidenceMargin = _appSettings.value.organiserConfMargin, similarityThreshold = _appSettings.value.organiserSimilarityThreshold, delayInHours = delayInHour)
             }
         }
     }
