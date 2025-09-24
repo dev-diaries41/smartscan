@@ -4,6 +4,7 @@
 - Integrated SmartScan SDK
 - Copy to clipboard in media viewer
 - SmartScan subreddit link in settings
+- Added organiser accuracy setting
 - Updates pop up
 
 ### Changed
