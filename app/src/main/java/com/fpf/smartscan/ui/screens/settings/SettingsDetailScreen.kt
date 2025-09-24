@@ -31,6 +31,8 @@ fun SettingsDetailScreen(
     val context = LocalContext.current
     val initialTargetDirectories = remember { appSettings.targetDirectories }
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
+    val initialOrganiserSimilarity = remember { appSettings.organiserSimilarityThreshold }
+    val initialOrganiserConfMargin = remember { appSettings.organiserConfMargin }
     val scrollState = rememberScrollState()
 
     DisposableEffect(Unit) {
@@ -38,6 +40,8 @@ fun SettingsDetailScreen(
             viewModel.onSettingsDetailsExit(
                 initialDestinationDirectories = initialDestinationDirectories,
                 initialTargetDirectories = initialTargetDirectories,
+                initialOrganiserSimilarity = initialOrganiserSimilarity,
+                initialOrganiserConfMargin = initialOrganiserConfMargin
             )
         }
     }

@@ -299,9 +299,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
 
-    fun onSettingsDetailsExit(initialDestinationDirectories: List<String>, initialTargetDirectories: List<String>) {
+    fun onSettingsDetailsExit(initialDestinationDirectories: List<String>, initialTargetDirectories: List<String>, initialOrganiserSimilarity: Float, initialOrganiserConfMargin: Float) {
         val destinationChanged = initialDestinationDirectories != _appSettings.value.destinationDirectories
         val targetChanged = initialTargetDirectories != _appSettings.value.targetDirectories
+        val organiserSimChanged = initialOrganiserSimilarity != _appSettings.value.organiserSimilarityThreshold
+        val organiserConfMarginChanged = initialOrganiserConfMargin != _appSettings.value.organiserConfMargin
+
+        val shouldUpdateWorker = listOf(destinationChanged, targetChanged, organiserSimChanged, organiserConfMarginChanged).any { it }
 
         viewModelScope.launch {
             if (destinationChanged) {
@@ -309,7 +313,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 job.join()
             }
 
-            if (destinationChanged || targetChanged) {
+            if (shouldUpdateWorker) {
                 updateWorker()
             }
         }
