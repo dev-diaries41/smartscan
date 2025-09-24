@@ -54,6 +54,8 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 Log.e(TAG, "No URIs provided to classify.")
                 return@withContext Result.failure()
             }
+            val threshold = inputData.getFloat("THRESHOLD", 0.4f)
+            val confidenceMargin = inputData.getFloat("CONFIDENCE_MARGIN", 0.03f)
 
             val targetDirectories = uriStrings.map { it.toUri() }
             val imageExtensions = listOf("jpg", "jpeg", "png", "webp")
@@ -99,7 +101,9 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                     "BATCH_INDEX" to batchIndex,
                     "BATCH_SIZE" to BATCH_SIZE,
                     "TOTAL_IMAGES" to totalImages,
-                    "IS_LAST_BATCH" to isLastBatch
+                    "IS_LAST_BATCH" to isLastBatch,
+                    "THRESHOLD" to threshold,
+                    "CONFIDENCE_MARGIN" to confidenceMargin
                 )
 
                 val batchWorkerRequest = OneTimeWorkRequestBuilder<ClassificationBatchWorker>()
@@ -179,6 +183,8 @@ fun scheduleClassificationWorker(
     context: Context,
     uris: Array<Uri?>,
     frequency: String,
+    confidenceMargin: Float,
+    similarityThreshold: Float,
     delayInHours: Long? = null
 ) {
     val duration = when (frequency) {
@@ -192,6 +198,8 @@ fun scheduleClassificationWorker(
 
     val uriStrings = uris.mapNotNull { it?.toString() }.toTypedArray()
     val inputData = Data.Builder()
+        .putFloat("CONFIDENCE_MARGIN", confidenceMargin)
+        .putFloat("THRESHOLD", similarityThreshold)
         .putStringArray("uris", uriStrings as Array<String?>)
         .build()
 
