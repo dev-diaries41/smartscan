@@ -54,6 +54,8 @@ data class AppSettings(
     val similarityThreshold: Float = 0.2f,
     val numberSimilarResults: Int = 10,
     val indexFrequency: String = "1 Week",
+    val organiserSimilarityThreshold: Float = 0.4f,
+    val organiserConfMargin: Float = 0.03f,
     )
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -173,6 +175,18 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         saveSettings()
     }
 
+    fun updateOrganiserSimilarityThreshold(threshold: Float) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(organiserSimilarityThreshold = threshold)
+        saveSettings()
+    }
+
+    fun updateOrganiserConfidenceMargin(margin: Float) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(organiserConfMargin = margin)
+        saveSettings()
+    }
+
     fun updateNumberSimilarImages(numberSimilarResults: String) {
         val number = numberSimilarResults.toIntOrNull()?.takeIf { it in 1..20 } ?: 5
         val currentSettings = _appSettings.value
@@ -254,7 +268,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 // This delay prevents indexing and classification workers running at the same time to limit resource usage.
                 // Big 12 hour buffer used to account for image AND video indexing.
                 val delayInHour = if (indexingInProgress) 12L else null
-                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, delayInHour)
+                scheduleClassificationWorker(getApplication(), uriArray as Array<Uri?>, _appSettings.value.frequency, confidenceMargin = _appSettings.value.organiserConfMargin, similarityThreshold = _appSettings.value.organiserSimilarityThreshold, delayInHours = delayInHour)
             }
         }
     }
