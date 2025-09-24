@@ -218,6 +218,11 @@ fun SettingsScreen(
                     }
                 )
 
+                ActionItem(
+                    text = stringResource(id = R.string.setting_organisation_organiser_accuracy),
+                    onClick = { onNavigate("settingsDetail/organiserAccuracy") }
+                )
+
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
