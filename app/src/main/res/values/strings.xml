@@ -136,5 +136,5 @@
     <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
 
     <string name = "update_copy_to_clipboard">Copy media to clipboard</string>
-    <string name="update_reddit">Join r/SmartScan subreddit to stay up-to-date, discuss features and get support.</string>
+    <string name="update_reddit">Join r/SmartScan subreddit to stay up-to-date, help shape the app and get support.</string>
 </resources>
