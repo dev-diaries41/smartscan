@@ -35,7 +35,8 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
     fun getUpdates(): List<String>{
         return listOf(
             application.getString(R.string.update_copy_to_clipboard),
-            application.getString(R.string.update_reddit)
-        )
+            application.getString(R.string.update_settings_organiser_accuracy),
+            application.getString(R.string.update_reddit),
+            )
     }
 }
