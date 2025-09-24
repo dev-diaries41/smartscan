@@ -75,6 +75,7 @@ fun SettingsDetailScreen(
                 }
                 "threshold" -> {
                     CustomSlider(
+                        label = stringResource(R.string.setting_similarity_threshold),
                         minValue = 0.18f,
                         maxValue = 0.28f,
                         initialValue = appSettings.similarityThreshold,
@@ -82,6 +83,29 @@ fun SettingsDetailScreen(
                             viewModel.updateSimilarityThreshold(value)
                         },
                         description = stringResource(R.string.setting_similarity_threshold_description)
+                    )
+                }
+
+                "organiserAccuracy" -> {
+                    CustomSlider(
+                        label = stringResource(R.string.setting_similarity_threshold),
+                        minValue = 0.4f,
+                        maxValue = 0.7f,
+                        initialValue = appSettings.organiserSimilarityThreshold,
+                        onValueChange = { value ->
+                            viewModel.updateOrganiserSimilarityThreshold(value)
+                        },
+                        description = stringResource(R.string.setting_similarity_threshold_description)
+                    )
+                    CustomSlider(
+                        label = stringResource(R.string.setting_organisation_conf_margin_title),
+                        minValue = 0.01f,
+                        maxValue = 0.05f,
+                        initialValue = appSettings.organiserConfMargin,
+                        onValueChange = { value ->
+                            viewModel.updateOrganiserConfidenceMargin(value)
+                        },
+                        description = stringResource(R.string.setting_organisation_conf_margin_description)
                     )
                 }
                 else -> {
