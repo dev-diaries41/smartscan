@@ -32,6 +32,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -113,7 +114,7 @@ fun ScanHistoryItemCard(data: ScanData) {
         elevation = CardDefaults.cardElevation(4.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 4.dp, horizontal = 8.dp)
+            .padding(vertical = 4.dp, horizontal = 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -170,7 +171,7 @@ fun ScanHistoryItemCard(data: ScanData) {
                     Text(
                         text = "Status: ${Status.SUCCESS}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary
+                        color = Color.Green
                     )
                 }
             }
