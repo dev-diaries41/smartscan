@@ -200,7 +200,7 @@ fun SearchScreen(
                         )
                         SelectorIconItem(
                             enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
-                            label = "Search Mode",
+                            label = "Media type",
                             options = searchModeOptions.values.toList(),
                             selectedOption = searchModeOptions[mode]!!,
                             onOptionSelected = { selected ->
