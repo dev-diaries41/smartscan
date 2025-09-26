@@ -1,9 +1,7 @@
 package com.fpf.smartscan.ui.screens.settings
 
 import android.annotation.SuppressLint
-import android.app.ActivityManager
 import android.app.Application
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -21,13 +19,14 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.lib.isServiceRunning
+import com.fpf.smartscan.lib.isWorkScheduled
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.workers.ClassificationBatchWorker
 import com.fpf.smartscan.workers.ClassificationWorker
@@ -247,14 +246,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun isServiceRunning(context: Context, serviceClass: Class<out Service>): Boolean {
-        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-        @Suppress("DEPRECATION")
-        return am.getRunningServices(Int.MAX_VALUE).any {
-            it.service.className == serviceClass.name
-        }
-    }
-
     @Suppress("UNCHECKED_CAST")
     fun updateWorker() {
         if (_appSettings.value.targetDirectories.isNotEmpty() &&
@@ -364,11 +355,4 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         storage.setItem("app_settings", jsonSettings)
     }
 
-    private suspend fun isWorkScheduled(context: Context, workName: String): Boolean {
-        return withContext(Dispatchers.IO) {
-            val workManager = WorkManager.getInstance(context)
-            val workInfoList = workManager.getWorkInfosForUniqueWork(workName).get()
-            workInfoList.any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }
-        }
-    }
 }
