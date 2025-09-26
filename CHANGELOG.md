@@ -1,3 +1,8 @@
+## v1.1.5 – 26/09/2025
+
+### Fixed
+- Fixed bug that caused full re-indexing and`` duplication
+
 ## v1.1.4 – 24/09/2025
 
 ### Added
