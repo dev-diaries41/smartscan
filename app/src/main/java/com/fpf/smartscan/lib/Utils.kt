@@ -1,17 +1,24 @@
 package com.fpf.smartscan.lib
 
 import android.Manifest
+import android.app.ActivityManager
+import android.app.Service
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.scans.ScanData
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.collections.any
 import kotlin.random.Random
 
 fun toDateString(timestamp: Long): String {
@@ -62,3 +69,20 @@ fun showNotification(context: Context, title: String, text: String, id: Int = 10
         notify(id, notificationBuilder.build())
     }
 }
+
+fun isServiceRunning(context: Context, serviceClass: Class<out Service>): Boolean {
+    val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+    @Suppress("DEPRECATION")
+    return am.getRunningServices(Int.MAX_VALUE).any {
+        it.service.className == serviceClass.name
+    }
+}
+
+suspend fun isWorkScheduled(context: Context, workName: String): Boolean {
+    return withContext(Dispatchers.IO) {
+        val workManager = WorkManager.getInstance(context)
+        val workInfoList = workManager.getWorkInfosForUniqueWork(workName).get()
+        workInfoList.any { it.state == WorkInfo.State.ENQUEUED || it.state == WorkInfo.State.RUNNING }
+    }
+}
+
