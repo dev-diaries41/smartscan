@@ -14,8 +14,10 @@ import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import kotlinx.coroutines.CancellationException
@@ -83,15 +85,22 @@ class MediaIndexForegroundService : Service() {
                 embeddingHandler.initialize()
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
-                    val imageIndexer = ImageIndexer(embeddingHandler, application, ImageIndexListener)
+                    // cache not needed for indexing
+                    val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false)
+                    val imageIndexer = ImageIndexer(embeddingHandler, application, ImageIndexListener, store = imageStore)
                     val ids = queryAllImageIds()
-                    imageIndexer.run(ids)
+                    val existingIds = if(imageStore.exists) imageStore.getAll().map{it.id}.toSet() else emptySet()
+                    val filteredIds = ids.filterNot { existingIds.contains(it) }
+                    imageIndexer.run(filteredIds)
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
-                    val videoIndexer = VideoIndexer(embeddingHandler, application=application, listener = VideoIndexListener)
+                    val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false )
+                    val videoIndexer = VideoIndexer(embeddingHandler, application=application, listener = VideoIndexListener, store = videoStore)
                     val ids = queryAllVideoIds()
-                    videoIndexer.run(ids)
+                    val existingIds = if(videoStore.exists) videoStore.getAll().map{it.id}.toSet() else emptySet()
+                    val filteredIds = ids.filterNot { existingIds.contains(it) }
+                    videoIndexer.run(filteredIds)
                 }
             } catch (e: CancellationException) {
                 // cancelled
