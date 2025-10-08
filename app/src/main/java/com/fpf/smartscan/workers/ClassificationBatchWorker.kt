@@ -93,8 +93,8 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             incrementErrorCount()
             if(errorCount >= 3){
                 resetErrorCount()
-                // Temporary workaround to avoid modifying db schema:
-                // ERROR_RESULT (-1) is used to indicate a failure with no reliable result.
+                // Allow silent failure if some files are moved. The likely hood of this is extremely low anyway
+                // Scan entry can be deleted because scan history screen no longer shows status - its only a log of valid moves
                 val moveHistory = moveHistoryRepository.getMoveHistory(scanId)
                 if(moveHistory.isEmpty()){
                     scanDataRepository.delete(scanId)
