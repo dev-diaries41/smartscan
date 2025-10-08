@@ -115,6 +115,7 @@ fun ScanHistoryItemCard(data: ScanData) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp, horizontal = 0.dp)
+            .alpha(if (data.result == ScanData.IN_PROGRESS_RESULT) 0.6f else 1f)
     ) {
         Row(
             modifier = Modifier
@@ -142,36 +143,17 @@ fun ScanHistoryItemCard(data: ScanData) {
                     modifier = Modifier.alpha(0.8f)
                 )
                 Spacer(modifier = Modifier.height(4.dp))
-                if (data.result == ScanData.ERROR_RESULT) {
-                    Text(
-                        text = "Images moved: unknown",
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.alpha(0.8f)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Status: ${Status.FAILED}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                } else if(data.result == ScanData.IN_PROGRESS_RESULT){
+                if(data.result == ScanData.IN_PROGRESS_RESULT){
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = "Status: ${Status.IN_PROGRESS}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary.copy(0.5f)
                     )
                 } else {
                     Text(
-                        text = "Images moved: ${data.result}",
+                        text = "Images moved: ${if(data.result == ScanData.ERROR_RESULT) "unknown" else data.result}",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alpha(0.8f)
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Status: ${Status.SUCCESS}",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Green
                     )
                 }
             }
