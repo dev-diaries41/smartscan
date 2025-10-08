@@ -19,7 +19,6 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
             return null
         }
 
-        // Safe copy+delete
         val sourceFileName = sourceDocument.name ?: "IMG_${System.currentTimeMillis()}.jpg"
         val mimeType = context.contentResolver.getType(sourceUri) ?: "image/jpeg"
         val newFile = destDir.createFile(mimeType, sourceFileName) ?: run {
@@ -27,17 +26,16 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
             return null
         }
 
-        val copySuccess = context.contentResolver.openInputStream(sourceUri)?.use { input ->
+         context.contentResolver.openInputStream(sourceUri)?.use { input ->
             context.contentResolver.openOutputStream(newFile.uri)?.use { output ->
                 input.copyTo(output)
-                output.flush()
             }
-        } != null
+        }
 
         val originalSize = sourceDocument.length()
         val newSize = newFile.length()
 
-        if (!copySuccess || originalSize != newSize) {
+        if (originalSize != newSize) {
             newFile.delete()
             Log.e(tag, "Failed to copy data")
             return null
