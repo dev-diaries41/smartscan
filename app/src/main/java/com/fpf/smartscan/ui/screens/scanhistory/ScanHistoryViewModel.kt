@@ -53,6 +53,19 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
+    fun clearScanHistory(){
+        viewModelScope.launch (Dispatchers.IO){
+            try {
+                movesRepository.clear()
+                scansRepository.clear()
+            }catch (e: Exception){
+
+            }finally {
+
+            }
+        }
+    }
+
     fun undoLastScan(scanHistory: List<ScanData>) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
