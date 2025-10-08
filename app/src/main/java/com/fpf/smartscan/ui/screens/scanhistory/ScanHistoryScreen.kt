@@ -13,6 +13,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
@@ -23,16 +24,19 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Undo
+import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -47,6 +51,9 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
     val undoMessage by viewModel.undoResultEvent.collectAsState(null)
     val isLoading by viewModel.isLoading.collectAsState(false)
     val context = LocalContext.current
+    var isClearLogsAlertVisible by remember { mutableStateOf(false) }
+    var isUndoAlertVisible by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(items) {
         if(items.isNotEmpty()){
@@ -61,6 +68,52 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
         }
     }
 
+    if(isUndoAlertVisible){
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(stringResource(R.string.undo_alert_title)) },
+            text = { Text(stringResource(R.string.undo_alert_description)) },
+            dismissButton = {
+                TextButton(onClick = {
+                    isUndoAlertVisible = false
+                }) {
+                    Text("Cancel")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    isUndoAlertVisible = false
+                    viewModel.undoLastScan(items.maxOf { it.id })
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
+    if(isClearLogsAlertVisible){
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(stringResource(R.string.clear_logs_alert_title)) },
+            text = { Text(stringResource(R.string.clear_logs_alert_description)) },
+            dismissButton = {
+                TextButton(onClick = {
+                    isClearLogsAlertVisible = false
+                }) {
+                    Text("Cancel")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    isClearLogsAlertVisible = false
+                    viewModel.clearScanHistory()
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
+
     if (items.isEmpty()) {
         EmptyScanHistoryScreen()
     } else {
@@ -68,31 +121,46 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
             modifier = Modifier.padding(16.dp)
         ) {
             Column {
-                if(hasMoveHistoryForLastScan){
-                    Button(
-                        enabled = !isLoading,
-                        modifier = Modifier.padding(bottom = 8.dp),
-                        onClick = {viewModel.undoLastScan(items)}
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth(),
                     ) {
-                        Text(text = "Undo last scan")
-                        AnimatedVisibility(
-                            visible = isLoading,
-                            enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
-                            exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
+                    Button(
+                        enabled = !isLoading && items.firstOrNull()?.result != ScanData.IN_PROGRESS_RESULT,
+                        onClick = {isClearLogsAlertVisible = true }
+                    ) {
+                        Icon(Icons.Default.CleaningServices, contentDescription = "Clear logs icon", modifier = Modifier.padding(end = 4.dp))
+                        Text(text = "Clear history")
+                    }
+
+                    if(hasMoveHistoryForLastScan){
+                        Button(
+                            enabled = !isLoading,
+                            onClick = { isUndoAlertVisible = true }
                         ) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.padding(start = 8.dp)
+                            Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo icon", modifier = Modifier.padding(end = 4.dp))
+                            Text(text = "Undo last scan")
+                            AnimatedVisibility(
+                                visible = isLoading,
+                                enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
+                                exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
                             ) {
-                                CircularProgressIndicator(
-                                    color = MaterialTheme.colorScheme.onPrimary,
-                                    modifier = Modifier
-                                        .size(18.dp),
-                                    strokeWidth = 2.dp
-                                )
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                ) {
+                                    CircularProgressIndicator(
+                                        color = MaterialTheme.colorScheme.onPrimary,
+                                        modifier = Modifier
+                                            .size(18.dp),
+                                        strokeWidth = 2.dp
+                                    )
+                                }
                             }
                         }
                     }
+
                 }
 
                 LazyColumn{
