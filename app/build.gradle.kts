@@ -19,6 +19,15 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    packaging {
+        resources.excludes.addAll(
+            listOf(
+                "META-INF/LICENSE.md",
+                "META-INF/LICENSE-notice.md",
+            )
+        )
+    }
+
 
     buildTypes {
         release {
@@ -98,6 +107,12 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(kotlin("test"))
 
-    androidTestImplementation(libs.androidx.junit)
+    // Android instrumented tests
+    androidTestImplementation(libs.androidx.core)
+    androidTestImplementation(libs.androidx.junit.ktx)
+    androidTestImplementation(libs.androidx.runner)
+    androidTestImplementation(libs.mockk.android)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+
     androidTestImplementation(libs.androidx.espresso.core)
 }
