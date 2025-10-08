@@ -34,7 +34,10 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
             }
         } != null
 
-        if (!copySuccess) {
+        val originalSize = sourceDocument.length()
+        val newSize = newFile.length()
+
+        if (!copySuccess || originalSize != newSize) {
             newFile.delete()
             Log.e(tag, "Failed to copy data")
             return null
