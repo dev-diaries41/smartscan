@@ -57,7 +57,7 @@
     <!-- Scan history screen -->
     <string name="no_scan_history">No Scan History</string>
     <string name="no_scan_history_description">"Enable auto-organisation in settings to allow smart folder organisation"</string>
-    <string name="clear_logs_alert_title">Clear all logs</string>
+    <string name="clear_logs_alert_title">Clear logs</string>
     <string name="clear_logs_alert_description">Press `OK` to clear all logs.</string>
     <string name="undo_alert_title">Undo last scan</string>
     <string name="undo_alert_description">Press `OK` to undo the last scan.</string>
