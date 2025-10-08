@@ -2,6 +2,7 @@ package com.fpf.smartscan.workers
 
 import android.app.Application
 import android.content.Context
+import android.net.Uri
 import android.util.Log
 import androidx.core.content.edit
 import androidx.work.CoroutineWorker
@@ -72,10 +73,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
 
             embeddingHandler.initialize()
 
-            val uriList = readUriListFromFile(imageUriFilePath)
-            val startIndex = batchIndex * batchSize
-            val endIndex = kotlin.math.min(startIndex + batchSize, uriList.size)
-            val batchUriList = uriList.subList(startIndex, endIndex)
+            val batchUriList = getBatchUris()
 
             Log.i(TAG, "Processing classification batch $batchIndex with ${batchUriList.size} images.")
             val results = organiser.run(batchUriList)
@@ -96,8 +94,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                     throw results.error
                 }
             }
-
-
 
             if (isLastBatch) {
                 onAllJobsComplete()
@@ -133,6 +129,14 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             organiser.close()
             saveLastUsedDestinations(applicationContext, prototypes.map { it.id })
         }
+    }
+
+    private fun getBatchUris(): List<Uri>{
+        val uriList = readUriListFromFile(imageUriFilePath)
+        val startIndex = batchIndex * batchSize
+        val endIndex = kotlin.math.min(startIndex + batchSize, uriList.size)
+        val batchUriList = uriList.subList(startIndex, endIndex)
+        return batchUriList
     }
 
     private fun saveLastUsedDestinations(context: Context, files: List<String>) {
