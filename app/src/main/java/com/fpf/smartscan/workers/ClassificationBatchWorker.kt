@@ -42,7 +42,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
 
     private val jobManager = JobManager.getInstance(context)
     private var startTime: Long = 0L
-    private var previousProcessingCount: Int = 0
 
     private val scanId = inputData.getInt("SCAN_ID", -1)
     private val batchIndex = inputData.getInt("BATCH_INDEX", -1)
@@ -60,8 +59,6 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
         val prototypes = prototypeRepository.getAllEmbeddingsSync().map{it.toEmbedding()}
 
         val organiser = Organiser(applicationContext as Application, embeddingHandler, scanId=scanId, listener = OrganiserListener, prototypeList = prototypes, threshold = threshold, confidenceMargin = confidenceMargin)
-        val startResult = jobManager.onStart(JOB_NAME)
-        previousProcessingCount = startResult.initialProcessedCount
 
         try {
             if (batchIndex < 0 || batchSize <= 0 || totalImages <= 0 || scanId == -1) {
