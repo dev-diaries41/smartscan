@@ -1,7 +1,5 @@
 package com.fpf.smartscan.data.movehistory
 
-import androidx.lifecycle.LiveData
-
 class MoveHistoryRepository(private val dao: MoveHistoryDao) {
 
     suspend fun getMoveHistory(scanId: Int): List<MoveHistory> {
@@ -18,5 +16,9 @@ class MoveHistoryRepository(private val dao: MoveHistoryDao) {
 
     suspend fun deleteMoveHistory(scanId: Int) {
         dao.deleteMoveHistory(scanId)
+    }
+
+    suspend fun clear(){
+        dao.clear()
     }
 }
