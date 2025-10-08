@@ -18,7 +18,6 @@ import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
 import com.fpf.smartscan.lib.JobManager
-import com.fpf.smartscan.lib.deleteLocalFile
 import com.fpf.smartscan.lib.getFilesFromDir
 import com.fpf.smartscan.lib.readUriListFromFile
 import com.fpf.smartscansdk.extensions.organisers.Organiser
@@ -68,13 +67,11 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 return@withContext Result.success()
             }
 
-            Log.i(TAG, "Found ${filteredFileUriList.size} image files for classification.")
-
             val imageUriFilePath = persistImageUriList(applicationContext, filteredFileUriList)
             val totalImages = filteredFileUriList.size
             val totalBatches = (totalImages + BATCH_SIZE - 1) / BATCH_SIZE
 
-            Log.i(TAG, "Will schedule $totalBatches batch workers (batch size: $BATCH_SIZE).")
+            Log.i(TAG, "Total files to process: ${filteredFileUriList.size} | Total batches: $totalBatches | Batch size: $BATCH_SIZE.")
 
             val workManager = WorkManager.getInstance(applicationContext)
             var continuation: WorkContinuation? = null
@@ -166,7 +163,10 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
                 val lastUsedDestinationsDirectories = getLastUsedDestinations(context)
                 if (lastUsedDestinationsDirectories.isEmpty()) return currentFileUriList
                 val isSameDestinations = currentDestinationDirectories.toSet() == lastUsedDestinationsDirectories.toSet()
-                workFiles.map{deleteLocalFile(context, it)} // cleanup old files
+                workFiles.map{
+                    val file = File(context.filesDir, it)
+                    if (file.exists()) file.delete()
+                }
                 if (isSameDestinations) {
                     return currentFileUriList.filterNot { it in previousUriList.toSet() }
                 }
