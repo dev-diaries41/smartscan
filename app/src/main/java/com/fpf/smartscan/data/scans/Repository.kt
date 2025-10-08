@@ -17,4 +17,8 @@ class ScanDataRepository(private val dao: ScanDataDao) {
         dao.delete(id)
     }
 
+    suspend fun clear(){
+        dao.clear()
+    }
+
 }
