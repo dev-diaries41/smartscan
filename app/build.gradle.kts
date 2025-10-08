@@ -56,6 +56,14 @@ android {
         // Disables dependency metadata when building Android App Bundles.
         includeInBundle = false
     }
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+            all {
+                it.useJUnitPlatform()
+            }
+        }
+    }
 }
 
 dependencies {
@@ -82,7 +90,14 @@ dependencies {
     implementation(libs.androidx.media3.ui)
 
     debugImplementation(libs.androidx.ui.tooling)
-    testImplementation(libs.junit)
+
+    // JVM unit tests
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.junit.jupiter.api)
+    testRuntimeOnly(libs.junit.jupiter.engine)
+    testImplementation(libs.mockk)
+    testImplementation(kotlin("test"))
+
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 }
