@@ -96,10 +96,13 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
                 // Temporary workaround to avoid modifying db schema:
                 // ERROR_RESULT (-1) is used to indicate a failure with no reliable result.
                 val moveHistory = moveHistoryRepository.getMoveHistory(scanId)
-                val count = if(moveHistory.isNotEmpty()) moveHistory.size else ScanData.ERROR_RESULT
-                scanDataRepository.update(scanId, count, System.currentTimeMillis())
+                if(moveHistory.isEmpty()){
+                    scanDataRepository.delete(scanId)
+                    showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_issue), applicationContext.getString(R.string.notif_title_smart_scan_issue_description), 1003)
+                }else{
+                    scanDataRepository.update(scanId, moveHistory.size, System.currentTimeMillis())
+                }
                 // Do not continually retry unlike indexing, because this does not have a super critical impact on usability
-                showNotification(applicationContext, applicationContext.getString(R.string.notif_title_smart_scan_issue), applicationContext.getString(R.string.notif_title_smart_scan_issue_description), 1003)
                 return@withContext Result.failure()
             }
             return@withContext Result.retry()
