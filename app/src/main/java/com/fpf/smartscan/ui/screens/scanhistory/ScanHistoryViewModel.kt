@@ -53,11 +53,23 @@ class ScanHistoryViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun undoLastScan(scanHistory: List<ScanData>) {
+    fun clearScanHistory(){
+        viewModelScope.launch (Dispatchers.IO){
+            try {
+                movesRepository.clear()
+                scansRepository.clear()
+            }catch (e: Exception){
+
+            }finally {
+
+            }
+        }
+    }
+
+    fun undoLastScan(lastScanId: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 _isLoading.emit(true)
-                val lastScanId = scanHistory.maxOf { it.id }
                 val movesForScan = movesRepository.getMoveHistory(lastScanId)
                 val processedCount = AtomicInteger(0)
                 val memoryUtils = MemoryUtils(getApplication(), MemoryOptions(minConcurrency = 2, maxConcurrency = 8))

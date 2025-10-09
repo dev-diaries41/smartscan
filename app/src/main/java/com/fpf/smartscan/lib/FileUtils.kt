@@ -13,33 +13,42 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
     val tag = "FileOperationError"
     try {
         val destDir = DocumentFile.fromTreeUri(context, destinationDirUri)
-        if (destDir == null || !destDir.isDirectory) {
-            Log.e(tag, "Destination is not a valid directory")
-            return null
-        }
-
         val sourceDocument = DocumentFile.fromSingleUri(context, sourceUri)
-        val sourceFileName = sourceDocument?.name ?: "IMG_${System.currentTimeMillis()}.jpg"
-        val mimeType = context.contentResolver.getType(sourceUri) ?: "image/jpeg"
-
-        val newFile = destDir.createFile(mimeType, sourceFileName)
-        if (newFile == null) {
-            Log.e(tag, "Failed to create new file in destination directory")
+        if (destDir == null || !destDir.isDirectory || sourceDocument == null || !sourceDocument.exists()) {
+            Log.e(tag, "Invalid source or destination")
             return null
         }
 
-        context.contentResolver.openInputStream(sourceUri)?.use { input ->
+        val sourceFileName = sourceDocument.name ?: "IMG_${System.currentTimeMillis()}.jpg"
+        val mimeType = context.contentResolver.getType(sourceUri) ?: "image/jpeg"
+        val newFile = destDir.createFile(mimeType, sourceFileName) ?: run {
+            Log.e(tag, "Failed to create file in destination")
+            return null
+        }
+
+         context.contentResolver.openInputStream(sourceUri)?.use { input ->
             context.contentResolver.openOutputStream(newFile.uri)?.use { output ->
                 input.copyTo(output)
             }
         }
-        sourceDocument?.delete()
+
+        val originalSize = sourceDocument.length()
+        val newSize = newFile.length()
+
+        if (originalSize != newSize) {
+            newFile.delete()
+            Log.e(tag, "Failed to copy data")
+            return null
+        }
+
+        sourceDocument.delete()
         return newFile.uri
     } catch (e: Exception) {
-        Log.e(tag, "Failed to move image: ${e.message ?: "Unknown error"}")
+        Log.e(tag, "Failed to move file: ${e.message ?: "Unknown error"}")
         return null
     }
 }
+
 
 fun getDirectoryName(context: Context, uri: Uri): String {
     val documentDir = DocumentFile.fromTreeUri(context, uri)
@@ -66,16 +75,6 @@ fun getFilesFromDir(context: Context, uris: List<Uri>, fileExtensions: List<Stri
     }
 
     return fileUris
-}
-
-
-fun deleteLocalFile(context: Context, fileName: String): Boolean {
-    val file = File(context.filesDir, fileName)
-    return if (file.exists()) {
-        file.delete()
-    } else {
-        false
-    }
 }
 
 fun readUriListFromFile(path: String): List<Uri> {
