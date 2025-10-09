@@ -19,5 +19,8 @@ interface ScanDataDao {
 
     @Query("UPDATE scan_data SET result = :result, date = :date WHERE id = :scanId")
     suspend fun update(scanId: Int, result: Int, date: Long)
+
+    @Query("DELETE FROM scan_data ")
+    suspend fun clear()
 }
 
