@@ -35,8 +35,6 @@ fun SettingsDetailScreen(
     viewModel: SettingsViewModel,
 ) {
     val appSettings by viewModel.appSettings.collectAsState()
-    val importEvent by viewModel.importEvent.collectAsState()
-
     val context = LocalContext.current
     val initialTargetDirectories = remember { appSettings.targetDirectories }
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
@@ -55,11 +53,12 @@ fun SettingsDetailScreen(
         }
     }
 
-    LaunchedEffect(importEvent) {
-        importEvent?.let { msg ->
+    LaunchedEffect(Unit) {
+        viewModel.importEvent.collect { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
         }
     }
+
 
     Box(
         modifier = Modifier

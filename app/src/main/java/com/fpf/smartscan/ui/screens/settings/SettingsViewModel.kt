@@ -41,7 +41,9 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -52,8 +54,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private val storage = Storage.getInstance(getApplication())
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
-    private val _importEvent = MutableStateFlow<String?>(null)
-    val importEvent: StateFlow<String?> = _importEvent
+    private val _importEvent = MutableSharedFlow<String>()
+    val importEvent = _importEvent.asSharedFlow()
 
 
     companion object {
