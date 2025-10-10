@@ -21,6 +21,8 @@ import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
+import com.fpf.smartscan.constants.ModelPaths
+import com.fpf.smartscan.constants.SmartScanModelTypes
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
@@ -44,6 +46,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
+import java.io.File
+import java.io.FileOutputStream
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
@@ -297,6 +301,35 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
         }
     }
+
+    fun importModel(context: Context, uri: Uri, type: String) {
+        val outputPath = when(type){
+            SmartScanModelTypes.FACE -> ModelPaths.FACE
+            SmartScanModelTypes.OBJECTS -> ModelPaths.OBJECTS
+            SmartScanModelTypes.IMAGE_ENCODER -> ModelPaths.IMAGE_ENCODER
+            SmartScanModelTypes.TEXT_ENCODER -> ModelPaths.TEXT_ENCODER
+            else -> ""
+        }
+        if (outputPath.isBlank()) return
+
+        val outputFile = File(context.filesDir, outputPath)
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                context.contentResolver.openInputStream(uri)?.use { input ->
+                    FileOutputStream(outputFile).use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                withContext(Dispatchers.Main){
+                    Toast.makeText(context, "Model imported successfully", Toast.LENGTH_SHORT).show()
+                }
+            }catch (e: Exception){
+                Log.e(TAG, "Error importing model: ${e.message}")
+                Toast.makeText(context, "Error importing model", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun startImageIndexing() {
         Intent(application, MediaIndexForegroundService::class.java)
