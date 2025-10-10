@@ -2,11 +2,15 @@ package com.fpf.smartscan.ui.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -15,6 +19,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -22,13 +30,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.constants.MODEL_DIR
+import com.fpf.smartscan.constants.smartScanModelTypeOptions
+import com.fpf.smartscan.data.SmartScanModelType
 import java.io.File
 
 @Composable
 fun ModelManager(
     description: String? = null,
 ) {
-    var modelsFiles = emptyArray<File>()
+    var modelsFiles by remember { mutableStateOf(emptyArray<File>()) }
     val context = LocalContext.current
 
     LaunchedEffect(modelsFiles) {
@@ -37,7 +47,7 @@ fun ModelManager(
         modelsDir.listFiles()?.let{modelsFiles = it}
     }
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Column() {
         if (description != null) {
             Text(
                 text = description,
@@ -61,12 +71,14 @@ fun ModelManager(
             ) {
                 Column(modifier = Modifier.padding(vertical = 16.dp)) {
                     modelsFiles.forEach { file ->
-                        val displayName = file.name
+                        val name =  SmartScanModelType.entries.first { type -> file.name.contains(type.fileName) }
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(text = displayName, modifier = Modifier.weight(1f))
+                            Icon(Icons.Default.Memory, contentDescription = "Model icon", tint = MaterialTheme.colorScheme.primary)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = smartScanModelTypeOptions[name]!!, modifier = Modifier.weight(1f))
                             IconButton(onClick = { file.delete()}) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete model", tint = Color.Red)
                             }
