@@ -3,7 +3,7 @@ package com.fpf.smartscan.lib
 import android.content.Context
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.DownloadableModel
-import com.fpf.smartscan.data.SmartScanModelTypes
+import com.fpf.smartscan.constants.SmartScanModelTypes
 
 fun getModels(context: Context): List<DownloadableModel>{
     val facialRecognitionModel = DownloadableModel(
