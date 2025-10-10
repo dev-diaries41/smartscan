@@ -20,9 +20,9 @@ import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
-import com.fpf.smartscan.constants.SmartScanModelType
 import com.fpf.smartscan.constants.modelPathsMap
 import com.fpf.smartscan.data.AppSettings
+import com.fpf.smartscan.data.SmartScanModelType
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
