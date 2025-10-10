@@ -28,7 +28,6 @@ import com.fpf.smartscan.constants.smartScanModelTypesOptions
 @Composable
 fun ModelImporter(
     addModel: (uri: Uri, type: String) -> Unit,
-    selectModelType: (String) -> Unit,
     description: String? = null,
 ) {
     var selectedModelType by remember { mutableStateOf("") }
@@ -49,7 +48,6 @@ fun ModelImporter(
             )
         }
 
-
         SelectorItem(
             label = "Model type",
             options = smartScanModelTypesOptions.values.toList(),
@@ -58,7 +56,7 @@ fun ModelImporter(
                 val newMode = smartScanModelTypesOptions.entries
                     .find { it.value == selected }
                     ?.key ?: ""
-                selectModelType(newMode)
+                selectedModelType = newMode
             }
         )
 
