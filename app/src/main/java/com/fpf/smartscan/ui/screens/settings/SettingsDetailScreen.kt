@@ -1,6 +1,7 @@
 package com.fpf.smartscan.ui.screens.settings
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -10,6 +11,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -32,6 +34,8 @@ fun SettingsDetailScreen(
     viewModel: SettingsViewModel,
 ) {
     val appSettings by viewModel.appSettings.collectAsState()
+    val importEvent by viewModel.importEvent.collectAsState()
+
     val context = LocalContext.current
     val initialTargetDirectories = remember { appSettings.targetDirectories }
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
@@ -47,6 +51,12 @@ fun SettingsDetailScreen(
                 initialOrganiserSimilarity = initialOrganiserSimilarity,
                 initialOrganiserConfMargin = initialOrganiserConfMargin
             )
+        }
+    }
+
+    LaunchedEffect(importEvent) {
+        importEvent?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -124,7 +134,7 @@ fun SettingsDetailScreen(
                             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                             context.startActivity(intent)
                     },
-                        onImport = { uri, type -> viewModel.importModel(context, uri, type) }
+                        onImport=viewModel::onImportModel
                     )
                 }
                 "manageModels" -> {
