@@ -7,6 +7,13 @@ object SmartScanModelTypes {
     const val TEXT_ENCODER = "text_encoder"
 }
 
+val smartScanModelTypesOptions = mapOf (
+    SmartScanModelTypes.FACE to  "Facial recognition",
+    SmartScanModelTypes.OBJECTS to  "Object detection",
+    SmartScanModelTypes.IMAGE_ENCODER to "Image encoder",
+    SmartScanModelTypes.TEXT_ENCODER to "Text encoder"
+)
+
 const val MODEL_DIR = "models"
 
 object ModelPaths {
