@@ -46,7 +46,9 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import java.io.File
+import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.util.zip.ZipInputStream
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
@@ -302,27 +304,44 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     fun importModel(context: Context, uri: Uri, type: SmartScanModelType) {
-        val outputPath = modelPathsMap[type] ?: ""
-        if (outputPath.isBlank()) return
-
+        val modelInfo = modelPathsMap[type] ?: return
+        val outputPath = modelInfo.path
         val outputFile = File(context.filesDir, outputPath)
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 context.contentResolver.openInputStream(uri)?.use { input ->
-                    FileOutputStream(outputFile).use { output ->
-                        input.copyTo(output)
+                    FileOutputStream(outputFile).use { output -> input.copyTo(output) }
+                }
+
+                // If it's a zip, unzip to the same folder
+                if (outputFile.extension == "zip") {
+                    val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
+                    if (!targetDir.exists()) targetDir.mkdirs()
+
+                    ZipInputStream(FileInputStream(outputFile)).use { zip ->
+                        var entry = zip.nextEntry
+                        while (entry != null) {
+                            val entryFile = File(targetDir, entry.name)
+                            FileOutputStream(entryFile).use { out ->
+                                zip.copyTo(out)
+                            }
+                            zip.closeEntry()
+                            entry = zip.nextEntry
+                        }
                     }
                 }
-                withContext(Dispatchers.Main){
+
+                withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Model imported successfully", Toast.LENGTH_SHORT).show()
                 }
-            }catch (e: Exception){
+            } catch (e: Exception) {
                 Log.e(TAG, "Error importing model: ${e.message}")
-                Toast.makeText(context, "Error importing model", Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, "Error importing model", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
-
 
     private fun startImageIndexing() {
         Intent(application, MediaIndexForegroundService::class.java)
