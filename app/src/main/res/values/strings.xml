@@ -107,6 +107,10 @@
     <string name="setting_social_reddit">Reddit</string>
 
 
+    <!--Model Manager-->
+    <string name="delete_model_alert_title">Delete model</string>
+    <string name="delete_model_alert_description">Press `OK` to delete model.</string>
+
     <!--Help screen-->
     <!-- Image Management -->
     <string name="help_image_management_title">Image Management</string>
