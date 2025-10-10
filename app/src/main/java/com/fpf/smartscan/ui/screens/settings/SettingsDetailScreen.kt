@@ -1,5 +1,7 @@
 package com.fpf.smartscan.ui.screens.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,9 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
+import com.fpf.smartscan.constants.facialRecognitionModel
 import com.fpf.smartscan.ui.components.CustomSlider
+import com.fpf.smartscan.ui.components.ModelDownloader
+import androidx.core.net.toUri
+import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.SmartScanModelTypes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,9 +120,22 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_organisation_conf_margin_description)
                     )
                 }
-                else -> {
-                    Text("Unknown setting type")
+
+                "downloadModel" -> {
+                    val facialRecognitionModel = DownloadableModel(
+                        type = SmartScanModelTypes.FACE,
+                        name = context.getString(R.string.facial_recognition_model_name),
+                        url = context.getString(R.string.inception_resnet_v1_model_url),
+                    )
+                    ModelDownloader(models = listOf(facialRecognitionModel), onDownload = { url ->
+                        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                        context.startActivity(intent)
+                    })
                 }
+                "importModel" -> {
+                    Text("Import model")
+                }
+                else -> {}
             }
         }
     }
