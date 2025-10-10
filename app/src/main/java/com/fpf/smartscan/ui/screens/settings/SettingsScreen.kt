@@ -175,7 +175,6 @@ fun SettingsScreen(
                     onOptionSelected = { selected ->
                         viewModel.updateIndexFrequency(selected)
                     },
-//                    description = stringResource(id = R.string.setting_index_frequency_description)
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -219,6 +218,23 @@ fun SettingsScreen(
                     onOptionSelected = { selected ->
                         viewModel.updateFrequency(selected)
                     }
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Text(
+                    text = stringResource(id = R.string.advanced_settings),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                ActionItem(
+                    text = stringResource(id = R.string.setting_download_model),
+                    onClick = { onNavigate("settingsDetail/downloadModel") }
+                )
+                ActionItem(
+                    text = stringResource(id = R.string.setting_import_model),
+                    onClick = { onNavigate("settingsDetail/importModel") }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
