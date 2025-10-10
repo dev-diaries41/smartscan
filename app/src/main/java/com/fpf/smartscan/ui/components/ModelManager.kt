@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,27 +31,21 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.R
-import com.fpf.smartscan.constants.MODEL_DIR
-import com.fpf.smartscan.constants.smartScanModelTypeOptions
-import com.fpf.smartscan.data.SmartScanModelType
-import java.io.File
+import com.fpf.smartscan.data.ImportedModel
+import com.fpf.smartscan.lib.deleteModel
+
 
 @Composable
 fun ModelManager(
+    importedModels: List<ImportedModel>,
     description: String? = null,
 ) {
     var isDeleteAlertVisible by remember { mutableStateOf(false) }
-    var fileToDelete by remember { mutableStateOf<File?>(null) }
-    var modelsFiles by remember { mutableStateOf(emptyList<File>()) }
+    var modelToDelete by remember { mutableStateOf<ImportedModel?>(null) }
+    var models by remember { mutableStateOf(importedModels) }
     val context = LocalContext.current
 
-    LaunchedEffect(Unit) {
-        val modelsDir = File(context.filesDir, MODEL_DIR)
-        if(!modelsDir.exists()) modelsDir.mkdirs()
-        modelsDir.listFiles()?.let{modelsFiles = it.toList()}
-    }
-
-    if(isDeleteAlertVisible && fileToDelete != null){
+    if(isDeleteAlertVisible && modelToDelete != null){
         AlertDialog(
             onDismissRequest = { },
             title = { Text(stringResource(R.string.delete_model_alert_title)) },
@@ -67,9 +60,9 @@ fun ModelManager(
             confirmButton = {
                 TextButton(onClick = {
                     isDeleteAlertVisible = false
-                    fileToDelete!!.delete()
-                    modelsFiles = modelsFiles - fileToDelete!!
-                    fileToDelete = null
+                    deleteModel(context, modelToDelete!!)
+                    models = models - modelToDelete!!
+                    modelToDelete = null
                 }) {
                     Text("OK")
                 }
@@ -86,7 +79,7 @@ fun ModelManager(
             )
         }
 
-        if (modelsFiles.isEmpty()) {
+        if (models.isEmpty()) {
             Text(
                 text = "No models.",
                 style = MaterialTheme.typography.bodyMedium,
@@ -100,18 +93,17 @@ fun ModelManager(
                 colors= CardDefaults.cardColors(Color.Transparent)
             ) {
                 Column(modifier = Modifier.padding(vertical = 16.dp)) {
-                    modelsFiles.forEach { file ->
-                        val name =  SmartScanModelType.entries.first { type -> file.name.contains(type.tag) }
+                    models.forEach { model ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(Icons.Default.Memory, contentDescription = "Model icon", tint = MaterialTheme.colorScheme.primary)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(text = smartScanModelTypeOptions[name]!!, modifier = Modifier.weight(1f))
+                            Text(text = model.name, modifier = Modifier.weight(1f))
                             IconButton(onClick = {
                                 isDeleteAlertVisible = true
-                                fileToDelete = file
+                                modelToDelete = model
                             }) {
                                 Icon(Icons.Default.Delete, contentDescription = "Delete model", tint = Color.Red)
                             }
