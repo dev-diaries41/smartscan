@@ -1,6 +1,6 @@
 package com.fpf.smartscan.data
 
-enum class SmartScanModelType(val fileName: String) {
+enum class SmartScanModelType(val tag: String) {
     FACE("facial"),
     OBJECTS("object"),
     IMAGE_ENCODER("image_encoder"),

@@ -101,7 +101,7 @@ fun ModelManager(
             ) {
                 Column(modifier = Modifier.padding(vertical = 16.dp)) {
                     modelsFiles.forEach { file ->
-                        val name =  SmartScanModelType.entries.first { type -> file.name.contains(type.fileName) }
+                        val name =  SmartScanModelType.entries.first { type -> file.name.contains(type.tag) }
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
