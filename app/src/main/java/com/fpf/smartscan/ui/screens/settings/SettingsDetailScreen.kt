@@ -20,11 +20,10 @@ import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
-import com.fpf.smartscan.ui.components.ModelDownloader
 import androidx.core.net.toUri
 import com.fpf.smartscan.lib.getModels
-import com.fpf.smartscan.ui.components.ModelImporter
 import com.fpf.smartscan.ui.components.ModelManager
+import com.fpf.smartscan.ui.components.ModelsList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,18 +117,16 @@ fun SettingsDetailScreen(
                     )
                 }
 
-                "downloadModel" -> {
-                    ModelDownloader(models = getModels(context), onDownload = { url ->
-                        val intent = Intent(Intent.ACTION_VIEW, url.toUri())
-                        context.startActivity(intent)
-                    })
-                }
-                "importModel" -> {
-                    ModelImporter(
-                        addModel = { uri, type -> viewModel.importModel(context, uri, type) }
+                "models" -> {
+                    ModelsList(
+                        models = getModels(context),
+                        onDownload = { url ->
+                            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                            context.startActivity(intent)
+                    },
+                        onImport = { uri, type -> viewModel.importModel(context, uri, type) }
                     )
                 }
-
                 "manageModels" -> {
                     ModelManager()
                 }
