@@ -99,8 +99,8 @@
     <string name="setting_organisation_conf_margin_description">Minimum difference required between the top match and second-best. Lower values are permissive; higher values are stricter.</string>
 
     <!--Advanced Settings-->
-    <string name="setting_download_model">Download model</string>
-    <string name="setting_import_model">Import model</string>
+    <string name="setting_models">Models</string>
+    <string name="setting_manage_models">Manage models</string>
 
     <!--Other Settings-->
     <string name="setting_source_code">Source code</string>
