@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -24,6 +23,8 @@ import com.fpf.smartscan.ui.components.CustomSlider
 import com.fpf.smartscan.ui.components.ModelDownloader
 import androidx.core.net.toUri
 import com.fpf.smartscan.lib.getModels
+import com.fpf.smartscan.ui.components.ModelImporter
+import com.fpf.smartscan.ui.components.ModelManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -124,7 +125,13 @@ fun SettingsDetailScreen(
                     })
                 }
                 "importModel" -> {
-                    Text("Import model")
+                    ModelImporter(
+                        addModel = { uri, type -> viewModel.importModel(context, uri, type) }
+                    )
+                }
+
+                "manageModels" -> {
+                    ModelManager()
                 }
                 else -> {}
             }
