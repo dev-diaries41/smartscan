@@ -1,0 +1,79 @@
+package com.fpf.smartscan.ui.components
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.fpf.smartscan.constants.MODEL_DIR
+import java.io.File
+
+@Composable
+fun ModelManager(
+    description: String? = null,
+) {
+    var modelsFiles = emptyArray<File>()
+    val context = LocalContext.current
+
+    LaunchedEffect(modelsFiles) {
+        val modelsDir = File(context.filesDir, MODEL_DIR)
+        if(!modelsDir.exists()) modelsDir.mkdirs()
+        modelsDir.listFiles()?.let{modelsFiles = it}
+    }
+
+    Column(modifier = Modifier.padding(16.dp)) {
+        if (description != null) {
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.alpha(0.8f).padding(bottom = 16.dp),
+            )
+        }
+
+        if (modelsFiles.isEmpty()) {
+            Text(
+                text = "No models.",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
+            )
+        } else {
+            Card (
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
+                shape = RoundedCornerShape(8.dp),
+                colors= CardDefaults.cardColors(Color.Transparent)
+            ) {
+                Column(modifier = Modifier.padding(vertical = 16.dp)) {
+                    modelsFiles.forEach { file ->
+                        val displayName = file.name
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(text = displayName, modifier = Modifier.weight(1f))
+                            IconButton(onClick = { file.delete()}) {
+                                Icon(Icons.Default.Delete, contentDescription = "Delete model", tint = Color.Red)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
