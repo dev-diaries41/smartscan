@@ -4,7 +4,9 @@ import android.content.Context
 import android.net.Uri
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.modelPathsMap
+import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.ImportedModel
 import com.fpf.smartscan.data.SmartScanModelType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -13,13 +15,25 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
 
-fun getModels(context: Context): List<DownloadableModel>{
+fun getDownloadableModels(context: Context): List<DownloadableModel>{
     val facialRecognitionModel = DownloadableModel(
         type = SmartScanModelType.FACE,
         name = context.getString(R.string.facial_recognition_model_name),
         url = context.getString(R.string.inception_resnet_v1_model_url),
     )
     return listOf(facialRecognitionModel)
+}
+
+fun getImportedModels(context: Context): List<ImportedModel>{
+    try {
+        val facialRecognitionModel = ImportedModel(
+            type = SmartScanModelType.FACE,
+            name = context.getString(R.string.facial_recognition_model_name),
+            dependentModelPaths = modelPathsMap[SmartScanModelType.FACE]!!.dependentModelPaths,
+        )
+        val importedModels = mutableListOf(facialRecognitionModel).filter { File(context.filesDir, modelPathsMap[it.type]!!.path).exists() }
+        return importedModels
+    }catch (e: Exception){return emptyList()}
 }
 
 suspend fun importModel(context: Context, uri: Uri, type: SmartScanModelType) = withContext(Dispatchers.IO){
