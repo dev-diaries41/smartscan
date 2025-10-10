@@ -12,3 +12,14 @@ data class DownloadableModel(
     val name: String,
     val url: String,
 )
+
+data class ModelPathInfo(
+    val path: String,
+    val dependentModelPaths: List<String> = emptyList()
+)
+
+data class ImportedModel(
+    val type: SmartScanModelType,
+    val name: String,
+    val dependentModelPaths: List<String> = emptyList()
+)
