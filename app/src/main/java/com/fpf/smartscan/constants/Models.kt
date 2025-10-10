@@ -1,12 +1,6 @@
 package com.fpf.smartscan.constants
 
-enum class SmartScanModelType(val fileName: String) {
-    FACE("facial"),
-    OBJECTS("object"),
-    IMAGE_ENCODER("image_encoder"),
-    TEXT_ENCODER("text_encoder")
-}
-
+import com.fpf.smartscan.data.SmartScanModelType
 
 val smartScanModelTypeOptions = mapOf (
     SmartScanModelType.FACE to  "Facial recognition",
