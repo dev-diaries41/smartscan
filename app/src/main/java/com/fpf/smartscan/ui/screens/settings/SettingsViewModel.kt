@@ -21,6 +21,7 @@ import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
@@ -43,19 +44,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-
-@Serializable
-data class AppSettings(
-    val enableScan: Boolean = false,
-    val targetDirectories: List<String> = emptyList(),
-    val frequency: String = "1 Day",
-    val destinationDirectories: List<String> = emptyList(),
-    val similarityThreshold: Float = 0.2f,
-    val numberSimilarResults: Int = 10,
-    val indexFrequency: String = "1 Week",
-    val organiserSimilarityThreshold: Float = 0.4f,
-    val organiserConfMargin: Float = 0.03f,
-    )
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
