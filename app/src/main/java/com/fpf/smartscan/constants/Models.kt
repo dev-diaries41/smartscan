@@ -1,24 +1,25 @@
 package com.fpf.smartscan.constants
 
-object SmartScanModelTypes {
-    const val FACE = "facial"
-    const val OBJECTS = "object"
-    const val IMAGE_ENCODER = "image_encoder"
-    const val TEXT_ENCODER = "text_encoder"
+enum class SmartScanModelType(val fileName: String) {
+    FACE("facial"),
+    OBJECTS("object"),
+    IMAGE_ENCODER("image_encoder"),
+    TEXT_ENCODER("text_encoder")
 }
 
-val smartScanModelTypesOptions = mapOf (
-    SmartScanModelTypes.FACE to  "Facial recognition",
-    SmartScanModelTypes.OBJECTS to  "Object detection",
-    SmartScanModelTypes.IMAGE_ENCODER to "Image encoder",
-    SmartScanModelTypes.TEXT_ENCODER to "Text encoder"
+
+val smartScanModelTypeOptions = mapOf (
+    SmartScanModelType.FACE to  "Facial recognition",
+    SmartScanModelType.OBJECTS to  "Object detection",
+    SmartScanModelType.IMAGE_ENCODER to "Image encoder",
+    SmartScanModelType.TEXT_ENCODER to "Text encoder"
 )
 
 const val MODEL_DIR = "models"
 
-object ModelPaths {
-    const val FACE = "$MODEL_DIR/${SmartScanModelTypes.FACE}.zip"
-    const val OBJECTS =  "$MODEL_DIR/${SmartScanModelTypes.OBJECTS}.onnx"
-    const val IMAGE_ENCODER = "$MODEL_DIR/${SmartScanModelTypes.IMAGE_ENCODER}.onnx"
-    const val TEXT_ENCODER = "$MODEL_DIR/${SmartScanModelTypes.TEXT_ENCODER}.onnx"
-}
+val modelPathsMap = mapOf(
+    SmartScanModelType.FACE to "$MODEL_DIR/${SmartScanModelType.FACE.fileName}.zip",
+    SmartScanModelType.OBJECTS to "$MODEL_DIR/${SmartScanModelType.OBJECTS.fileName}.onnx",
+    SmartScanModelType.IMAGE_ENCODER to "$MODEL_DIR/${SmartScanModelType.IMAGE_ENCODER.fileName}.onnx",
+    SmartScanModelType.TEXT_ENCODER to "$MODEL_DIR/${SmartScanModelType.TEXT_ENCODER.fileName}.onnx"
+)
