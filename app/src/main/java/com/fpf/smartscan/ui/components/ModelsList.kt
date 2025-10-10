@@ -5,7 +5,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,14 +27,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.fpf.smartscan.constants.smartScanModelTypesOptions
+import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.SmartScanModelType
 
 @Composable
 fun ModelsList(
     models: List<DownloadableModel>,
     onDownload: (url: String) -> Unit,
-    onImport: (uri: Uri, type: String) -> Unit
+    onImport: (uri: Uri, type: SmartScanModelType) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
@@ -50,7 +50,7 @@ fun ModelsList(
 fun ModelCard(
     data: DownloadableModel,
     onDownload: (url: String) -> Unit,
-    onImport: (uri: Uri, type: String) -> Unit
+    onImport: (uri: Uri, type: SmartScanModelType) -> Unit
 ) {
     val context = LocalContext.current
     val launcher =
@@ -88,7 +88,7 @@ fun ModelCard(
                         style = MaterialTheme.typography.titleMedium
                     )
                     Text(
-                        text = "Type: ${smartScanModelTypesOptions[data.type]}",
+                        text = "Type: ${smartScanModelTypeOptions[data.type]}",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alpha(0.8f)
                     )
