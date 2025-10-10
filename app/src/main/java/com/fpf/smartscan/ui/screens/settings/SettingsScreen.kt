@@ -28,6 +28,7 @@ import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.components.SwitchItem
 import com.fpf.smartscan.ui.components.IncrementorItem
 import androidx.core.net.toUri
+import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 
