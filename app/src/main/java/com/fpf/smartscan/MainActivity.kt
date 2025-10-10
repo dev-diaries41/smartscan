@@ -7,12 +7,12 @@ import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
-import com.fpf.smartscan.ui.screens.settings.AppSettings
 import com.fpf.smartscan.ui.theme.MyAppTheme
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
