@@ -15,14 +15,13 @@ import com.fpf.smartscan.workers.scheduleClassificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
-import com.fpf.smartscan.constants.ModelPaths
-import com.fpf.smartscan.constants.SmartScanModelTypes
+import com.fpf.smartscan.constants.SmartScanModelType
+import com.fpf.smartscan.constants.modelPathsMap
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
@@ -302,14 +301,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun importModel(context: Context, uri: Uri, type: String) {
-        val outputPath = when(type){
-            SmartScanModelTypes.FACE -> ModelPaths.FACE
-            SmartScanModelTypes.OBJECTS -> ModelPaths.OBJECTS
-            SmartScanModelTypes.IMAGE_ENCODER -> ModelPaths.IMAGE_ENCODER
-            SmartScanModelTypes.TEXT_ENCODER -> ModelPaths.TEXT_ENCODER
-            else -> ""
-        }
+    fun importModel(context: Context, uri: Uri, type: SmartScanModelType) {
+        val outputPath = modelPathsMap[type] ?: ""
         if (outputPath.isBlank()) return
 
         val outputFile = File(context.filesDir, outputPath)
