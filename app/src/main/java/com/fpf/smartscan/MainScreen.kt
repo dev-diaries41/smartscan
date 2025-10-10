@@ -65,6 +65,8 @@ fun MainScreen() {
             "threshold" -> stringResource(R.string.setting_similarity_threshold)
             "destinations" -> stringResource(R.string.setting_destination_folders)
             "organiserAccuracy" -> stringResource(R.string.setting_organisation_organiser_accuracy)
+            "models" -> stringResource(R.string.setting_models)
+            "manageModels" -> stringResource(R.string.setting_manage_models)
             else -> ""
         }
         else -> ""
