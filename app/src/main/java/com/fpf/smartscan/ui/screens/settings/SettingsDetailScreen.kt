@@ -23,7 +23,8 @@ import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
 import androidx.core.net.toUri
-import com.fpf.smartscan.lib.getModels
+import com.fpf.smartscan.lib.getDownloadableModels
+import com.fpf.smartscan.lib.getImportedModels
 import com.fpf.smartscan.ui.components.ModelManager
 import com.fpf.smartscan.ui.components.ModelsList
 
@@ -129,7 +130,7 @@ fun SettingsDetailScreen(
 
                 "models" -> {
                     ModelsList(
-                        models = getModels(context),
+                        models = getDownloadableModels(context),
                         onDownload = { url ->
                             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                             context.startActivity(intent)
@@ -138,7 +139,7 @@ fun SettingsDetailScreen(
                     )
                 }
                 "manageModels" -> {
-                    ModelManager()
+                    ModelManager(importedModels = getImportedModels(context))
                 }
                 else -> {}
             }
