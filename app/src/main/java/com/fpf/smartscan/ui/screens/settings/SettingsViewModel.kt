@@ -27,6 +27,7 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.lib.isWorkScheduled
 import com.fpf.smartscan.services.MediaIndexForegroundService
@@ -303,34 +304,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun importModel(context: Context, uri: Uri, type: SmartScanModelType) {
-        val modelInfo = modelPathsMap[type] ?: return
-        val outputPath = modelInfo.path
-        val outputFile = File(context.filesDir, outputPath)
+    fun onImportModel(context: Context, uri: Uri, type: SmartScanModelType) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                context.contentResolver.openInputStream(uri)?.use { input ->
-                    FileOutputStream(outputFile).use { output -> input.copyTo(output) }
-                }
-
-                // If it's a zip, unzip to the same folder
-                if (outputFile.extension == "zip") {
-                    val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
-                    if (!targetDir.exists()) targetDir.mkdirs()
-
-                    ZipInputStream(FileInputStream(outputFile)).use { zip ->
-                        var entry = zip.nextEntry
-                        while (entry != null) {
-                            val entryFile = File(targetDir, entry.name)
-                            FileOutputStream(entryFile).use { out ->
-                                zip.copyTo(out)
-                            }
-                            zip.closeEntry()
-                            entry = zip.nextEntry
-                        }
-                    }
-                }
-
+                importModel(context, uri, type)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(context, "Model imported successfully", Toast.LENGTH_SHORT).show()
                 }
