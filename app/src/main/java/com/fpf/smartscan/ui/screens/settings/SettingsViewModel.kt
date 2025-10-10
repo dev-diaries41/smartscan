@@ -20,7 +20,6 @@ import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
-import com.fpf.smartscan.constants.modelPathsMap
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.SmartScanModelType
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
@@ -46,10 +45,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.util.zip.ZipInputStream
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
@@ -57,6 +52,9 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private val storage = Storage.getInstance(getApplication())
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
+    private val _importEvent = MutableStateFlow<String?>(null)
+    val importEvent: StateFlow<String?> = _importEvent
+
 
     companion object {
         private const val TAG = "SettingsViewModel"
@@ -304,18 +302,14 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun onImportModel(context: Context, uri: Uri, type: SmartScanModelType) {
+    fun onImportModel( uri: Uri, type: SmartScanModelType) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                importModel(context, uri, type)
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Model imported successfully", Toast.LENGTH_SHORT).show()
-                }
+                importModel(application, uri, type)
+                _importEvent.emit("Model imported successfully")
             } catch (e: Exception) {
                 Log.e(TAG, "Error importing model: ${e.message}")
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, "Error importing model", Toast.LENGTH_SHORT).show()
-                }
+                _importEvent.emit("Error importing model")
             }
         }
     }
