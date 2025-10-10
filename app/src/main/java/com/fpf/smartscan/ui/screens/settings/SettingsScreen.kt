@@ -229,12 +229,12 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 ActionItem(
-                    text = stringResource(id = R.string.setting_download_model),
-                    onClick = { onNavigate("settingsDetail/downloadModel") }
+                    text = stringResource(id = R.string.setting_models),
+                    onClick = { onNavigate("settingsDetail/models") }
                 )
                 ActionItem(
-                    text = stringResource(id = R.string.setting_import_model),
-                    onClick = { onNavigate("settingsDetail/importModel") }
+                    text = stringResource(id = R.string.setting_manage_models),
+                    onClick = { onNavigate("settingsDetail/manageModels") }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
