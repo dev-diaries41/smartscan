@@ -1,5 +1,6 @@
 package com.fpf.smartscan.constants
 
+import com.fpf.smartscan.data.ModelPathInfo
 import com.fpf.smartscan.data.SmartScanModelType
 
 val smartScanModelTypeOptions = mapOf (
@@ -12,8 +13,14 @@ val smartScanModelTypeOptions = mapOf (
 const val MODEL_DIR = "models"
 
 val modelPathsMap = mapOf(
-    SmartScanModelType.FACE to "$MODEL_DIR/${SmartScanModelType.FACE.fileName}.zip",
-    SmartScanModelType.OBJECTS to "$MODEL_DIR/${SmartScanModelType.OBJECTS.fileName}.onnx",
-    SmartScanModelType.IMAGE_ENCODER to "$MODEL_DIR/${SmartScanModelType.IMAGE_ENCODER.fileName}.onnx",
-    SmartScanModelType.TEXT_ENCODER to "$MODEL_DIR/${SmartScanModelType.TEXT_ENCODER.fileName}.onnx"
+    SmartScanModelType.FACE to ModelPathInfo(
+        path = "$MODEL_DIR/${SmartScanModelType.FACE.tag}.zip",
+        dependentModelPaths = listOf(
+            "$MODEL_DIR/${SmartScanModelType.FACE.tag}/face_detect.onnx",
+            "$MODEL_DIR/${SmartScanModelType.FACE.tag}/inception_resnet_v1_quant.onnx"
+        )
+    ),
+    SmartScanModelType.OBJECTS to ModelPathInfo("$MODEL_DIR/${SmartScanModelType.OBJECTS.tag}.onnx"),
+    SmartScanModelType.IMAGE_ENCODER to ModelPathInfo("$MODEL_DIR/${SmartScanModelType.IMAGE_ENCODER.tag}.onnx"),
+    SmartScanModelType.TEXT_ENCODER to ModelPathInfo("$MODEL_DIR/${SmartScanModelType.TEXT_ENCODER.tag}.onnx")
 )
