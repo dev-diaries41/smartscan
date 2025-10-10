@@ -1,7 +1,6 @@
 package com.fpf.smartscan.ui.screens.settings
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,10 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat.startActivity
 import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
-import com.fpf.smartscan.constants.facialRecognitionModel
 import com.fpf.smartscan.ui.components.CustomSlider
 import com.fpf.smartscan.ui.components.ModelDownloader
 import androidx.core.net.toUri
