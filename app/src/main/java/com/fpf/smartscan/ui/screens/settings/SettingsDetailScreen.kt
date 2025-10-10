@@ -23,8 +23,7 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
 import com.fpf.smartscan.ui.components.ModelDownloader
 import androidx.core.net.toUri
-import com.fpf.smartscan.data.DownloadableModel
-import com.fpf.smartscan.data.SmartScanModelTypes
+import com.fpf.smartscan.lib.getModels
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -119,12 +118,7 @@ fun SettingsDetailScreen(
                 }
 
                 "downloadModel" -> {
-                    val facialRecognitionModel = DownloadableModel(
-                        type = SmartScanModelTypes.FACE,
-                        name = context.getString(R.string.facial_recognition_model_name),
-                        url = context.getString(R.string.inception_resnet_v1_model_url),
-                    )
-                    ModelDownloader(models = listOf(facialRecognitionModel), onDownload = { url ->
+                    ModelDownloader(models = getModels(context), onDownload = { url ->
                         val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                         context.startActivity(intent)
                     })
