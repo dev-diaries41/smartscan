@@ -11,5 +11,4 @@ data class DownloadableModel(
     val type: String,
     val name: String,
     val url: String,
-    val dependentModels: List<DownloadableModel>? = null
 )
