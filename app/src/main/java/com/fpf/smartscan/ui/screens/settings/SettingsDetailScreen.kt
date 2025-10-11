@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -23,10 +21,10 @@ import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
 import androidx.core.net.toUri
+import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.lib.getDownloadableModels
-import com.fpf.smartscan.lib.getImportedModels
-import com.fpf.smartscan.ui.components.ModelManager
-import com.fpf.smartscan.ui.components.ModelsList
+import com.fpf.smartscan.ui.components.models.ModelManager
+import com.fpf.smartscan.ui.components.models.ModelsList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,12 +33,12 @@ fun SettingsDetailScreen(
     viewModel: SettingsViewModel,
 ) {
     val appSettings by viewModel.appSettings.collectAsState()
+    val models by viewModel.importedModels.collectAsState()
     val context = LocalContext.current
     val initialTargetDirectories = remember { appSettings.targetDirectories }
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
     val initialOrganiserSimilarity = remember { appSettings.organiserSimilarityThreshold }
     val initialOrganiserConfMargin = remember { appSettings.organiserConfMargin }
-    val scrollState = rememberScrollState()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -61,13 +59,11 @@ fun SettingsDetailScreen(
 
 
     Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize()
+        modifier = Modifier.padding(16.dp).fillMaxSize()
     ) {
-        Column(modifier = Modifier.verticalScroll(scrollState)) {
+        Column {
             when (type) {
-                "targets" -> {
+                SettingTypes.TARGETS -> {
                     DirectoryPicker(
                         directories = appSettings.targetDirectories,
                         addDirectory = { newDir ->
@@ -79,7 +75,7 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_target_folders_description)
                     )
                 }
-                "destinations" -> {
+                SettingTypes.DESTINATIONS -> {
                     DirectoryPicker(
                         directories = appSettings.destinationDirectories,
                         addDirectory = { newDir ->
@@ -91,7 +87,7 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_destination_folders_description)
                     )
                 }
-                "threshold" -> {
+                SettingTypes.THRESHOLD -> {
                     CustomSlider(
                         label = stringResource(R.string.setting_similarity_threshold),
                         minValue = 0.18f,
@@ -104,7 +100,7 @@ fun SettingsDetailScreen(
                     )
                 }
 
-                "organiserAccuracy" -> {
+                SettingTypes.ORGANISER_ACCURACY -> {
                     CustomSlider(
                         label = stringResource(R.string.setting_similarity_threshold),
                         minValue = 0.4f,
@@ -127,18 +123,17 @@ fun SettingsDetailScreen(
                     )
                 }
 
-                "models" -> {
+                SettingTypes.MODELS -> {
                     ModelsList(
                         models = getDownloadableModels(context),
                         onDownload = { url ->
                             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                             context.startActivity(intent)
                     },
-                        onImport=viewModel::onImportModel
                     )
                 }
-                "manageModels" -> {
-                    ModelManager(importedModels = getImportedModels(context))
+                SettingTypes.MANAGE_MODELS -> {
+                    ModelManager(models=models, onDelete = viewModel::onDeleteModel, onImport=viewModel::onImportModel)
                 }
                 else -> {}
             }

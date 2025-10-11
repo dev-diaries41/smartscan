@@ -110,6 +110,9 @@
     <!--Model Manager-->
     <string name="delete_model_alert_title">Delete model</string>
     <string name="delete_model_alert_description">Press `OK` to delete model.</string>
+    <!--Model List-->
+    <string name="download_model_alert_title">Download model</string>
+    <string name="download_model_alert_description">Press `OK` to download model. This will open your browser.</string>
 
     <!--Help screen-->
     <!-- Image Management -->
