@@ -29,6 +29,8 @@ import com.fpf.smartscan.ui.components.SwitchItem
 import com.fpf.smartscan.ui.components.IncrementorItem
 import androidx.core.net.toUri
 import com.fpf.smartscan.data.AppSettings
+import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.services.refreshIndex
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 
@@ -79,9 +81,11 @@ fun SettingsScreen(
                         onClick = {
                             if (currentStorageAccess != StorageAccess.Denied) {
                                 if(showRefreshImageIndexDialog){
-                                    viewModel.refreshImageIndex()
+                                    refreshIndex(context.applicationContext,
+                                        MediaIndexForegroundService.TYPE_IMAGE)
                                 }else{
-                                    viewModel.refreshVideoIndex()
+                                    refreshIndex(context.applicationContext,
+                                        MediaIndexForegroundService.TYPE_VIDEO)
                                 }
                             }
                             if(showRefreshImageIndexDialog){
