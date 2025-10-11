@@ -5,25 +5,28 @@ import android.net.Uri
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
 import java.io.File
 
-fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
+suspend fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? = withContext(
+    Dispatchers.IO) {
     val tag = "FileOperationError"
     try {
         val destDir = DocumentFile.fromTreeUri(context, destinationDirUri)
         val sourceDocument = DocumentFile.fromSingleUri(context, sourceUri)
         if (destDir == null || !destDir.isDirectory || sourceDocument == null || !sourceDocument.exists()) {
             Log.e(tag, "Invalid source or destination")
-            return null
+            return@withContext null
         }
 
         val sourceFileName = sourceDocument.name ?: "IMG_${System.currentTimeMillis()}.jpg"
         val mimeType = context.contentResolver.getType(sourceUri) ?: "image/jpeg"
         val newFile = destDir.createFile(mimeType, sourceFileName) ?: run {
             Log.e(tag, "Failed to create file in destination")
-            return null
+            return@withContext null
         }
 
          context.contentResolver.openInputStream(sourceUri)?.use { input ->
@@ -38,14 +41,14 @@ fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? {
         if (originalSize != newSize) {
             newFile.delete()
             Log.e(tag, "Failed to copy data")
-            return null
+            return@withContext null
         }
 
         sourceDocument.delete()
-        return newFile.uri
+        return@withContext newFile.uri
     } catch (e: Exception) {
         Log.e(tag, "Failed to move file: ${e.message ?: "Unknown error"}")
-        return null
+        return@withContext null
     }
 }
 
@@ -55,7 +58,8 @@ fun getDirectoryName(context: Context, uri: Uri): String {
     return documentDir?.name.toString()
 }
 
-fun getFilesFromDir(context: Context, uris: List<Uri>, fileExtensions: List<String>): List<Uri> {
+suspend fun getFilesFromDir(context: Context, uris: List<Uri>, fileExtensions: List<String>): List<Uri> = withContext(
+    Dispatchers.IO) {
     val fileUris = mutableListOf<Uri>()
 
     for (uri in uris) {
@@ -74,14 +78,14 @@ fun getFilesFromDir(context: Context, uris: List<Uri>, fileExtensions: List<Stri
         }
     }
 
-    return fileUris
+    return@withContext fileUris
 }
 
-fun readUriListFromFile(path: String): List<Uri> {
+suspend fun readUriListFromFile(path: String): List<Uri> = withContext(Dispatchers.IO) {
     val file = File(path)
     if (!file.exists()) {
         Log.e("UriReader", "File not found: $path")
-        return emptyList()
+        return@withContext emptyList()
     }
 
     val content = file.readText()
@@ -89,7 +93,7 @@ fun readUriListFromFile(path: String): List<Uri> {
         JSONArray(content)
     } catch (e: JSONException) {
         Log.e("UriReader", "Invalid JSON in file: $path", e)
-        return emptyList()
+        return@withContext emptyList()
     }
 
     val uriList = mutableListOf<Uri>()
@@ -99,7 +103,7 @@ fun readUriListFromFile(path: String): List<Uri> {
         }
     }
 
-    return uriList
+    return@withContext uriList
 }
 
 fun canOpenUri(context: Context, uri: Uri): Boolean {
