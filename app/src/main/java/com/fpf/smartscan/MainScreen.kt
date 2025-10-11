@@ -26,6 +26,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.fpf.smartscan.constants.Routes
+import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.ui.components.UpdatePopUp
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.help.HelpScreen
@@ -54,25 +56,27 @@ fun MainScreen() {
     val isUpdatePopUpVisible by mainViewModel.isUpdatePopUpVisible.collectAsState()
 
     val headerTitle = when {
-        currentRoute == "search" -> stringResource(R.string.title_search)
-        currentRoute == "scanhistory" -> stringResource(R.string.title_scan_history)
-        currentRoute == "settings" -> stringResource(R.string.title_settings)
-        currentRoute == "donate" -> stringResource(R.string.title_donate)
-        currentRoute == "help" -> stringResource(R.string.title_help)
-        currentRoute == "test" -> stringResource(R.string.title_test_organisation)
+        currentRoute == Routes.SEARCH -> stringResource(R.string.title_search)
+        currentRoute == Routes.SCAN_HISTORY -> stringResource(R.string.title_scan_history)
+        currentRoute == Routes.SETTINGS -> stringResource(R.string.title_settings)
+        currentRoute == Routes.DONATE -> stringResource(R.string.title_donate)
+        currentRoute == Routes.HELP -> stringResource(R.string.title_help)
+        currentRoute == Routes.TEST -> stringResource(R.string.title_test_organisation)
         currentRoute?.startsWith("settingsDetail") == true -> when (typeVal) {
-            "targets" -> stringResource(R.string.setting_target_folders)
-            "threshold" -> stringResource(R.string.setting_similarity_threshold)
-            "destinations" -> stringResource(R.string.setting_destination_folders)
-            "organiserAccuracy" -> stringResource(R.string.setting_organisation_organiser_accuracy)
-            "models" -> stringResource(R.string.setting_models)
-            "manageModels" -> stringResource(R.string.setting_manage_models)
+            SettingTypes.TARGETS -> stringResource(R.string.setting_target_folders)
+            SettingTypes.THRESHOLD -> stringResource(R.string.setting_similarity_threshold)
+            SettingTypes.DESTINATIONS -> stringResource(R.string.setting_destination_folders)
+            SettingTypes.ORGANISER_ACCURACY -> stringResource(R.string.setting_organisation_organiser_accuracy)
+            SettingTypes.MODELS -> stringResource(R.string.setting_models)
+            SettingTypes.MANAGE_MODELS -> stringResource(R.string.setting_manage_models)
             else -> ""
         }
         else -> ""
     }
 
-    if(isUpdatePopUpVisible) {
+    val showBackButton = currentRoute?.startsWith("settingsDetail") == true || currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
+
+        if(isUpdatePopUpVisible) {
         UpdatePopUp(
             isVisible = true,
             updates = mainViewModel.getUpdates(),
@@ -84,10 +88,7 @@ fun MainScreen() {
                 TopAppBar(
                     title = { Text(text = headerTitle) },
                     navigationIcon = {
-                        if (currentRoute?.startsWith("settingsDetail") == true || currentRoute?.startsWith(
-                                "test"
-                            ) == true || currentRoute == "donate" || currentRoute == "scanhistory" || currentRoute == "help"
-                        ) {
+                        if (showBackButton) {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(
                                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -97,16 +98,16 @@ fun MainScreen() {
                         }
                     },
                     actions = {
-                        if (currentRoute != "scanhistory") {
-                            IconButton(onClick = { navController.navigate("scanhistory") }) {
+                        if (currentRoute != Routes.SCAN_HISTORY) {
+                            IconButton(onClick = { navController.navigate(Routes.SCAN_HISTORY) }) {
                                 Icon(
                                     imageVector = Icons.Filled.History,
                                     contentDescription = "Scan History"
                                 )
                             }
                         }
-                        if (currentRoute != "test") {
-                            IconButton(onClick = { navController.navigate("test") }) {
+                        if (currentRoute != Routes.TEST) {
+                            IconButton(onClick = { navController.navigate(Routes.TEST) }) {
                                 Icon(
                                     imageVector = Icons.Filled.Science,
                                     contentDescription = "Test Model"
@@ -141,22 +142,22 @@ fun MainScreen() {
         ) { paddingValues ->
             NavHost(
                 navController = navController,
-                startDestination = "search",
+                startDestination = Routes.SEARCH,
                 modifier = Modifier.padding(paddingValues)
             ) {
-                composable("search") {
+                composable(Routes.SEARCH) {
                     SearchScreen(
                         searchViewModel = searchViewModel,
                         settingsViewModel = settingsViewModel
                     )
                 }
-                composable("scanhistory") {
+                composable(Routes.SCAN_HISTORY) {
                     val scanHistoryViewModel: ScanHistoryViewModel = viewModel()
                     ScanHistoryScreen(
                         viewModel = scanHistoryViewModel,
                     )
                 }
-                composable("settings") {
+                composable(Routes.SETTINGS) {
                     SettingsScreen(
                         viewModel = settingsViewModel,
                         onNavigate = { route: String ->
@@ -165,7 +166,7 @@ fun MainScreen() {
                     )
                 }
                 composable(
-                    route = "settingsDetail/{type}",
+                    route = Routes.SETTINGS_DETAIL,
                     arguments = listOf(navArgument("type") { type = NavType.StringType })
                 ) { backStackEntry ->
                     val type = backStackEntry.arguments?.getString("type") ?: ""
@@ -174,16 +175,16 @@ fun MainScreen() {
                         viewModel = settingsViewModel,
                     )
                 }
-                composable("test") {
+                composable(Routes.TEST) {
                     TestScreen(
                         settingsViewModel = settingsViewModel
                     )
                 }
-                composable("donate") {
+                composable(Routes.DONATE) {
                     DonateScreen()
                 }
 
-                composable("help") {
+                composable(Routes.HELP) {
                     HelpScreen()
                 }
             }

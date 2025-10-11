@@ -28,6 +28,8 @@ import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.components.SwitchItem
 import com.fpf.smartscan.ui.components.IncrementorItem
 import androidx.core.net.toUri
+import com.fpf.smartscan.constants.Routes
+import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.refreshIndex
@@ -140,7 +142,7 @@ fun SettingsScreen(
 
                 ActionItem(
                     text = stringResource(id = R.string.setting_similarity_threshold),
-                    onClick = { onNavigate("settingsDetail/threshold") }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.THRESHOLD)) }
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_refresh_image_index),
@@ -199,17 +201,17 @@ fun SettingsScreen(
                 ActionItem(
                     enabled = appSettings.enableScan,
                     text = stringResource(id = R.string.setting_target_folders),
-                    onClick = { onNavigate("settingsDetail/targets") }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.TARGETS)) }
                 )
                 ActionItem(
                     enabled = appSettings.enableScan,
                     text = stringResource(id = R.string.setting_destination_folders),
-                    onClick = { onNavigate("settingsDetail/destinations") }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.DESTINATIONS)) }
                 )
                 ActionItem(
                     enabled = appSettings.enableScan,
                     text = stringResource(id = R.string.setting_organisation_organiser_accuracy),
-                    onClick = { onNavigate("settingsDetail/organiserAccuracy") }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.ORGANISER_ACCURACY)) }
                 )
                 SelectorItem(
                     enabled = appSettings.enableScan,
@@ -234,11 +236,11 @@ fun SettingsScreen(
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_models),
-                    onClick = { onNavigate("settingsDetail/models") }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.MODELS)) }
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_manage_models),
-                    onClick = { onNavigate("settingsDetail/manageModels") }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.MANAGE_MODELS)) }
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -252,12 +254,12 @@ fun SettingsScreen(
 
                 ActionItem(
                     text = stringResource(id = R.string.title_help),
-                    onClick = { onNavigate("help") }
+                    onClick = { onNavigate(Routes.HELP) }
                 )
 
                 ActionItem(
                     text = stringResource(id = R.string.title_donate),
-                    onClick = { onNavigate("donate") }
+                    onClick = { onNavigate(Routes.DONATE) }
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_source_code),
