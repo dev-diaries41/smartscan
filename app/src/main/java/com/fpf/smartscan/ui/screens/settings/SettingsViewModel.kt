@@ -185,7 +185,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     }
 
     fun updateNumberSimilarImages(numberSimilarResults: String) {
-        val number = numberSimilarResults.toIntOrNull()?.takeIf { it in 1..20 } ?: 5
+        val number = numberSimilarResults.toIntOrNull()?.takeIf { it in 1..100 } ?: 20
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(numberSimilarResults = number)
         saveSettings(sharedPrefs, _appSettings.value)
