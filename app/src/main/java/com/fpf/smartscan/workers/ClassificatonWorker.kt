@@ -17,7 +17,6 @@ import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.data.scans.AppDatabase
 import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.data.scans.ScanDataRepository
-import com.fpf.smartscan.lib.JobManager
 import com.fpf.smartscan.lib.getFilesFromDir
 import com.fpf.smartscan.lib.readUriListFromFile
 import com.fpf.smartscansdk.extensions.organisers.Organiser
@@ -75,10 +74,6 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
 
             val workManager = WorkManager.getInstance(applicationContext)
             var continuation: WorkContinuation? = null
-
-            // This prevents stale data between chained workers
-            val jobManager = JobManager.getInstance(applicationContext)
-            jobManager.clearJobs(JOB_NAME)
 
             // Insert placeholder scan which will be updated upon completion
             // This is required to allow the undo functionality to work as the scanId is needed prior
