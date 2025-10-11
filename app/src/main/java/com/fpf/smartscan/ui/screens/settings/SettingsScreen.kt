@@ -133,7 +133,7 @@ fun SettingsScreen(
 
                 IncrementorItem(
                     minValue = 1,
-                    maxValue = 20,
+                    maxValue = 100,
                     onDecrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults - 1).toString())},
                     onIncrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults + 1).toString())},
                     value = appSettings.numberSimilarResults.toString(),
