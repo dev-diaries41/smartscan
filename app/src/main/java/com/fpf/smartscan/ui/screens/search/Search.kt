@@ -180,7 +180,7 @@ fun SearchScreen(
                     MediaType.IMAGE -> "Search images..."
                     MediaType.VIDEO -> "Search videos..."
                 },
-                nSimilarResult = appSettings.numberSimilarResults,
+                nSimilarResult = appSettings.maxSearchResults,
                 threshold = appSettings.similarityThreshold,
                 trailingIcon = {
                     val alpha = if(canSearch && hasStoragePermission && !isLoading) 0.6f else 0.1f
