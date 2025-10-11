@@ -58,6 +58,13 @@ fun DirectoryPicker(
     }
 
     Column(modifier = Modifier.verticalScroll(scrollState).fillMaxSize()) {
+        if (directories.isEmpty()) {
+            Text(
+                text = "No directories selected",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
+            )
+        }
         if (description != null) {
             Text(
                 text = description,
@@ -76,13 +83,7 @@ fun DirectoryPicker(
             }
         }
 
-        if (directories.isEmpty()) {
-            Text(
-                text = "No directories selected.",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
-            )
-        } else {
+        if (directories.isNotEmpty()) {
             Card (
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 4.dp),
