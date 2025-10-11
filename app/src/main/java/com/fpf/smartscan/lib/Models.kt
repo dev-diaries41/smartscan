@@ -39,7 +39,7 @@ fun getImportedModels(context: Context): List<ImportedModel>{
     }
 }
 
-private fun isImported(context: Context, model: ImportedModel): Boolean{
+fun isImported(context: Context, model: ImportedModel): Boolean{
     if(File(context.filesDir, modelPathsMap[model.type]!!.path).exists()) {
         return true
     }else if(model.dependentModelPaths.isNotEmpty()){
@@ -64,10 +64,24 @@ fun deleteModel(context: Context, model: ImportedModel): Boolean{
     }
 }
 
-suspend fun importModel(context: Context, uri: Uri, type: SmartScanModelType) = withContext(Dispatchers.IO){
+fun getTypeFromUri(context: Context, uri: Uri): SmartScanModelType?{
+    val models = getDownloadableModels(context)
+    val modelFilenames = models.map { it.url.split("/").last() }
+    val importedFilename = getFileName(context, uri)
+    val index = modelFilenames.indexOfFirst{ it == importedFilename}
+    if(index < 0) return null
+
+    return models[index].type
+}
+
+suspend fun importModel(context: Context, uri: Uri) = withContext(Dispatchers.IO){
+    val type = getTypeFromUri(context, uri)
     val modelInfo = modelPathsMap[type] ?: return@withContext
     val outputPath = modelInfo.path
     val outputFile = File(context.filesDir, outputPath)
+
+    outputFile.parentFile?.mkdirs()
+
     context.contentResolver.openInputStream(uri)?.use { input ->
         FileOutputStream(outputFile).use { output -> input.copyTo(output) }
     }

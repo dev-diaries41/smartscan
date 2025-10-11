@@ -15,12 +15,14 @@ import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.AppSettings
-import com.fpf.smartscan.data.SmartScanModelType
+import com.fpf.smartscan.data.ImportedModel
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.cancelWorker
+import com.fpf.smartscan.lib.deleteModel
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.lib.getImportedModels
 import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.lib.isWorkScheduled
@@ -52,6 +54,9 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private val sharedPrefs = application.getSharedPreferences(SETTINGS_PREF_NAME, Context.MODE_PRIVATE)
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
+
+    private val _importedModels = MutableStateFlow(getImportedModels(application))
+    val importedModels: StateFlow<List<ImportedModel>> = _importedModels
     private val _importEvent = MutableSharedFlow<String>()
     val importEvent = _importEvent.asSharedFlow()
     private var updateJob: Job? = null
@@ -278,15 +283,20 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         }
     }
 
-    fun onImportModel( uri: Uri, type: SmartScanModelType) {
+    fun onImportModel( uri: Uri) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                importModel(application, uri, type)
+                importModel(application, uri)
+                _importedModels.value = getImportedModels(application)
                 _importEvent.emit("Model imported successfully")
             } catch (e: Exception) {
                 Log.e(TAG, "Error importing model: ${e.message}")
                 _importEvent.emit("Error importing model")
             }
         }
+    }
+
+    fun onDeleteModel(model: ImportedModel){
+        if(deleteModel(application, model)) _importedModels.value = _importedModels.value - model
     }
 }
