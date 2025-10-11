@@ -39,6 +39,7 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
@@ -54,7 +55,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     val appSettings: StateFlow<AppSettings> = _appSettings
     private val _importEvent = MutableSharedFlow<String>()
     val importEvent = _importEvent.asSharedFlow()
-
+    private var updateJob: Job? = null
 
     companion object {
         private const val TAG = "SettingsViewModel"
@@ -265,8 +266,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
         viewModelScope.launch {
             if (destinationChanged) {
-                val job = updatePrototypes(getApplication(), _appSettings.value.destinationDirectories)
-                job.join()
+                updateJob?.cancelAndJoin()
+                updateJob = updatePrototypes(getApplication(), _appSettings.value.destinationDirectories)
+                updateJob?.join()
+                updateJob = null
             }
 
             if (shouldUpdateWorker) {
