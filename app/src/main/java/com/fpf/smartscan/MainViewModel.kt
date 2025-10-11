@@ -1,18 +1,20 @@
 package com.fpf.smartscan
 
 import android.app.Application
+import android.content.Context
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
-import com.fpf.smartscan.lib.Storage
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
 class MainViewModel( application: Application) : AndroidViewModel(application) {
 
     companion object {
+        private const val PREFS_NAME = "AsyncStorage"
         private const val UPDATES_KEY = "UPDATES_KEY"
     }
-    val storage = Storage.getInstance(getApplication())
+    private val sharedPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     val versionName: String? = try {
         val packageInfo = application.packageManager.getPackageInfo(application.packageName, 0)
@@ -25,11 +27,11 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
     val  isUpdatePopUpVisible: StateFlow<Boolean> = _isUpdatePopUpVisible
 
     val hasShownUpdatePopUp: Boolean
-        get() = storage.getItem(UPDATES_KEY) == versionName
+        get() = sharedPrefs.getString(UPDATES_KEY, null) == versionName
 
     fun closeUpdatePopUp(){
         _isUpdatePopUpVisible.value = false
-        storage.setItem(UPDATES_KEY, versionName.toString())
+        sharedPrefs.edit { putString(UPDATES_KEY, versionName.toString()) }
     }
 
     fun getUpdates(): List<String>{
