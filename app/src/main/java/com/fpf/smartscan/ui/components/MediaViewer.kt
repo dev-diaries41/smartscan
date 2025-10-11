@@ -41,6 +41,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.fpf.smartscan.lib.canOpenUri
 
 @Composable
 fun MediaViewer(
@@ -103,6 +104,7 @@ fun ActionRow(
         this.type = mime
     }
     val clipboard = LocalClipboard.current
+    val isUriAccessible = canOpenUri(context, uri)
 
     ActionRowWithFade(visible = isVisible) {
         IconButton(
@@ -115,45 +117,53 @@ fun ActionRow(
                 tint = MaterialTheme.colorScheme.onBackground
             )
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        )
-        {
-            IconButton(onClick = {
-               clipboard.nativeClipboard.setPrimaryClip(ClipData.newUri(context.contentResolver, "smartscan_media", uri))
-            }) {
-                Icon(
-                    Icons.Filled.ContentCopy,
-                    contentDescription = "Copy to clipboard",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            IconButton(onClick = {
-                if (type == MediaType.IMAGE) {
-                    openImageInGallery(context, uri)
-                } else {
-                    openVideoInGallery(context, uri)
-                }
-            }) {
-                Icon(
-                    Icons.Filled.PhotoLibrary,
-                    contentDescription = "Open in Gallery",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-
-            // Prevent share if mime is undefined for some reason
-            mime?.let {
+        if(isUriAccessible) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            )
+            {
                 IconButton(onClick = {
-                    context.startActivity(Intent.createChooser(shareIntent, null))
+                    clipboard.nativeClipboard.setPrimaryClip(
+                        ClipData.newUri(
+                            context.contentResolver,
+                            "smartscan_media",
+                            uri
+                        )
+                    )
                 }) {
                     Icon(
-                        Icons.Filled.Share,
-                        contentDescription = "Share",
+                        Icons.Filled.ContentCopy,
+                        contentDescription = "Copy to clipboard",
                         tint = MaterialTheme.colorScheme.onSurface
                     )
+                }
+
+                IconButton(onClick = {
+                    if (type == MediaType.IMAGE) {
+                        openImageInGallery(context, uri)
+                    } else {
+                        openVideoInGallery(context, uri)
+                    }
+                }) {
+                    Icon(
+                        Icons.Filled.PhotoLibrary,
+                        contentDescription = "Open in Gallery",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                // Prevent share if mime is undefined for some reason
+                mime?.let {
+                    IconButton(onClick = {
+                        context.startActivity(Intent.createChooser(shareIntent, null))
+                    }) {
+                        Icon(
+                            Icons.Filled.Share,
+                            contentDescription = "Share",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
         }
