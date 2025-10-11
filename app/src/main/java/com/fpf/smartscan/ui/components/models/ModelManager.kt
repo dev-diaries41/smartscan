@@ -65,7 +65,7 @@ fun ModelManager(
             }
             if (models.isEmpty()) {
                 Text(
-                    text = "No models to manage.",
+                    text = "No models to manage",
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
                 )
