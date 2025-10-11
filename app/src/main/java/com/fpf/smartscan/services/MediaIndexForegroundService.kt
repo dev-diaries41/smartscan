@@ -42,7 +42,7 @@ class MediaIndexForegroundService : Service() {
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
     private lateinit var embeddingHandler: ClipImageEmbedder
 
-    private val sharedPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    private val sharedPrefs by lazy { application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)    }
 
 
     override fun onCreate() {
