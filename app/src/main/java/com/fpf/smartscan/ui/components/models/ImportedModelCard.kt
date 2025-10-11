@@ -28,6 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.ImportedModel
@@ -94,22 +95,17 @@ fun ImportedModelCard(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alpha(0.8f)
                     )
-
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
                 Button (
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     onClick = { isDeleteAlertVisible = true }
                 ) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Delete icon",
-                        modifier = Modifier.padding(end = 4.dp)
+                        modifier = Modifier.padding(end = 4.dp).size(16.dp)
                     )
-                    Text(text = "Delete")
+                    Text(text = "Delete",  fontSize = 12.sp)
                 }
             }
         }
