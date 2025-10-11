@@ -4,14 +4,15 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.os.IBinder
 import android.provider.MediaStore
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.edit
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
-import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
@@ -34,11 +35,14 @@ class MediaIndexForegroundService : Service() {
         const val TYPE_BOTH = "both"
         private const val NOTIFICATION_ID = 200
         private const val TAG = "MediaIndexService"
+        private const val PREFS_NAME = "AsyncStorage"
     }
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
     private lateinit var embeddingHandler: ClipImageEmbedder
+
+    private val sharedPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
 
     override fun onCreate() {
@@ -80,7 +84,6 @@ class MediaIndexForegroundService : Service() {
         val mediaType = intent?.getStringExtra(EXTRA_MEDIA_TYPE) ?: TYPE_BOTH
 
         serviceScope.launch {
-            val storage = Storage.getInstance(application)
             try {
                 embeddingHandler.initialize()
 
@@ -107,7 +110,7 @@ class MediaIndexForegroundService : Service() {
             } catch (e: Exception) {
                 Log.e(TAG, "Indexing failed:", e)
             } finally {
-                storage.setItem("lastIndexed", System.currentTimeMillis().toString())
+                sharedPrefs.edit { putString("lastIndexed", System.currentTimeMillis().toString()) } //putString used for backward compat
                 embeddingHandler.closeSession()
                 stopForeground(STOP_FOREGROUND_REMOVE)
                 stopSelf()
