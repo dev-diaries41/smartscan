@@ -1,6 +1,7 @@
 package com.fpf.smartscan.ui.screens.search
 
 import android.net.Uri
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
@@ -11,7 +12,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.ui.components.ImageDisplay
@@ -38,24 +39,19 @@ fun SearchResults(
             contentPadding = PaddingValues(4.dp)
         ) {
             items(searchResults) { uri ->
-                Card(
-                    modifier = Modifier.aspectRatio(1f).padding(2.dp),
-                    shape = RectangleShape,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                ) {
-                    ImageDisplay(
-                        uri = uri,
-                        modifier = Modifier
-                            .aspectRatio(1f)
-                            .padding(0.5.dp)
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) { toggleViewResult(uri) },
-                        contentScale = ContentScale.Crop,
-                        type = type
-                    )
-                }
+                ImageDisplay(
+                    uri = uri,
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .padding(1.dp)
+                        .border(1.dp, Color.Gray.copy(alpha = 0.2f))
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) { toggleViewResult(uri) },
+                    contentScale = ContentScale.Crop,
+                    type = type
+                )
             }
         }
     }
