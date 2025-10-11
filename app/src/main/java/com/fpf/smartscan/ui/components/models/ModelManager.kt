@@ -5,9 +5,10 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
@@ -30,6 +31,7 @@ fun ModelManager(
     onImport: (uri: Uri) -> Unit,
     onDelete: (model: ImportedModel) -> Unit
 ) {
+    val scrollState = rememberScrollState()
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let { selectedUri ->
@@ -55,7 +57,7 @@ fun ModelManager(
             }
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)) {
+        Column(modifier = Modifier.verticalScroll(scrollState).fillMaxSize().padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)) {
             if (description != null) {
                 Text(
                     text = description,
@@ -70,12 +72,7 @@ fun ModelManager(
                     modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
                 )
             } else {
-                LazyColumn{
-                    items(
-                        items = models,
-                        key = { it.name }
-                    ) { item -> ImportedModelCard(data = item, onDelete = { onDelete(item)})}
-                }
+                models.forEach { model -> ImportedModelCard(data = model, onDelete = { onDelete(model) }) }
             }
         }
     }
