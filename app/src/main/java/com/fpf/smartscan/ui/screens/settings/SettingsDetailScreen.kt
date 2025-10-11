@@ -23,6 +23,7 @@ import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
 import androidx.core.net.toUri
+import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.lib.getDownloadableModels
 import com.fpf.smartscan.lib.getImportedModels
 import com.fpf.smartscan.ui.components.ModelManager
@@ -67,7 +68,7 @@ fun SettingsDetailScreen(
     ) {
         Column(modifier = Modifier.verticalScroll(scrollState)) {
             when (type) {
-                "targets" -> {
+                SettingTypes.TARGETS -> {
                     DirectoryPicker(
                         directories = appSettings.targetDirectories,
                         addDirectory = { newDir ->
@@ -79,7 +80,7 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_target_folders_description)
                     )
                 }
-                "destinations" -> {
+                SettingTypes.DESTINATIONS -> {
                     DirectoryPicker(
                         directories = appSettings.destinationDirectories,
                         addDirectory = { newDir ->
@@ -91,7 +92,7 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_destination_folders_description)
                     )
                 }
-                "threshold" -> {
+                SettingTypes.THRESHOLD -> {
                     CustomSlider(
                         label = stringResource(R.string.setting_similarity_threshold),
                         minValue = 0.18f,
@@ -104,7 +105,7 @@ fun SettingsDetailScreen(
                     )
                 }
 
-                "organiserAccuracy" -> {
+                SettingTypes.ORGANISER_ACCURACY -> {
                     CustomSlider(
                         label = stringResource(R.string.setting_similarity_threshold),
                         minValue = 0.4f,
@@ -127,7 +128,7 @@ fun SettingsDetailScreen(
                     )
                 }
 
-                "models" -> {
+                SettingTypes.MODELS -> {
                     ModelsList(
                         models = getDownloadableModels(context),
                         onDownload = { url ->
@@ -137,7 +138,7 @@ fun SettingsDetailScreen(
                         onImport=viewModel::onImportModel
                     )
                 }
-                "manageModels" -> {
+                SettingTypes.MANAGE_MODELS -> {
                     ModelManager(importedModels = getImportedModels(context))
                 }
                 else -> {}
