@@ -2,6 +2,7 @@ package com.fpf.smartscan.lib
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.documentfile.provider.DocumentFile
@@ -112,6 +113,21 @@ fun canOpenUri(context: Context, uri: Uri): Boolean {
         true
     } catch (e: Exception) {
         false
+    }
+}
+
+fun getFileName(context: Context, uri: Uri): String? {
+    try {
+        val cursor = context.contentResolver.query(uri, null, null, null, null)
+        val nameIndex = cursor?.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+        val name = if (cursor != null && nameIndex != null && nameIndex != -1 && cursor.moveToFirst()) {
+            cursor.getString(nameIndex)
+        } else null
+        cursor?.close()
+        return name
+    }catch (e: Exception){
+        Log.e("getFileName", "${e.message}")
+        return null
     }
 }
 
