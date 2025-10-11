@@ -15,17 +15,18 @@ import com.fpf.smartscan.workers.scheduleClassificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
 import androidx.work.WorkManager
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.AppSettings
+import com.fpf.smartscan.data.SmartScanModelType
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
+import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.lib.isWorkScheduled
 import com.fpf.smartscan.services.MediaIndexForegroundService
@@ -40,7 +41,9 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
@@ -51,6 +54,9 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private val storage = Storage.getInstance(getApplication())
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
+    private val _importEvent = MutableSharedFlow<String>()
+    val importEvent = _importEvent.asSharedFlow()
+
 
     companion object {
         private const val TAG = "SettingsViewModel"
@@ -294,6 +300,18 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
             if (shouldUpdateWorker) {
                 updateWorker()
+            }
+        }
+    }
+
+    fun onImportModel( uri: Uri, type: SmartScanModelType) {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                importModel(application, uri, type)
+                _importEvent.emit("Model imported successfully")
+            } catch (e: Exception) {
+                Log.e(TAG, "Error importing model: ${e.message}")
+                _importEvent.emit("Error importing model")
             }
         }
     }
