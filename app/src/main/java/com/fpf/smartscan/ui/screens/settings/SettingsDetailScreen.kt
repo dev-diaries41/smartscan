@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -25,7 +23,6 @@ import com.fpf.smartscan.ui.components.CustomSlider
 import androidx.core.net.toUri
 import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.lib.getDownloadableModels
-import com.fpf.smartscan.lib.getImportedModels
 import com.fpf.smartscan.ui.components.models.ModelManager
 import com.fpf.smartscan.ui.components.models.ModelsList
 
@@ -36,6 +33,7 @@ fun SettingsDetailScreen(
     viewModel: SettingsViewModel,
 ) {
     val appSettings by viewModel.appSettings.collectAsState()
+    val models by viewModel.importedModels.collectAsState()
     val context = LocalContext.current
     val initialTargetDirectories = remember { appSettings.targetDirectories }
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
@@ -135,7 +133,7 @@ fun SettingsDetailScreen(
                     )
                 }
                 SettingTypes.MANAGE_MODELS -> {
-                    ModelManager(importedModels = getImportedModels(context), onImport=viewModel::onImportModel)
+                    ModelManager(models=models, onDelete = viewModel::onDeleteModel, onImport=viewModel::onImportModel)
                 }
                 else -> {}
             }
