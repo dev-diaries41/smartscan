@@ -26,8 +26,8 @@ import androidx.core.net.toUri
 import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.lib.getDownloadableModels
 import com.fpf.smartscan.lib.getImportedModels
-import com.fpf.smartscan.ui.components.ModelManager
-import com.fpf.smartscan.ui.components.ModelsList
+import com.fpf.smartscan.ui.components.models.ModelManager
+import com.fpf.smartscan.ui.components.models.ModelsList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -41,7 +41,6 @@ fun SettingsDetailScreen(
     val initialDestinationDirectories = remember { appSettings.destinationDirectories }
     val initialOrganiserSimilarity = remember { appSettings.organiserSimilarityThreshold }
     val initialOrganiserConfMargin = remember { appSettings.organiserConfMargin }
-    val scrollState = rememberScrollState()
 
     DisposableEffect(Unit) {
         onDispose {
@@ -62,11 +61,9 @@ fun SettingsDetailScreen(
 
 
     Box(
-        modifier = Modifier
-            .padding(16.dp)
-            .fillMaxSize()
+        modifier = Modifier.padding(16.dp).fillMaxSize()
     ) {
-        Column(modifier = Modifier.verticalScroll(scrollState)) {
+        Column {
             when (type) {
                 SettingTypes.TARGETS -> {
                     DirectoryPicker(
@@ -135,11 +132,10 @@ fun SettingsDetailScreen(
                             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                             context.startActivity(intent)
                     },
-                        onImport=viewModel::onImportModel
                     )
                 }
                 SettingTypes.MANAGE_MODELS -> {
-                    ModelManager(importedModels = getImportedModels(context))
+                    ModelManager(importedModels = getImportedModels(context), onImport=viewModel::onImportModel)
                 }
                 else -> {}
             }
