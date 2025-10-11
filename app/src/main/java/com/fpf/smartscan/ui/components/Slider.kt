@@ -23,14 +23,13 @@ fun CustomSlider(
     maxValue: Float,
     initialValue: Float = minValue,
     onValueChange: (Float) -> Unit,
+    format: (Float) -> String = { "%.2f".format(it) },
     description: String? = null,
     ) {
     var sliderValue by remember { mutableFloatStateOf(initialValue) }
 
-    Column (modifier = Modifier.padding(16.dp)) {
-
-        Text(text = "$label: ${"%.2f".format(sliderValue)}")
-
+    Column {
+        Text(text = "$label: ${format(sliderValue)}", style = MaterialTheme.typography.labelLarge)
         Slider(
             value = sliderValue,
             onValueChange = {
