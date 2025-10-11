@@ -1,7 +1,6 @@
 package com.fpf.smartscan.ui.screens.search
 
 import android.app.Application
-import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import kotlinx.coroutines.launch
@@ -18,7 +17,6 @@ import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
-import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipTextEmbedder
@@ -258,16 +256,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 _isLoading.emit(false)
             }
         }
-    }
-
-    fun startIndexing(mediaType: MediaType) {
-        Intent(application, MediaIndexForegroundService::class.java)
-            .putExtra(
-                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-               if(mediaType == MediaType.VIDEO)  MediaIndexForegroundService.TYPE_VIDEO else MediaIndexForegroundService.TYPE_IMAGE
-            ).also { intent ->
-                application.startForegroundService(intent)
-            }
     }
 
     fun toggleViewResult(uri: Uri?){
