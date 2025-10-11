@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.DownloadableModel
@@ -75,7 +76,7 @@ fun DownloadableModelCard(
                 Icon(
                     imageVector = Icons.Default.Memory,
                     contentDescription = "Model icon",
-                    modifier = Modifier.padding(end = 16.dp).size(32.dp),
+                    modifier = Modifier.padding(end = 8.dp).size(32.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Column(
@@ -91,22 +92,17 @@ fun DownloadableModelCard(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alpha(0.8f)
                     )
-
                 }
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
                 Button(
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     onClick = { isDownloadAlertVisible = true }
                 ) {
                     Icon(
                         Icons.Default.Download,
                         contentDescription = "Download icon",
-                        modifier = Modifier.padding(end = 4.dp)
+                        modifier = Modifier.padding(end = 4.dp).size(16.dp)
                     )
-                    Text(text = "Download")
+                    Text(text = "Download", fontSize = 12.sp)
                 }
             }
         }
