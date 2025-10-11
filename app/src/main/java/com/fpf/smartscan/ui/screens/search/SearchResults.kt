@@ -26,29 +26,36 @@ fun SearchResults(
 ) {
     if (!isVisible) return
 
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(numGridColumns),
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(4.dp)
-    ) {
-        items(searchResults) { uri ->
-            Card(
-                modifier = Modifier.aspectRatio(1f).padding(2.dp),
-                shape = RectangleShape,
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-            ) {
-                ImageDisplay(
-                    uri = uri,
-                    modifier = Modifier
-                        .aspectRatio(1f)
-                        .padding(0.5.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) { toggleViewResult(uri) },
-                    contentScale = ContentScale.Crop,
-                    type = type
-                )
+    Column(modifier = Modifier.fillMaxSize()) {
+        Text(
+            text = "Results (${searchResults.size})",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(8.dp)
+        )
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(numGridColumns),
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(4.dp)
+        ) {
+            items(searchResults) { uri ->
+                Card(
+                    modifier = Modifier.aspectRatio(1f).padding(2.dp),
+                    shape = RectangleShape,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    ImageDisplay(
+                        uri = uri,
+                        modifier = Modifier
+                            .aspectRatio(1f)
+                            .padding(0.5.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { toggleViewResult(uri) },
+                        contentScale = ContentScale.Crop,
+                        type = type
+                    )
+                }
             }
         }
     }
