@@ -15,21 +15,31 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.ImportedModel
 import com.fpf.smartscan.data.SmartScanModelType
+import com.fpf.smartscan.lib.deleteModel
 
 @Composable
 fun ModelsList(
@@ -52,9 +62,9 @@ fun ModelCard(
     onDownload: (url: String) -> Unit,
     onImport: (uri: Uri, type: SmartScanModelType) -> Unit
 ) {
+    var isDownloadAlertVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val launcher =
-        rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
             uri?.let { selectedUri ->
                 context.contentResolver.takePersistableUriPermission(
                     selectedUri,
@@ -63,6 +73,29 @@ fun ModelCard(
                 onImport(uri, data.type)
             }
         }
+
+    if(isDownloadAlertVisible){
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(stringResource(R.string.download_model_alert_title)) },
+            text = { Text(stringResource(R.string.download_model_alert_description)) },
+            dismissButton = {
+                TextButton(onClick = {
+                    isDownloadAlertVisible = false
+                }) {
+                    Text("Cancel")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    isDownloadAlertVisible = false
+                    onDownload(data.url)
+                }) {
+                    Text("OK")
+                }
+            }
+        )
+    }
 
     Card(
         elevation = CardDefaults.cardElevation(4.dp),
@@ -100,7 +133,7 @@ fun ModelCard(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Button(
-                    onClick = { onDownload(data.url) }
+                    onClick = { isDownloadAlertVisible = true }
                 ) {
                     Icon(
                         Icons.Default.Download,
