@@ -55,7 +55,7 @@ fun ModelManager(
             }
         }
     ) { paddingValues ->
-        Column(modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding())) {
+        Column(modifier = Modifier.padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)) {
             if (description != null) {
                 Text(
                     text = description,
