@@ -1,9 +1,7 @@
 package com.fpf.smartscan.ui.screens.settings
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
@@ -18,13 +16,13 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
-import androidx.work.WorkManager
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.SmartScanModelType
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.lib.cancelWorker
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.isServiceRunning
@@ -76,7 +74,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             viewModelScope.launch {
                 val workScheduled = isWorkScheduled(getApplication(), ClassificationWorker.TAG )
                 if(workScheduled){
-                    cancelClassificationWorker()
+                    cancelWorker(application, uniqueWorkName = ClassificationWorker.TAG, tag = ClassificationBatchWorker.TAG)
                 }
             }
         }
@@ -288,13 +286,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
         }
     }
-
-    private fun cancelClassificationWorker(){
-        val workManager = WorkManager.getInstance(getApplication())
-        workManager.cancelUniqueWork(ClassificationWorker.TAG)
-        workManager.cancelAllWorkByTag(ClassificationBatchWorker.TAG)
-    }
-
     private fun loadSettings() {
         val jsonSettings = storage.getItem("app_settings")
         _appSettings.value = if (jsonSettings != null) {
