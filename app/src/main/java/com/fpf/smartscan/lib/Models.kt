@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream
 fun getDownloadableModels(context: Context): List<DownloadableModel>{
     val facialRecognitionModel = DownloadableModel(
         type = SmartScanModelType.FACE,
-        name = context.getString(R.string.facial_recognition_model_name),
+        name = context.getString(R.string.inception_resnet_v1_model),
         url = context.getString(R.string.inception_resnet_v1_model_url),
     )
     return listOf(facialRecognitionModel)
@@ -28,7 +28,7 @@ fun getImportedModels(context: Context): List<ImportedModel>{
     try {
         val facialRecognitionModel = ImportedModel(
             type = SmartScanModelType.FACE,
-            name = context.getString(R.string.facial_recognition_model_name),
+            name = context.getString(R.string.inception_resnet_v1_model),
             dependentModelPaths = modelPathsMap[SmartScanModelType.FACE]!!.dependentModelPaths,
         )
         val importedModels = mutableListOf(facialRecognitionModel).filter {  isImported(context, it)}
