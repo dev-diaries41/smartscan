@@ -1,9 +1,5 @@
-package com.fpf.smartscan.ui.components
+package com.fpf.smartscan.ui.components.models
 
-import android.content.Intent
-import android.net.Uri
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +9,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Download
-import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -31,27 +26,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.DownloadableModel
-import com.fpf.smartscan.data.ImportedModel
-import com.fpf.smartscan.data.SmartScanModelType
-import com.fpf.smartscan.lib.deleteModel
 
 @Composable
 fun ModelsList(
     models: List<DownloadableModel>,
     onDownload: (url: String) -> Unit,
-    onImport: (uri: Uri, type: SmartScanModelType) -> Unit
 ) {
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
         models.forEach { item ->
-            ModelCard(data = item, onDownload = onDownload, onImport = onImport)
+            ModelCard(data = item, onDownload = onDownload)
         }
     }
 }
@@ -60,19 +50,9 @@ fun ModelsList(
 fun ModelCard(
     data: DownloadableModel,
     onDownload: (url: String) -> Unit,
-    onImport: (uri: Uri, type: SmartScanModelType) -> Unit
 ) {
     var isDownloadAlertVisible by remember { mutableStateOf(false) }
-    val context = LocalContext.current
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
-            uri?.let { selectedUri ->
-                context.contentResolver.takePersistableUriPermission(
-                    selectedUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
-                )
-                onImport(uri, data.type)
-            }
-        }
+
 
     if(isDownloadAlertVisible){
         AlertDialog(
@@ -141,16 +121,6 @@ fun ModelCard(
                         modifier = Modifier.padding(end = 4.dp)
                     )
                     Text(text = "Download")
-                }
-                Button(
-                    onClick = { launcher.launch(arrayOf("application/zip", "application/octet-stream", "application/x-tflite")) }
-                ) {
-                    Icon(
-                        Icons.Default.FileUpload,
-                        contentDescription = "Import icon",
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    Text(text = "Import")
                 }
             }
         }
