@@ -1,34 +1,31 @@
 package com.fpf.smartscan.ui.screens.settings
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.content.Intent
 import android.net.Uri
 import android.provider.DocumentsContract
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.workers.scheduleClassificationWorker
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 import androidx.core.net.toUri
-import androidx.work.WorkManager
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.SmartScanModelType
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingEntity
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingDatabase
 import com.fpf.smartscan.data.prototypes.PrototypeEmbeddingRepository
+import com.fpf.smartscan.lib.cancelWorker
 import com.fpf.smartscan.lib.fetchBitmapsFromDirectory
 import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.lib.isWorkScheduled
+import com.fpf.smartscan.lib.loadSettings
+import com.fpf.smartscan.lib.saveSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.workers.ClassificationBatchWorker
 import com.fpf.smartscan.workers.ClassificationWorker
@@ -41,6 +38,7 @@ import kotlinx.coroutines.withContext
 import kotlin.collections.any
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
@@ -51,32 +49,33 @@ import kotlinx.coroutines.sync.withPermit
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val repository: PrototypeEmbeddingRepository = PrototypeEmbeddingRepository(PrototypeEmbeddingDatabase.getDatabase(application).prototypeEmbeddingDao())
     val prototypeList: StateFlow<List<PrototypeEmbeddingEntity>> = repository.allEmbeddings.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    private val storage = Storage.getInstance(getApplication())
+    private val sharedPrefs = application.getSharedPreferences(SETTINGS_PREF_NAME, Context.MODE_PRIVATE)
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
     private val _importEvent = MutableSharedFlow<String>()
     val importEvent = _importEvent.asSharedFlow()
-
+    private var updateJob: Job? = null
 
     companion object {
+        private const val SETTINGS_PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
         private const val TAG = "SettingsViewModel"
     }
 
     init {
-        loadSettings()
+        _appSettings.value = loadSettings(sharedPrefs)
     }
 
     fun updateEnableScan(enable: Boolean){
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(enableScan = enable)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
         if(enable){
             updateWorker()
         }else{
             viewModelScope.launch {
                 val workScheduled = isWorkScheduled(getApplication(), ClassificationWorker.TAG )
                 if(workScheduled){
-                    cancelClassificationWorker()
+                    cancelWorker(application, uniqueWorkName = ClassificationWorker.TAG, tag = ClassificationBatchWorker.TAG)
                 }
             }
         }
@@ -85,28 +84,28 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     fun updateFrequency(frequency: String) {
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(frequency = frequency)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
         updateWorker()
     }
 
     fun updateIndexFrequency(frequency: String) {
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(indexFrequency = frequency)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun addTargetDirectory(dir: String) {
         val currentSettings = _appSettings.value
         val newDirs = currentSettings.targetDirectories + dir
         _appSettings.value = currentSettings.copy(targetDirectories = newDirs)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun deleteTargetDirectory(dir: String) {
         val currentSettings = _appSettings.value
         val newDirs = currentSettings.targetDirectories - dir
         _appSettings.value = currentSettings.copy(targetDirectories = newDirs)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
 
@@ -147,7 +146,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 val current = _appSettings.value
                 val newList = current.destinationDirectories + dirString
                 _appSettings.value = current.copy(destinationDirectories = newList)
-                saveSettings()
+                saveSettings(sharedPrefs, _appSettings.value)
             }catch (e: Exception){
                 Log.e("addDestinationDir", "unexpected error", e)
                 Toast.makeText(application, "Unexpected error", Toast.LENGTH_LONG).show()
@@ -159,32 +158,32 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val currentSettings = _appSettings.value
         val newDirs = currentSettings.destinationDirectories - dir
         _appSettings.value = currentSettings.copy(destinationDirectories = newDirs)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun updateSimilarityThreshold(threshold: Float) {
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(similarityThreshold = threshold)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun updateOrganiserSimilarityThreshold(threshold: Float) {
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(organiserSimilarityThreshold = threshold)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun updateOrganiserConfidenceMargin(margin: Float) {
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(organiserConfMargin = margin)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun updateNumberSimilarImages(numberSimilarResults: String) {
         val number = numberSimilarResults.toIntOrNull()?.takeIf { it in 1..20 } ?: 5
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(numberSimilarResults = number)
-        saveSettings()
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 
     fun updatePrototypes(context: Context, uris: List<String>): Job {
@@ -257,33 +256,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
         }
     }
-
-
-    @SuppressLint("ImplicitSamInstance")
-    fun refreshImageIndex() {
-        viewModelScope.launch {
-            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
-            if(running){
-                getApplication<Application>().stopService(Intent(getApplication<Application>(),
-                    MediaIndexForegroundService::class.java))
-            }
-            startImageIndexing()
-        }
-    }
-
-    @SuppressLint("ImplicitSamInstance")
-    fun refreshVideoIndex() {
-        viewModelScope.launch {
-            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
-            if(running){
-                getApplication<Application>().stopService(Intent(getApplication<Application>(),
-                    MediaIndexForegroundService::class.java))
-            }
-            startVideoIndexing()
-        }
-    }
-
-
     fun onSettingsDetailsExit(initialDestinationDirectories: List<String>, initialTargetDirectories: List<String>, initialOrganiserSimilarity: Float, initialOrganiserConfMargin: Float) {
         val destinationChanged = initialDestinationDirectories != _appSettings.value.destinationDirectories
         val targetChanged = initialTargetDirectories != _appSettings.value.targetDirectories
@@ -294,8 +266,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
         viewModelScope.launch {
             if (destinationChanged) {
-                val job = updatePrototypes(getApplication(), _appSettings.value.destinationDirectories)
-                job.join()
+                updateJob?.cancelAndJoin()
+                updateJob = updatePrototypes(getApplication(), _appSettings.value.destinationDirectories)
+                updateJob?.join()
+                updateJob = null
             }
 
             if (shouldUpdateWorker) {
@@ -315,50 +289,4 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
         }
     }
-
-    private fun startImageIndexing() {
-        Intent(application, MediaIndexForegroundService::class.java)
-            .putExtra(
-                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                MediaIndexForegroundService.TYPE_IMAGE
-            ).also { intent ->
-                application.startForegroundService(intent)
-            }
-    }
-
-    private fun startVideoIndexing() {
-        Intent(application, MediaIndexForegroundService::class.java)
-            .putExtra(
-                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                MediaIndexForegroundService.TYPE_VIDEO
-            ).also { intent ->
-                application.startForegroundService(intent)
-            }
-    }
-
-    private fun cancelClassificationWorker(){
-        val workManager = WorkManager.getInstance(getApplication())
-        workManager.cancelUniqueWork(ClassificationWorker.TAG)
-        workManager.cancelAllWorkByTag(ClassificationBatchWorker.TAG)
-    }
-
-    private fun loadSettings() {
-        val jsonSettings = storage.getItem("app_settings")
-        _appSettings.value = if (jsonSettings != null) {
-            try {
-                Json.decodeFromString<AppSettings>(jsonSettings)
-            } catch (e: Exception) {
-                Log.e("Settings", "Failed to decode settings", e)
-                AppSettings()
-            }
-        } else {
-            AppSettings()
-        }
-    }
-
-    private fun saveSettings() {
-        val jsonSettings = Json.encodeToString(_appSettings.value)
-        storage.setItem("app_settings", jsonSettings)
-    }
-
 }
