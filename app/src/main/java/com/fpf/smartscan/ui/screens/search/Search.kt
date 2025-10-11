@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
@@ -25,14 +24,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.AppSettings
+import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.components.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorIconItem
@@ -45,6 +46,7 @@ fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
+    val context = LocalContext.current
     // Index state
     val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
@@ -112,7 +114,7 @@ fun SearchScreen(
             confirmButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.IMAGE)
-                    searchViewModel.startIndexing(MediaType.IMAGE)
+                    startIndexing(context, MediaIndexForegroundService.TYPE_IMAGE)
                 }) {
                     Text("OK")
                 }
@@ -135,7 +137,7 @@ fun SearchScreen(
             confirmButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.VIDEO)
-                    searchViewModel.startIndexing(MediaType.VIDEO)
+                    startIndexing(context, MediaIndexForegroundService.TYPE_VIDEO)
                 }) {
                     Text("OK")
                 }
