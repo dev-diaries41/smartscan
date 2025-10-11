@@ -149,7 +149,7 @@ class ClassificationWorker(context: Context, workerParams: WorkerParameters) :
     }
 
     // must be called before new file path generated
-    private fun getFilteredUriList(context: Context, currentFileUriList: List<Uri>, currentDestinationDirectories: List<String>): List<Uri> {
+    private suspend fun getFilteredUriList(context: Context, currentFileUriList: List<Uri>, currentDestinationDirectories: List<String>): List<Uri> {
         return try {
             val workFiles = retrieveWorkFiles(context)
             if (workFiles.isNotEmpty()) {

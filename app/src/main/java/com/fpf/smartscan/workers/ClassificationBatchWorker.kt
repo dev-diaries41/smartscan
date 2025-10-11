@@ -111,7 +111,7 @@ class ClassificationBatchWorker(context: Context, workerParams: WorkerParameters
             saveLastUsedDestinations(prototypes.map { it.id })
         }
     }
-    private fun getBatchUris(): List<Uri>{
+    private suspend fun getBatchUris(): List<Uri>{
         val uriList = readUriListFromFile(imageUriFilePath)
         val startIndex = batchIndex * batchSize
         val endIndex = kotlin.math.min(startIndex + batchSize, uriList.size)
