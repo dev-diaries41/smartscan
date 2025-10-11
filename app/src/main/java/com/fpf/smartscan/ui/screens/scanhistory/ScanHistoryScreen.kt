@@ -53,7 +53,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
     val context = LocalContext.current
     var isClearLogsAlertVisible by remember { mutableStateOf(false) }
     var isUndoAlertVisible by remember { mutableStateOf(false) }
-
+    val scanInProgress = items.firstOrNull()?.result == ScanData.IN_PROGRESS_RESULT
 
     LaunchedEffect(items) {
         if(items.isNotEmpty()){
@@ -127,7 +127,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                     modifier = Modifier.padding(bottom = 16.dp).fillMaxWidth(),
                     ) {
                     Button(
-                        enabled = !isLoading && items.firstOrNull()?.result != ScanData.IN_PROGRESS_RESULT,
+                        enabled = !isLoading && !scanInProgress,
                         onClick = {isClearLogsAlertVisible = true }
                     ) {
                         Icon(Icons.Default.CleaningServices, contentDescription = "Clear logs icon", modifier = Modifier.padding(end = 4.dp))
@@ -136,7 +136,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
 
                     if(hasMoveHistoryForLastScan){
                         Button(
-                            enabled = !isLoading,
+                            enabled = !isLoading && !scanInProgress,
                             onClick = { isUndoAlertVisible = true }
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo icon", modifier = Modifier.padding(end = 4.dp))
