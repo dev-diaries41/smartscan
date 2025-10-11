@@ -257,33 +257,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             }
         }
     }
-
-
-    @SuppressLint("ImplicitSamInstance")
-    fun refreshImageIndex() {
-        viewModelScope.launch {
-            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
-            if(running){
-                getApplication<Application>().stopService(Intent(getApplication<Application>(),
-                    MediaIndexForegroundService::class.java))
-            }
-            startImageIndexing()
-        }
-    }
-
-    @SuppressLint("ImplicitSamInstance")
-    fun refreshVideoIndex() {
-        viewModelScope.launch {
-            val running = isServiceRunning(application, MediaIndexForegroundService::class.java)
-            if(running){
-                getApplication<Application>().stopService(Intent(getApplication<Application>(),
-                    MediaIndexForegroundService::class.java))
-            }
-            startVideoIndexing()
-        }
-    }
-
-
     fun onSettingsDetailsExit(initialDestinationDirectories: List<String>, initialTargetDirectories: List<String>, initialOrganiserSimilarity: Float, initialOrganiserConfMargin: Float) {
         val destinationChanged = initialDestinationDirectories != _appSettings.value.destinationDirectories
         val targetChanged = initialTargetDirectories != _appSettings.value.targetDirectories
@@ -314,26 +287,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 _importEvent.emit("Error importing model")
             }
         }
-    }
-
-    private fun startImageIndexing() {
-        Intent(application, MediaIndexForegroundService::class.java)
-            .putExtra(
-                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                MediaIndexForegroundService.TYPE_IMAGE
-            ).also { intent ->
-                application.startForegroundService(intent)
-            }
-    }
-
-    private fun startVideoIndexing() {
-        Intent(application, MediaIndexForegroundService::class.java)
-            .putExtra(
-                MediaIndexForegroundService.EXTRA_MEDIA_TYPE,
-                MediaIndexForegroundService.TYPE_VIDEO
-            ).also { intent ->
-                application.startForegroundService(intent)
-            }
     }
 
     private fun cancelClassificationWorker(){
