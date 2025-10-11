@@ -3,7 +3,6 @@ package com.fpf.smartscan
 import android.os.Bundle
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Intent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -11,6 +10,7 @@ import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.lib.Storage
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.theme.MyAppTheme
@@ -72,10 +72,7 @@ class MainActivity : ComponentActivity() {
 
             val permissionType = getStorageAccess(application)
             if(permissionType == StorageAccess.Denied) return
-            Intent(application, MediaIndexForegroundService::class.java)
-                .putExtra(MediaIndexForegroundService.EXTRA_MEDIA_TYPE, MediaIndexForegroundService.TYPE_BOTH).also { intent ->
-                    application.startForegroundService(intent)
-                }
+            startIndexing(application, MediaIndexForegroundService.TYPE_BOTH)
         }
     }
 
