@@ -32,13 +32,11 @@ import androidx.compose.ui.unit.sp
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.smartScanModelTypeOptions
 import com.fpf.smartscan.data.ImportedModel
-import com.fpf.smartscan.lib.deleteModel
-
 
 @Composable
 fun ImportedModelCard(
     data: ImportedModel,
-    onDelete: () -> Unit
+    onDelete: (model: ImportedModel) -> Unit
 ) {
     var isDeleteAlertVisible by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -58,8 +56,7 @@ fun ImportedModelCard(
             confirmButton = {
                 TextButton(onClick = {
                     isDeleteAlertVisible = false
-                    deleteModel(context, data)
-                    onDelete()
+                    onDelete(data)
                 }) {
                     Text("OK")
                 }
