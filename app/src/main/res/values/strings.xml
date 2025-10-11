@@ -5,6 +5,9 @@
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
     <string name="reddit_url">https://www.reddit.com/r/SmartScan/</string>
 
+    <string name="inception_resnet_v1_model">Inception Resnet V1</string>
+    <string name="inception_resnet_v1_model_url">https://github.com/dev-diaries41/smartscan-models/releases/download/1.0.0/facial_recognition_inception_resnet_v1.zip</string>
+
     <!-- Screen titles-->
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
@@ -62,14 +65,27 @@
     <string name="undo_alert_title">Undo last scan</string>
     <string name="undo_alert_description">Press `OK` to undo the last scan.</string>
 
-    <!-- Settings-related strings -->
+    <!-- Settings-Screen -->
     <string name="image_management_settings">Image Management</string>
     <string name="search_settings">Search</string>
     <string name="advanced_settings">Advanced</string>
     <string name="other_settings">Other</string>
 
-    <string name="setting_source_code">Source code</string>
-    <string name="setting_social_reddit">Reddit</string>
+    <!--Search Settings-->
+    <string name="setting_index_frequency">Index frequency</string>
+    <string name="setting_index_frequency_description">Schedule for auto-updates of video and image indexes.</string>
+    <string name="setting_similarity_threshold">Similarity threshold</string>
+    <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
+    <string name="setting_number_similar_results">Similar results</string>
+    <string name="setting_refresh_image_index">Refresh image index</string>
+    <string name="setting_refresh_video_index">Refresh video index</string>
+    <string name="setting_refresh_index_description_full">Manually refresh index. This can take up to a few minutes.</string>
+    <string name="setting_refresh_index_description_partial">Manually refresh index. This can take up to a few minutes, but only the selected images will be indexed.</string>
+    <string name="setting_refresh_index_description_denied">Missing storage permissions. Please grant storage permissions.</string>
+
+    <!--Auto-Organisation Settings-->
+    <string name="scan_frequency_1d">1 Day</string>
+    <string name="scan_frequency_1w">1 Week</string>
     <string name="setting_enable_scan">Enable auto-organisation</string>
     <string name="setting_enable_scan_description">Enable periodic scanning of the folder you want to organise.</string>
     <string name="setting_target_folders">Target folders</string>
@@ -78,30 +94,24 @@
     <string name="setting_destination_folders_description">Select destination folders for new images. Each folder must contain at least 10 images to ensure accurate matching.</string>
     <string name="setting_scan_frequency">Scan frequency</string>
     <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
-    <string name="setting_index_frequency">Index frequency</string>
-    <string name="setting_index_frequency_description">Schedule for auto-updates of video and image indexes.</string>
-    <string name="setting_test_model_description">Upload an image to see the classification result</string>
-    <string name="setting_similarity_threshold">Similarity threshold</string>
-    <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
-    <string name="setting_number_similar_results">Similar results</string>
-
     <string name="setting_organisation_organiser_accuracy">Organiser accuracy</string>
     <string name="setting_organisation_conf_margin_title">Confidence margin</string>
     <string name="setting_organisation_conf_margin_description">Minimum difference required between the top match and second-best. Lower values are permissive; higher values are stricter.</string>
 
-    <!-- Refresh index -->
-    <string name="setting_refresh_image_index">Refresh image index</string>
-    <string name="setting_refresh_video_index">Refresh video index</string>
-    <string name="setting_refresh_index_description_full">Manually refresh index. This can take up to a few minutes.</string>
-    <string name="setting_refresh_index_description_partial">Manually refresh index. This can take up to a few minutes, but only the selected images will be indexed.</string>
-    <string name="setting_refresh_index_description_denied">Missing storage permissions. Please grant storage permissions.</string>
+    <!--Advanced Settings-->
+    <string name="setting_models">Models</string>
+    <string name="setting_manage_models">Manage models</string>
 
-    <!-- Scan Frequency options -->
-    <string name="scan_frequency_1d">1 Day</string>
-    <string name="scan_frequency_1w">1 Week</string>
+    <!--Other Settings-->
+    <string name="setting_source_code">Source code</string>
+    <string name="setting_social_reddit">Reddit</string>
+
+
+    <!--Model Manager-->
+    <string name="delete_model_alert_title">Delete model</string>
+    <string name="delete_model_alert_description">Press `OK` to delete model.</string>
 
     <!--Help screen-->
-
     <!-- Image Management -->
     <string name="help_image_management_title">Image Management</string>
     <string name="help_enable_auto_organisation">Enable auto-organisation to automatically move new images to categorised folders.</string>
@@ -122,7 +132,7 @@
     <string name="help_reduce_errors_tip">To reduce errors, ensure destination folders are well-curated.</string>
     <string name="help_disable_and_report">If persistent issues occur, disable auto-organisation and open a GitHub issue.</string>
 
-    <!-- Media Search -->
+    <!--Search -->
     <string name="help_search_title">Search</string>
     <string name="help_media_search_intro">Search across both images and videos with the following behavior:</string>
     <string name="help_indexing_first_time">First-time use requires indexing of media files. This may take several minutes depending on your library size.</string>

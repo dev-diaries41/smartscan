@@ -1,5 +1,7 @@
 package com.fpf.smartscan.ui.screens.settings
 
+import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -7,9 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -20,6 +22,11 @@ import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.ui.components.DirectoryPicker
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
+import androidx.core.net.toUri
+import com.fpf.smartscan.lib.getDownloadableModels
+import com.fpf.smartscan.lib.getImportedModels
+import com.fpf.smartscan.ui.components.ModelManager
+import com.fpf.smartscan.ui.components.ModelsList
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +52,13 @@ fun SettingsDetailScreen(
             )
         }
     }
+
+    LaunchedEffect(Unit) {
+        viewModel.importEvent.collect { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     Box(
         modifier = Modifier
@@ -112,9 +126,21 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_organisation_conf_margin_description)
                     )
                 }
-                else -> {
-                    Text("Unknown setting type")
+
+                "models" -> {
+                    ModelsList(
+                        models = getDownloadableModels(context),
+                        onDownload = { url ->
+                            val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+                            context.startActivity(intent)
+                    },
+                        onImport=viewModel::onImportModel
+                    )
                 }
+                "manageModels" -> {
+                    ModelManager(importedModels = getImportedModels(context))
+                }
+                else -> {}
             }
         }
     }
