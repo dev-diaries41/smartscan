@@ -10,8 +10,6 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
@@ -31,7 +29,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.components.MediaViewer
@@ -64,10 +61,8 @@ fun SearchScreen(
     val searchResults by searchViewModel.searchResults.collectAsState(emptyList())
     val resultToView by searchViewModel.resultToView.collectAsState()
     val canSearch by searchViewModel.canSearch.collectAsState(false)
+    val appSettings by settingsViewModel.appSettings.collectAsState()
 
-    val appSettings by settingsViewModel.appSettings.collectAsState(AppSettings())
-
-    val scrollState = rememberScrollState()
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
 
