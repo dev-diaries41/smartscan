@@ -152,8 +152,8 @@ fun NewImageUploader(
     Box(
         modifier = Modifier
             .size(size.dp)
-            .border(1.dp, Color.Gray.copy(alpha = 0.2f))
-            .background(MaterialTheme.colorScheme.surfaceContainer)
+            .border(1.dp, MaterialTheme.colorScheme.outline)
+            .background(MaterialTheme.colorScheme.surfaceContainerLow)
             .clickable { imagePickerLauncher.launch("image/*") }
     ) {
         if (uri != null) {
