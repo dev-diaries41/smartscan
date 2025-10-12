@@ -69,6 +69,7 @@ fun MainScreen() {
             SettingTypes.ORGANISER_ACCURACY -> stringResource(R.string.setting_organisation_organiser_accuracy)
             SettingTypes.MODELS -> stringResource(R.string.setting_models)
             SettingTypes.MANAGE_MODELS -> stringResource(R.string.setting_manage_models)
+            SettingTypes.SEARCHABLE_DIRS -> stringResource(R.string.setting_searchable_folders)
             else -> ""
         }
         else -> ""
@@ -76,7 +77,7 @@ fun MainScreen() {
 
     val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
 
-        if(isUpdatePopUpVisible) {
+    if(isUpdatePopUpVisible) {
         UpdatePopUp(
             isVisible = true,
             updates = mainViewModel.getUpdates(),
