@@ -100,6 +100,7 @@
 
     <!--Advanced Settings-->
     <string name="setting_models">Models</string>
+    <string name="setting_models_description">Download models for additional search and organisation features.</string>
     <string name="setting_manage_models">Manage models</string>
 
     <!--Other Settings-->
