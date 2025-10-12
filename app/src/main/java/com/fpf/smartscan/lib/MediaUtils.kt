@@ -223,3 +223,77 @@ fun queryImageIds(context: Context, dirUris: List<Uri>): List<Long> {
     }
     return imageIds
 }
+
+fun queryVideoIds(context: Context, dirUris: List<Uri>): List<Long> {
+    val videoIds = mutableListOf<Long>()
+    val projection = arrayOf(MediaStore.Video.Media._ID)
+    val sortOrder = "${MediaStore.Video.Media.DATE_MODIFIED} DESC"
+
+    val selectionParts = mutableListOf<String>()
+    val selectionArgs = mutableListOf<String>()
+    val envRoot = Environment.getExternalStorageDirectory().absolutePath.trimEnd('/')
+
+    if (dirUris.isNotEmpty()) {
+        for (uri in dirUris) {
+            try {
+                // Handle tree/document URIs like "primary:Movies/MyFolder"
+                if (DocumentsContract.isTreeUri(uri) || uri.authority == "com.android.externalstorage.documents") {
+                    val docId = DocumentsContract.getTreeDocumentId(uri)
+                    val afterColon = docId.substringAfter(':', "")
+                    if (afterColon.isNotEmpty()) {
+                        val rel = afterColon.trim('/') + "/"
+                        selectionParts.add("${MediaStore.Video.Media.RELATIVE_PATH} LIKE ?")
+                        selectionArgs.add("$rel%")
+                        continue
+                    }
+                }
+
+                // Handle file:// URIs
+                if (uri.scheme == "file") {
+                    val file = File(uri.path ?: continue)
+                    val absPath = file.absolutePath.trimEnd('/') + "/"
+                    if (absPath.startsWith(envRoot)) {
+                        val rel = absPath.removePrefix(envRoot).trimStart('/').trimEnd('/') + "/"
+                        selectionParts.add("${MediaStore.Video.Media.RELATIVE_PATH} LIKE ?")
+                        selectionArgs.add("$rel%")
+                    }
+                    continue
+                }
+
+                // Fallback: use last path segment
+                val seg = uri.path?.trim('/') ?: uri.lastPathSegment ?: continue
+                if (seg.isNotEmpty()) {
+                    val folderLike = if (seg.endsWith("/")) seg else "$seg/"
+                    selectionParts.add("${MediaStore.Video.Media.RELATIVE_PATH} LIKE ?")
+                    selectionArgs.add("%$folderLike%")
+                }
+            } catch (_: Exception) {
+                // ignore malformed uri and continue
+            }
+        }
+    }
+
+    val selection: String?
+    val args: Array<String>?
+    if (selectionParts.isEmpty()) {
+        selection = null
+        args = null
+    } else {
+        selection = selectionParts.joinToString(" OR ", prefix = "(", postfix = ")")
+        args = selectionArgs.toTypedArray()
+    }
+
+    context.applicationContext.contentResolver.query(
+        MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
+        projection,
+        selection,
+        args,
+        sortOrder
+    )?.use { cursor ->
+        val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+        while (cursor.moveToNext()) {
+            videoIds.add(cursor.getLong(idColumn))
+        }
+    }
+    return videoIds
+}
