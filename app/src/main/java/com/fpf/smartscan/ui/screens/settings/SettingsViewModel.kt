@@ -290,8 +290,11 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 _importedModels.value = getImportedModels(application)
                 _importEvent.emit("Model imported successfully")
             } catch (e: Exception) {
-                Log.e(TAG, "Error importing model: ${e.message}")
-                _importEvent.emit("Error importing model")
+                val defaultErrorMessage = "Error importing model"
+                val invalidFileError = "Invalid model file"
+                Log.e(TAG, "$defaultErrorMessage: ${e.message}")
+                val errorMessage = if(e.message == invalidFileError) invalidFileError else defaultErrorMessage
+                _importEvent.emit(errorMessage)
             }
         }
     }
