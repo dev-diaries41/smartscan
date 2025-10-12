@@ -135,11 +135,19 @@ fun SettingsDetailScreen(
                 SettingTypes.MANAGE_MODELS -> {
                     ModelManager(models=models, onDelete = viewModel::onDeleteModel, onImport=viewModel::onImportModel)
                 }
-                SettingTypes.SEARCHABLE_DIRS -> {
+                SettingTypes.SEARCHABLE_IMG_DIRS -> {
                     DirectoryPicker(
-                        directories = appSettings.searchableDirectories,
-                        addDirectory = { newDir -> viewModel.addSearchableDirectory(newDir) },
-                        deleteDirectory = { newDir -> viewModel.deleteSearchableDirectory(newDir) },
+                        directories = appSettings.searchableImageDirectories,
+                        addDirectory = { newDir -> viewModel.addSearchableImageDirectory(newDir) },
+                        deleteDirectory = { newDir -> viewModel.deleteSearchableImageDirectory(newDir) },
+                        description = stringResource(R.string.setting_searchable_folders_description)
+                    )
+                }
+                SettingTypes.SEARCHABLE_VID_DIRS -> {
+                    DirectoryPicker(
+                        directories = appSettings.searchableVideoDirectories,
+                        addDirectory = { newDir -> viewModel.addSearchableVideoDirectory(newDir) },
+                        deleteDirectory = { newDir -> viewModel.deleteSearchableVideoDirectory(newDir) },
                         description = stringResource(R.string.setting_searchable_folders_description)
                     )
                 }

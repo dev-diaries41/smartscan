@@ -18,6 +18,6 @@ object SettingTypes {
     const val ORGANISER_ACCURACY = "organiser_accuracy"
     const val MODELS = "models"
     const val MANAGE_MODELS = "manage_models"
-    const val SEARCHABLE_DIRS = "searchable_dirs"
-
+    const val SEARCHABLE_IMG_DIRS = "searchable_img_dirs"
+    const val SEARCHABLE_VID_DIRS = "searchable_vid_dirs"
 }
