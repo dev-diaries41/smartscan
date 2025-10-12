@@ -12,6 +12,7 @@ import com.fpf.smartscan.lib.getImageUriFromId
 import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.MediaType
+import com.fpf.smartscan.data.QueryType
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
@@ -59,7 +60,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _hasRefreshedImageIndex = MutableStateFlow<Boolean>(false)
     private val _hasRefreshedVideoIndex = MutableStateFlow<Boolean>(false)
-
     private val _hasShownImageIndexAlert = MutableStateFlow<Boolean>(false)
     private val _hasShownVideoIndexAlert = MutableStateFlow<Boolean>(false)
     private val _isVideoIndexAlertVisible = MutableStateFlow<Boolean>(false)
@@ -75,8 +75,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val hasIndexed: StateFlow<Boolean?> =
         combine(_mode, hasAnyImages, hasAnyVideos) { mode, anyImages, anyVideos ->
             when (mode) {
-                MediaType.IMAGE -> (anyImages == true) || imageStore.exists
-                MediaType.VIDEO -> (anyVideos == true) || videoStore.exists
+                MediaType.IMAGE -> anyImages || imageStore.exists
+                MediaType.VIDEO -> anyVideos || videoStore.exists
             }
         }.stateIn(
             scope = viewModelScope,
@@ -112,6 +112,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _resultToView = MutableStateFlow<Uri?>(null)
     val resultToView: StateFlow<Uri?> = _resultToView
+
+    private val _queryType = MutableStateFlow(QueryType.TEXT)
+    val queryType: StateFlow<QueryType> = _queryType
 
     init {
         loadImageIndex()
@@ -155,10 +158,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     fun refreshIndex(mode : MediaType){
-        if(mode == MediaType.IMAGE && _hasRefreshedImageIndex.value == false){
+        if(mode == MediaType.IMAGE && !_hasRefreshedImageIndex.value){
             loadImageIndex()
             _hasRefreshedImageIndex.value = true
-        }else if (mode == MediaType.VIDEO && _hasRefreshedVideoIndex.value == false){
+        }else if (mode == MediaType.VIDEO && !_hasRefreshedVideoIndex.value){
             loadVideoIndex()
             _hasRefreshedVideoIndex.value = true
         }
@@ -262,6 +265,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         isVisible.value = !isVisible.value
         hasShown.value = true
+    }
+
+    fun updateQueryType(type: QueryType){
+        _queryType.value = type
     }
 
     override fun onCleared() {
