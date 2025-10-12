@@ -302,17 +302,30 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         if(deleteModel(application, model)) _importedModels.value = _importedModels.value - model
     }
 
-    fun addSearchableDirectory(dir: String) {
+    fun addSearchableImageDirectory(dir: String) {
         val currentSettings = _appSettings.value
-        val newDirs = currentSettings.searchableDirectories + dir
-        _appSettings.value = currentSettings.copy(searchableDirectories = newDirs)
+        val newDirs = currentSettings.searchableImageDirectories + dir
+        _appSettings.value = currentSettings.copy(searchableImageDirectories = newDirs)
         saveSettings(sharedPrefs, _appSettings.value)
     }
 
-    fun deleteSearchableDirectory(dir: String) {
+    fun deleteSearchableImageDirectory(dir: String) {
         val currentSettings = _appSettings.value
-        val newDirs = currentSettings.searchableDirectories - dir
-        _appSettings.value = currentSettings.copy(searchableDirectories = newDirs)
+        val newDirs = currentSettings.searchableImageDirectories - dir
+        _appSettings.value = currentSettings.copy(searchableImageDirectories = newDirs)
+        saveSettings(sharedPrefs, _appSettings.value)
+    }
+    fun addSearchableVideoDirectory(dir: String) {
+        val currentSettings = _appSettings.value
+        val newDirs = currentSettings.searchableVideoDirectories + dir
+        _appSettings.value = currentSettings.copy(searchableVideoDirectories = newDirs)
+        saveSettings(sharedPrefs, _appSettings.value)
+    }
+
+    fun deleteSearchableVideoDirectory(dir: String) {
+        val currentSettings = _appSettings.value
+        val newDirs = currentSettings.searchableVideoDirectories - dir
+        _appSettings.value = currentSettings.copy(searchableVideoDirectories = newDirs)
         saveSettings(sharedPrefs, _appSettings.value)
     }
 }
