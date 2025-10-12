@@ -15,5 +15,6 @@ data class AppSettings(
     val indexFrequency: String = "1 Week",
     val organiserSimilarityThreshold: Float = 0.4f,
     val organiserConfMargin: Float = 0.03f,
-    val searchableDirectories: List<String> = emptyList(),
+    val searchableImageDirectories: List<String> = emptyList(),
+    val searchableVideoDirectories: List<String> = emptyList(),
     )
