@@ -76,7 +76,7 @@ fun getTypeFromUri(context: Context, uri: Uri): SmartScanModelType?{
 
 suspend fun importModel(context: Context, uri: Uri) = withContext(Dispatchers.IO){
     val type = getTypeFromUri(context, uri)
-    val modelInfo = modelPathsMap[type] ?: return@withContext
+    val modelInfo = modelPathsMap[type] ?: error("Invalid model file")
     val outputPath = modelInfo.path
     val outputFile = File(context.filesDir, outputPath)
 
