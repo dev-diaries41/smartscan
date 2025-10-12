@@ -116,6 +116,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _queryType = MutableStateFlow(QueryType.TEXT)
     val queryType: StateFlow<QueryType> = _queryType
 
+    private val _searchImageUri = MutableStateFlow<Uri?>(null)
+    val searchImageUri: StateFlow<Uri?> = _searchImageUri
+
     init {
         loadImageIndex()
     }
@@ -269,6 +272,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun updateQueryType(type: QueryType){
         _queryType.value = type
+    }
+
+    fun updateSearchImageUri(uri: Uri?){
+        _searchImageUri.value = uri
     }
 
     override fun onCleared() {
