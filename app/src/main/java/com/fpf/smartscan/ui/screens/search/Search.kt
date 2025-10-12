@@ -373,7 +373,11 @@ fun ImageSearcher(
     onSearch: (n: Int, threshold: Float) -> Unit,
 ){
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().background(
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = MaterialTheme.shapes.medium
+        ).padding(12.dp),
+
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         NewImageUploader(
@@ -406,8 +410,9 @@ fun ImageSearcher(
                 }
             )
             Button(
+                modifier = Modifier.width(140.dp),
                 enabled = uri != null,
-                onClick = {onSearch(maxResults, threshold)}
+                onClick = {onSearch(maxResults, threshold) }
             ) {
                 Icon(Icons.Default.ImageSearch, contentDescription = "Image search icon", modifier = Modifier.padding(end = 4.dp))
                 Text(text = "Search")
