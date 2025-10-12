@@ -6,6 +6,8 @@ import android.content.Intent
 import android.graphics.*
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import android.util.LruCache
@@ -16,6 +18,7 @@ import com.fpf.smartscansdk.core.utils.getBitmapFromUri
 import com.fpf.smartscansdk.core.utils.getScaledDimensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 import java.util.Locale
 
@@ -143,4 +146,80 @@ fun openVideoInGallery(context: Context, uri: Uri) {
         flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
     }
     context.startActivity(intent)
+}
+
+
+fun queryImageIds(context: Context, dirUris: List<Uri>): List<Long> {
+    val imageIds = mutableListOf<Long>()
+    val projection = arrayOf(MediaStore.Images.Media._ID)
+    val sortOrder = "${MediaStore.Images.Media.DATE_MODIFIED} DESC"
+
+    val selectionParts = mutableListOf<String>()
+    val selectionArgs = mutableListOf<String>()
+    val envRoot = Environment.getExternalStorageDirectory().absolutePath.trimEnd('/')
+
+    if (dirUris.isNotEmpty()) {
+        for (uri in dirUris) {
+            try {
+                // Handle tree/document URIs like "primary:Pictures/MyFolder"
+                if (DocumentsContract.isTreeUri(uri) || uri.authority == "com.android.externalstorage.documents") {
+                    val docId = DocumentsContract.getTreeDocumentId(uri)
+                    val afterColon = docId.substringAfter(':', "")
+                    if (afterColon.isNotEmpty()) {
+                        val rel = afterColon.trim('/') + "/" // RELATIVE_PATH usually ends with '/'
+                        selectionParts.add("${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?")
+                        selectionArgs.add("$rel%")
+                        continue
+                    }
+                }
+
+                // Handle file:// uris
+                if (uri.scheme == "file") {
+                    val file = File(uri.path ?: continue)
+                    val absPath = file.absolutePath.trimEnd('/') + "/"
+                    // RELATIVE_PATH if possible (strip envRoot)
+                    if (absPath.startsWith(envRoot)) {
+                        val rel = absPath.removePrefix(envRoot).trimStart('/').trimEnd('/') + "/"
+                        selectionParts.add("${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?")
+                        selectionArgs.add("$rel%")
+                    }
+                    continue
+                }
+
+                // Fallback attempt: use last path segment as folder name
+                val seg = uri.path?.trim('/') ?: uri.lastPathSegment ?: continue
+                if (seg.isNotEmpty()) {
+                    val folderLike = if (seg.endsWith("/")) seg else "$seg/"
+                    selectionParts.add("${MediaStore.Images.Media.RELATIVE_PATH} LIKE ?")
+                    selectionArgs.add("%$folderLike%")
+                }
+            } catch (_: Exception) {
+                // ignore malformed uri and continue
+            }
+        }
+    }
+
+    val selection: String?
+    val args: Array<String>?
+    if (selectionParts.isEmpty()) {
+        selection = null
+        args = null
+    } else {
+        selection = selectionParts.joinToString(" OR ", prefix = "(", postfix = ")")
+        args = selectionArgs.toTypedArray()
+    }
+
+    context.applicationContext.contentResolver.query(
+        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+        projection,
+        selection,
+        args,
+        sortOrder
+    )?.use { cursor ->
+        val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+        while (cursor.moveToNext()) {
+            imageIds.add(cursor.getLong(idColumn))
+        }
+    }
+    return imageIds
 }
