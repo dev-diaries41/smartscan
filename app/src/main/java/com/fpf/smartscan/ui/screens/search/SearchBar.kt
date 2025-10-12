@@ -65,7 +65,6 @@ fun SearchBar(
         },
         trailingIcon = {
             Box(
-                modifier = Modifier.fillMaxHeight(),
                 contentAlignment = Alignment.Center
             ) {
                 Row(

@@ -16,14 +16,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -43,8 +41,8 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -57,7 +55,7 @@ fun ActionItem(
     description: String? = null,
     enabled: Boolean = true
 ) {
-    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
     Column(
         modifier = Modifier
@@ -71,15 +69,16 @@ fun ActionItem(
                 .fillMaxWidth()
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge, color = textColor)
-            IconButton(
-                enabled=enabled,
-                onClick=onClick,
-            ) {
+            IconButton(enabled=enabled, onClick=onClick,) {
                 Icon(Icons.Default.ChevronRight, contentDescription = "Open screen to update setting")
             }
         }
         if (description != null) {
-            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = textColor, modifier = Modifier.fillMaxWidth(0.7f))
+            Text(text = description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor,
+                modifier = Modifier.fillMaxWidth(0.7f).alpha(0.8f)
+            )
         }
     }
 }
@@ -92,18 +91,15 @@ fun SwitchItem(
     description: String? = null,
     enabled: Boolean = true
 ) {
-    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge, color = textColor)
             Switch(
@@ -130,16 +126,9 @@ fun IncrementorItem(
     onIncrement: () -> Unit,
     onDecrement: () -> Unit
 ) {
-    val textColor = if (enabled) {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-    } else {
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-    }
-
+    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -181,8 +170,7 @@ fun IncrementorItem(
                         textAlign = TextAlign.Center,
                         color = textColor,
                         fontSize = 12.sp,
-                        modifier = Modifier
-                            .padding(horizontal = 4.dp)
+                        modifier = Modifier.padding(horizontal = 4.dp)
                     )
 
                     IconButton(
@@ -207,52 +195,6 @@ fun IncrementorItem(
     }
 }
 
-
-@Composable
-fun TextInput(
-    label: String,
-    value: String,
-    onValueChange: (String) -> Unit,
-    description: String? = null,
-    enabled: Boolean = true,
-    isNumeric: Boolean = false
-) {
-    val textColor = if (enabled) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
-    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(text = label, style = MaterialTheme.typography.labelLarge, color = textColor)
-            OutlinedTextField(
-                value = value,
-                onValueChange = onValueChange,
-                singleLine = true,
-                enabled = enabled,
-                modifier = Modifier
-                    .width(80.dp),
-                keyboardOptions = if (isNumeric) {
-                    KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number)
-                } else {
-                    KeyboardOptions.Default
-                }
-            )
-            if (description != null) {
-                Text(text = description, fontSize = 12.sp, color = textColor)
-            }
-        }
-    }
-}
-
-
 @Composable
 fun SelectorItem(
     label: String,
@@ -264,15 +206,13 @@ fun SelectorItem(
     showLabel: Boolean = true,
 ) {
     val textColor = if (enabled)
-        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
+        MaterialTheme.colorScheme.onSurface
     else
         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
     var showDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp)
+        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,

@@ -42,6 +42,6 @@ fun ImageDisplay(
             modifier = modifier
         )
     } else {
-        Box(modifier = modifier.background(Color.Gray))
+        Box(modifier = modifier.background(Color.Transparent))
     }
 }

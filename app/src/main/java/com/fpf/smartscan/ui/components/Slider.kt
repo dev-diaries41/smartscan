@@ -1,6 +1,9 @@
 package com.fpf.smartscan.ui.components
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -23,30 +26,30 @@ fun CustomSlider(
     maxValue: Float,
     initialValue: Float = minValue,
     onValueChange: (Float) -> Unit,
+    format: (Float) -> String = { "%.2f".format(it) },
     description: String? = null,
     ) {
     var sliderValue by remember { mutableFloatStateOf(initialValue) }
 
-    Column (modifier = Modifier.padding(16.dp)) {
-
-        Text(text = "$label: ${"%.2f".format(sliderValue)}")
-
+    Column( modifier = Modifier.padding(vertical = 8.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween){
+            Text(text = label, style = MaterialTheme.typography.labelLarge)
+            Text(text = format(sliderValue), style = MaterialTheme.typography.labelLarge)
+        }
         Slider(
             value = sliderValue,
-            onValueChange = {
-                sliderValue = it
-                onValueChange(it)
-            },
+            onValueChange = { sliderValue = it },
+            onValueChangeFinished = { onValueChange(sliderValue) },
             valueRange = minValue..maxValue,
             steps = 0,  // Continuous values for fine-grained control
-            modifier = Modifier.padding(top = 8.dp).height(24.dp)
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp).height(24.dp)
         )
 
         if (description != null) {
-            Text(
-                text = description,
+            Text(text = description,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.alpha(0.8f).padding(bottom = 16.dp),
+                modifier = Modifier.alpha(0.8f),
             )
         }
     }
