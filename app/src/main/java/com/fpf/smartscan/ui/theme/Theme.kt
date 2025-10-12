@@ -6,6 +6,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 enum class ColorSchemeType { DEFAULT, SMARTSCAN }
+enum class ThemeMode { LIGHT, DARK, SYSTEM }
 
 private val LightColorPalette = lightColorScheme(
     primary = Peach,
@@ -24,10 +25,16 @@ private val DarkColorPalette = darkColorScheme(
 
 @Composable
 fun MyAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    themeMode: ThemeMode = ThemeMode.SYSTEM,
     colorSchemeType: ColorSchemeType = ColorSchemeType.SMARTSCAN,
     content: @Composable () -> Unit
 ) {
+    val darkTheme = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
+
     val colors = when (colorSchemeType) {
         ColorSchemeType.DEFAULT -> if (darkTheme) darkColorScheme() else lightColorScheme()
         ColorSchemeType.SMARTSCAN -> if (darkTheme) DarkColorPalette else LightColorPalette
