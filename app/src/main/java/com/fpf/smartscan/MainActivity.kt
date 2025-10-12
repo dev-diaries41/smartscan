@@ -14,17 +14,20 @@ import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.theme.MyAppTheme
+import com.fpf.smartscan.ui.theme.ThemeManager
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import java.io.File
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
-    private val sharedPrefs by lazy {
-        application.getSharedPreferences("AsyncStorage", Context.MODE_PRIVATE)
-    }
+    private val sharedPrefs by lazy { application.getSharedPreferences("AsyncStorage", MODE_PRIVATE) }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val appSettings = loadSettings(sharedPrefs)
+        ThemeManager.updateColorScheme(appSettings.color)
+        ThemeManager.updateThemeMode(appSettings.theme)
 
         createNotificationChannel(
             channelId = getString(R.string.worker_channel_id),
