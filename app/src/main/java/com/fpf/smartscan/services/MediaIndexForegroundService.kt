@@ -7,14 +7,17 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.os.IBinder
-import android.provider.MediaStore
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import com.fpf.smartscan.R
 import com.fpf.smartscan.MainActivity
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
+import com.fpf.smartscan.lib.loadSettings
+import com.fpf.smartscan.lib.queryImageIds
+import com.fpf.smartscan.lib.queryVideoIds
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
@@ -41,7 +44,6 @@ class MediaIndexForegroundService : Service() {
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Default)
     private lateinit var embeddingHandler: ClipImageEmbedder
-
     private val sharedPrefs by lazy { application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)    }
 
 
@@ -85,13 +87,15 @@ class MediaIndexForegroundService : Service() {
 
         serviceScope.launch {
             try {
+                val appSettings = loadSettings(sharedPrefs)
+
                 embeddingHandler.initialize()
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
                     // cache not needed for indexing
                     val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false)
                     val imageIndexer = ImageIndexer(embeddingHandler, application, ImageIndexListener, store = imageStore)
-                    val ids = queryAllImageIds()
+                    val ids = queryImageIds(application, appSettings.searchableImageDirectories.map{it.toUri()})
                     val existingIds = if(imageStore.exists) imageStore.getAll().map{it.id}.toSet() else emptySet()
                     val filteredIds = ids.filterNot { existingIds.contains(it) }
                     imageIndexer.run(filteredIds)
@@ -100,7 +104,7 @@ class MediaIndexForegroundService : Service() {
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
                     val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false )
                     val videoIndexer = VideoIndexer(embeddingHandler, application=application, listener = VideoIndexListener, store = videoStore)
-                    val ids = queryAllVideoIds()
+                    val ids = queryVideoIds(application, appSettings.searchableVideoDirectories.map { it.toUri() })
                     val existingIds = if(videoStore.exists) videoStore.getAll().map{it.id}.toSet() else emptySet()
                     val filteredIds = ids.filterNot { existingIds.contains(it) }
                     videoIndexer.run(filteredIds)
@@ -125,38 +129,4 @@ class MediaIndexForegroundService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
-
-    private fun queryAllImageIds(): List<Long> {
-        val imageIds = mutableListOf<Long>()
-        val projection = arrayOf(MediaStore.Images.Media._ID)
-        val sortOrder = "${MediaStore.Images.Media.DATE_MODIFIED} DESC"
-
-        applicationContext.contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-            projection, null, null, sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-            while (cursor.moveToNext()) {
-                imageIds.add(cursor.getLong(idColumn))
-            }
-        }
-        return imageIds
-    }
-
-    private fun queryAllVideoIds(): List<Long> {
-        val videoIds = mutableListOf<Long>()
-        val projection = arrayOf(MediaStore.Video.Media._ID)
-        val sortOrder = "${MediaStore.Video.Media.DATE_MODIFIED} DESC"
-
-        applicationContext.contentResolver.query(
-            MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
-            projection, null, null, sortOrder
-        )?.use { cursor ->
-            val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
-            while (cursor.moveToNext()) {
-                videoIds.add(cursor.getLong(idColumn))
-            }
-        }
-        return videoIds
-    }
 }
