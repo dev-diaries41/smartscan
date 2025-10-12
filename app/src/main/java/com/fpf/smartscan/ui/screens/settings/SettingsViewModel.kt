@@ -184,10 +184,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         saveSettings(sharedPrefs, _appSettings.value)
     }
 
-    fun updateNumberSimilarImages(numberSimilarResults: String) {
-        val number = numberSimilarResults.toIntOrNull()?.takeIf { it in 1..100 } ?: 20
+    fun updateMaxSearchResults(numberSimilarResults: Int) {
+        val number = numberSimilarResults.takeIf { it in 1..100 } ?: 20
         val currentSettings = _appSettings.value
-        _appSettings.value = currentSettings.copy(numberSimilarResults = number)
+        _appSettings.value = currentSettings.copy(maxSearchResults = number)
         saveSettings(sharedPrefs, _appSettings.value)
     }
 
