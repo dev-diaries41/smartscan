@@ -31,6 +31,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
+import com.fpf.smartscan.constants.mediaTypeOptions
+import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.components.MediaViewer
@@ -197,10 +199,10 @@ fun SearchScreen(
                         SelectorIconItem(
                             enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                             label = "Media type",
-                            options = searchModeOptions.values.toList(),
-                            selectedOption = searchModeOptions[mode]!!,
+                            options = mediaTypeOptions.values.toList(),
+                            selectedOption = mediaTypeOptions[mode]!!,
                             onOptionSelected = { selected ->
-                                val newMode = searchModeOptions.entries
+                                val newMode = mediaTypeOptions.entries
                                     .find { it.value == selected }
                                     ?.key ?: MediaType.IMAGE
                                 searchViewModel.setMode(newMode)
