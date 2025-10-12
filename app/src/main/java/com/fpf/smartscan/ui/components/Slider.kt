@@ -39,13 +39,11 @@ fun CustomSlider(
         }
         Slider(
             value = sliderValue,
-            onValueChange = {
-                sliderValue = it
-                onValueChange(it)
-            },
+            onValueChange = { sliderValue = it },
+            onValueChangeFinished = { onValueChange(sliderValue) },
             valueRange = minValue..maxValue,
             steps = 0,  // Continuous values for fine-grained control
-            modifier = Modifier.padding(top = 8.dp).height(24.dp)
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp).height(24.dp)
         )
 
         if (description != null) {
