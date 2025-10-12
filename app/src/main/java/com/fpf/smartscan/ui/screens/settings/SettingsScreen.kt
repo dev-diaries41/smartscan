@@ -26,13 +26,12 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.ActionItem
 import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.components.SwitchItem
-import com.fpf.smartscan.ui.components.IncrementorItem
 import androidx.core.net.toUri
 import com.fpf.smartscan.constants.Routes
 import com.fpf.smartscan.constants.SettingTypes
-import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.refreshIndex
+import com.fpf.smartscan.ui.components.CustomSlider
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 
@@ -41,7 +40,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = viewModel(),
     onNavigate: (String) -> Unit
 ) {
-    val appSettings by viewModel.appSettings.collectAsState(AppSettings())
+    val appSettings by viewModel.appSettings.collectAsState()
     val scrollState = rememberScrollState()
     val context = LocalContext.current // Access the current context
     val sourceCodeUrl = stringResource(R.string.source_code_url)
@@ -130,19 +129,26 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 8.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
-
-                IncrementorItem(
-                    minValue = 1,
-                    maxValue = 100,
-                    onDecrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults - 1).toString())},
-                    onIncrement = {viewModel.updateNumberSimilarImages((appSettings.numberSimilarResults + 1).toString())},
-                    value = appSettings.numberSimilarResults.toString(),
-                    label = stringResource(id = R.string.setting_number_similar_results),
+                CustomSlider(
+                    label = stringResource(id = R.string.setting_max_search_results),
+                    minValue = 1f,
+                    maxValue = 100f,
+                    initialValue = appSettings.maxSearchResults.toFloat(),
+                    onValueChange = { value ->
+                        viewModel.updateMaxSearchResults(value.toInt())
+                    },
+                    format = { "%.0f".format(it) }
                 )
-
-                ActionItem(
-                    text = stringResource(id = R.string.setting_similarity_threshold),
-                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.THRESHOLD)) }
+                CustomSlider(
+                    label = stringResource(id = R.string.setting_similarity_threshold),
+                    minValue = 0.18f,
+                    maxValue = 0.28f,
+                    initialValue = appSettings.similarityThreshold,
+                    onValueChange = { value ->
+                        viewModel.updateSimilarityThreshold(value)
+                    },
+                    format = { "%.2f".format(it) },
+                    description = stringResource(R.string.setting_similarity_threshold_description)
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_refresh_image_index),
@@ -236,7 +242,7 @@ fun SettingsScreen(
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_models),
-                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.MODELS)) }
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.MODELS)) },
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_manage_models),
