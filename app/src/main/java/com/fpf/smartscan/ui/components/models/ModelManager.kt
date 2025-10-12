@@ -27,7 +27,6 @@ import com.fpf.smartscan.data.ImportedModel
 @Composable
 fun ModelManager(
     models: List<ImportedModel>,
-    description: String? = null,
     onImport: (uri: Uri) -> Unit,
     onDelete: (model: ImportedModel) -> Unit
 ) {
@@ -58,18 +57,11 @@ fun ModelManager(
         }
     ) { paddingValues ->
         Column(modifier = Modifier.verticalScroll(scrollState).fillMaxSize().padding(bottom = paddingValues.calculateBottomPadding() + 80.dp)) {
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.alpha(0.8f).padding(bottom = 16.dp),
-                )
-            }
             if (models.isEmpty()) {
                 Text(
                     text = "No models to manage",
                     style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.alpha(0.5f).padding(vertical = 16.dp),
+                    modifier = Modifier.alpha(0.8f).padding(vertical = 16.dp),
                 )
             } else {
                 models.forEach { model -> ImportedModelCard(data = model, onDelete = { onDelete(model) }) }

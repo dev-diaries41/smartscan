@@ -75,8 +75,8 @@
     <string name="setting_index_frequency">Index frequency</string>
     <string name="setting_index_frequency_description">Schedule for auto-updates of video and image indexes.</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
-    <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
-    <string name="setting_number_similar_results">Similar results</string>
+    <string name="setting_similarity_threshold_description">Minimum similarity score for matching results</string>
+    <string name="setting_max_search_results">Max search results</string>
     <string name="setting_refresh_image_index">Refresh image index</string>
     <string name="setting_refresh_video_index">Refresh video index</string>
     <string name="setting_refresh_index_description_full">Manually refresh index. This can take up to a few minutes.</string>
@@ -100,6 +100,7 @@
 
     <!--Advanced Settings-->
     <string name="setting_models">Models</string>
+    <string name="setting_models_description">Download models for additional search and organisation features.</string>
     <string name="setting_manage_models">Manage models</string>
 
     <!--Other Settings-->

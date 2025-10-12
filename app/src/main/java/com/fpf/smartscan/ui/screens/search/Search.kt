@@ -151,10 +151,7 @@ fun SearchScreen(
     ) {
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(scrollState),
+            modifier = Modifier.fillMaxSize().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -183,7 +180,7 @@ fun SearchScreen(
                     MediaType.IMAGE -> "Search images..."
                     MediaType.VIDEO -> "Search videos..."
                 },
-                nSimilarResult = appSettings.numberSimilarResults,
+                nSimilarResult = appSettings.maxSearchResults,
                 threshold = appSettings.similarityThreshold,
                 trailingIcon = {
                     val alpha = if(canSearch && hasStoragePermission && !isLoading) 0.6f else 0.1f
@@ -253,13 +250,10 @@ fun SearchScreen(
 
             SearchPlaceholderDisplay(isVisible = searchResults.isEmpty())
 
-            Spacer(modifier = Modifier.height(16.dp))
-
             SearchResults(
                 isVisible = !isLoading && searchResults.isNotEmpty(),
                 type = mode,
                 searchResults = searchResults,
-                maxResults = appSettings.numberSimilarResults,
                 toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
             )
         }
