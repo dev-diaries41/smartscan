@@ -20,9 +20,12 @@ import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
+import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipTextEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
+import com.fpf.smartscansdk.core.utils.getBitmapFromUri
 import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingRetriever
 import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
@@ -50,7 +53,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH )
     val videoRetriever = FileEmbeddingRetriever(videoStore)
 
-    private val embeddingsHandler = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
+    private val textEmbedder = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
+    private val imageEmbedder = ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
+
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
     )
@@ -199,7 +204,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
 
-    fun search(n: Int, threshold: Float = 0.2f) {
+    fun textSearch(n: Int, threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -212,46 +217,75 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             return
         }
 
-        _isLoading.value = true
-        _error.value = null
-
         viewModelScope.launch((Dispatchers.IO)) {
             try {
-                if(!embeddingsHandler.isInitialized()){
-                    embeddingsHandler.initialize()
+                if(!textEmbedder.isInitialized()){
+                    textEmbedder.initialize()
                 }
-
-                val textEmbedding = embeddingsHandler.embed(currentQuery)
-                val retriever = if(_mode.value == MediaType.VIDEO) videoRetriever else imageRetriever
-                val results = retriever.query(textEmbedding, n, threshold)
-
-                if (results.isEmpty()) {
-                    _error.emit(application.getString(R.string.search_error_no_results))
-                    _searchResults.emit(emptyList())
-                    return@launch
-                }
-
-                val (filteredUris, idsToPurge) = results.map { embed ->
-                    val uri = if (_mode.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
-                    embed.id to uri
-                }.partition { (_, uri) -> canOpenUri(application, uri) }
-
-                if (filteredUris.isEmpty()) {
-                    _error.emit(application.getString(R.string.search_error_no_results))
-                }
-
-                _searchResults.emit(filteredUris.map { it.second })
-
-                if(idsToPurge.isNotEmpty()){
-                    viewModelScope.launch(Dispatchers.IO) {
-                        store.remove(idsToPurge.map { it.first })
-                    }
-                }
+                val embedding = textEmbedder.embed(currentQuery)
+                search(store, embedding, n, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
                 _error.emit(application.getString(R.string.search_error_unknown))
             } finally {
                 _isLoading.emit(false)
+            }
+        }
+    }
+
+    fun imageSearch(n: Int, threshold: Float = 0.2f) {
+        if (_searchImageUri.value == null) return
+
+        val store = if(_mode.value == MediaType.VIDEO) videoStore else imageStore
+        if(!store.exists) {
+            _error.value = application.getString(R.string.search_error_not_indexed)
+            return
+        }
+
+        viewModelScope.launch((Dispatchers.IO)) {
+            try {
+                if(!imageEmbedder.isInitialized()){
+                    imageEmbedder.initialize()
+                }
+                val bitmap = getBitmapFromUri(application, _searchImageUri.value!!, ClipConfig.IMAGE_SIZE_X)
+                val embedding = imageEmbedder.embed(bitmap)
+                search(store, embedding, n, threshold)
+            } catch (e: Exception) {
+                Log.e(TAG, "$e")
+                _error.emit(application.getString(R.string.search_error_unknown))
+            } finally {
+                _isLoading.emit(false)
+            }
+        }
+    }
+
+    private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, n: Int, threshold: Float = 0.2f) {
+        _isLoading.value = true
+        _error.value = null
+
+        val retriever = if(_mode.value == MediaType.VIDEO) videoRetriever else imageRetriever
+        val results = retriever.query(embedding, n, threshold)
+
+        if (results.isEmpty()) {
+            _error.emit(application.getString(R.string.search_error_no_results))
+            _searchResults.emit(emptyList())
+            return
+        }
+
+        val (filteredUris, idsToPurge) = results.map { embed ->
+            val uri = if (_mode.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
+            embed.id to uri
+        }.partition { (_, uri) -> canOpenUri(application, uri) }
+
+        if (filteredUris.isEmpty()) {
+            _error.emit(application.getString(R.string.search_error_no_results))
+        }
+
+        _searchResults.emit(filteredUris.map { it.second })
+
+        if(idsToPurge.isNotEmpty()){
+            viewModelScope.launch(Dispatchers.IO) {
+                store.remove(idsToPurge.map { it.first })
             }
         }
     }
@@ -279,7 +313,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     override fun onCleared() {
-        embeddingsHandler.closeSession()
+        textEmbedder.closeSession()
+        imageEmbedder.closeSession()
         super.onCleared()
     }
 }
