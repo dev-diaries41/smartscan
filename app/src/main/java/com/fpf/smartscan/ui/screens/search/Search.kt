@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
@@ -32,12 +33,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.mediaTypeOptions
+import com.fpf.smartscan.constants.queryOptions
 import com.fpf.smartscan.data.MediaType
+import com.fpf.smartscan.data.QueryType
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.components.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorIconItem
+import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 import com.fpf.smartscansdk.core.processors.ProcessorStatus
@@ -48,6 +52,8 @@ fun SearchScreen(
     settingsViewModel: SettingsViewModel = viewModel()
 ) {
     val context = LocalContext.current
+    val appSettings by settingsViewModel.appSettings.collectAsState()
+
     // Index state
     val imageIndexProgress by searchViewModel.imageIndexProgress.collectAsState(initial = 0f)
     val videoIndexProgress by searchViewModel.videoIndexProgress.collectAsState(initial = 0f)
@@ -65,7 +71,7 @@ fun SearchScreen(
     val searchResults by searchViewModel.searchResults.collectAsState(emptyList())
     val resultToView by searchViewModel.resultToView.collectAsState()
     val canSearch by searchViewModel.canSearch.collectAsState(false)
-    val appSettings by settingsViewModel.appSettings.collectAsState()
+    val queryType by searchViewModel.queryType.collectAsState()
 
     var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
@@ -218,7 +224,11 @@ fun SearchScreen(
             ){
                 TextButton(onClick = {isMoreOptionsVisible = !isMoreOptionsVisible }) {
                     Text("More options")
-                    Icon(Icons.Default.ArrowDropDown, contentDescription = "DropDown icon")
+                    if(isMoreOptionsVisible){
+                        Icon(Icons.Default.ArrowDropUp, contentDescription = "DropUp icon")
+                    }else{
+                        Icon(Icons.Default.ArrowDropDown, contentDescription = "DropDown icon")
+                    }
                 }
                 if(searchResults.isNotEmpty()){
                     TextButton(onClick = {searchViewModel.clearResults() }) {
@@ -227,7 +237,19 @@ fun SearchScreen(
                 }
             }
 
-
+            if(isMoreOptionsVisible) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+                    SelectorItem(
+                        label = "Query type",
+                        options = queryOptions.values.toList(),
+                        selectedOption = queryOptions[queryType]!!,
+                        onOptionSelected = { selected ->
+                            val type = queryOptions.entries.find { it.value == selected }?.key ?: QueryType.TEXT
+                            searchViewModel.updateQueryType(type)
+                        }
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
