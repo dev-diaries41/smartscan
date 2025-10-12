@@ -11,6 +11,7 @@ import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.getImageUriFromId
 import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
@@ -31,15 +32,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-
-enum class MediaType {
-    IMAGE, VIDEO
-}
-
-val searchModeOptions = mapOf(
-    MediaType.IMAGE to "Images",
-    MediaType.VIDEO to "Videos",
-)
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
     companion object {
