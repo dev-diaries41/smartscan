@@ -187,6 +187,7 @@ fun SettingsScreen(
                     onOptionSelected = { selected ->
                         viewModel.updateIndexFrequency(selected)
                     },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -229,7 +230,8 @@ fun SettingsScreen(
                     selectedOption = appSettings.frequency,
                     onOptionSelected = { selected ->
                         viewModel.updateFrequency(selected)
-                    }
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
