@@ -135,6 +135,14 @@ fun SettingsDetailScreen(
                 SettingTypes.MANAGE_MODELS -> {
                     ModelManager(models=models, onDelete = viewModel::onDeleteModel, onImport=viewModel::onImportModel)
                 }
+                SettingTypes.SEARCHABLE_DIRS -> {
+                    DirectoryPicker(
+                        directories = appSettings.searchableDirectories,
+                        addDirectory = { newDir -> viewModel.addSearchableDirectory(newDir) },
+                        deleteDirectory = { newDir -> viewModel.deleteSearchableDirectory(newDir) },
+                        description = stringResource(R.string.setting_searchable_folders_description)
+                    )
+                }
                 else -> {}
             }
         }

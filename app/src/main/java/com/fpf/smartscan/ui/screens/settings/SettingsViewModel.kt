@@ -113,7 +113,6 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         saveSettings(sharedPrefs, _appSettings.value)
     }
 
-
     fun addDestinationDirectory(dirString: String) {
         val uri = dirString.toUri()
 
@@ -301,5 +300,19 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
     fun onDeleteModel(model: ImportedModel){
         if(deleteModel(application, model)) _importedModels.value = _importedModels.value - model
+    }
+
+    fun addSearchableDirectory(dir: String) {
+        val currentSettings = _appSettings.value
+        val newDirs = currentSettings.searchableDirectories + dir
+        _appSettings.value = currentSettings.copy(searchableDirectories = newDirs)
+        saveSettings(sharedPrefs, _appSettings.value)
+    }
+
+    fun deleteSearchableDirectory(dir: String) {
+        val currentSettings = _appSettings.value
+        val newDirs = currentSettings.searchableDirectories - dir
+        _appSettings.value = currentSettings.copy(searchableDirectories = newDirs)
+        saveSettings(sharedPrefs, _appSettings.value)
     }
 }
