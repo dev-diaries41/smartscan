@@ -75,7 +75,7 @@
     <string name="setting_index_frequency">Index frequency</string>
     <string name="setting_index_frequency_description">Schedule for auto-updates of video and image indexes.</string>
     <string name="setting_similarity_threshold">Similarity threshold</string>
-    <string name="setting_similarity_threshold_description">Minimum similarity score for matching. Lower values risk false positives; higher values may miss matches.</string>
+    <string name="setting_similarity_threshold_description">Minimum similarity score for matching results</string>
     <string name="setting_max_search_results">Max search results</string>
     <string name="setting_refresh_image_index">Refresh image index</string>
     <string name="setting_refresh_video_index">Refresh video index</string>
