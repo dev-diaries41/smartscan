@@ -29,9 +29,9 @@ fun SearchResults(
 
     Column(modifier = Modifier.fillMaxSize()) {
         Text(
-            text = "Results (${searchResults.size})",
+            text = "${searchResults.size} Results",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(8.dp)
+            modifier = Modifier.padding(4.dp)
         )
         LazyVerticalGrid(
             columns = GridCells.Fixed(numGridColumns),
