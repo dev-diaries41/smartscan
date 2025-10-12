@@ -201,6 +201,7 @@ fun SelectorItem(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
     description: String? = null,
     enabled: Boolean = true,
     showLabel: Boolean = true,
@@ -212,12 +213,12 @@ fun SelectorItem(
     var showDialog by remember { mutableStateOf(false) }
 
     Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+        modifier = Modifier.padding(vertical = 4.dp)
     ) {
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = modifier
         ) {
             if(label.isNotEmpty() && showLabel){
                 Text(

@@ -31,8 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.openImageInGallery
 import com.fpf.smartscan.lib.openVideoInGallery
-import com.fpf.smartscan.ui.screens.search.MediaType
-
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -41,6 +39,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.lib.canOpenUri
 
 @Composable
