@@ -10,7 +10,9 @@ import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
@@ -63,6 +65,7 @@ fun SearchScreen(
     val canSearch by searchViewModel.canSearch.collectAsState(false)
     val appSettings by settingsViewModel.appSettings.collectAsState()
 
+    var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
 
@@ -207,11 +210,22 @@ fun SearchScreen(
                 }
             )
 
-            if(searchResults.isNotEmpty()){
-                TextButton(onClick = {searchViewModel.clearResults() }, modifier = Modifier.align(Alignment.End)) {
-                    Text("Clear Results")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ){
+                TextButton(onClick = {isMoreOptionsVisible = !isMoreOptionsVisible }) {
+                    Text("More options")
+                    Icon(Icons.Default.ArrowDropDown, contentDescription = "DropDown icon")
+                }
+                if(searchResults.isNotEmpty()){
+                    TextButton(onClick = {searchViewModel.clearResults() }) {
+                        Text("Clear results")
+                    }
                 }
             }
+
+
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -276,9 +290,7 @@ fun SearchPlaceholderDisplay(isVisible: Boolean) {
 
     Box(
         contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(top = 64.dp, start = 16.dp, end = 16.dp, bottom = 16.dp)
+        modifier = Modifier.fillMaxSize().padding(16.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -287,8 +299,7 @@ fun SearchPlaceholderDisplay(isVisible: Boolean) {
                 imageVector = Icons.Filled.ImageSearch,
                 contentDescription = "Search icon",
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .size(96.dp)
+                modifier = Modifier.size(96.dp)
             )
             Text(
                 textAlign = TextAlign.Center,
