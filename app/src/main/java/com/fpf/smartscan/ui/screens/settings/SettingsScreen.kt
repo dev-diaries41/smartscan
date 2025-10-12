@@ -29,11 +29,15 @@ import com.fpf.smartscan.ui.components.SwitchItem
 import androidx.core.net.toUri
 import com.fpf.smartscan.constants.Routes
 import com.fpf.smartscan.constants.SettingTypes
+import com.fpf.smartscan.constants.colorSchemeDisplayNames
+import com.fpf.smartscan.constants.themeModeDisplayNames
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.refreshIndex
 import com.fpf.smartscan.ui.components.CustomSlider
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
+import com.fpf.smartscan.ui.theme.ColorSchemeType
+import com.fpf.smartscan.ui.theme.ThemeMode
 
 @Composable
 fun SettingsScreen(
@@ -123,6 +127,35 @@ fun SettingsScreen(
         ) {
 
             Column(modifier = Modifier.padding(8.dp)) {
+                Text(
+                    text = stringResource(id = R.string.general_settings),
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+                SelectorItem(
+                    label = stringResource(id = R.string.setting_theme),
+                    options = themeModeDisplayNames.values.toList(),
+                    selectedOption = themeModeDisplayNames[appSettings.theme]!!,
+                    onOptionSelected = { selected ->
+                        val theme = themeModeDisplayNames.entries.find { it.value == selected }?.key ?: ThemeMode.SYSTEM
+                        viewModel.updateTheme(theme)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                SelectorItem(
+                    label = stringResource(id = R.string.setting_color),
+                    options = colorSchemeDisplayNames.values.toList(),
+                    selectedOption = colorSchemeDisplayNames[appSettings.color]!!,
+                    onOptionSelected = { selected ->
+                        val color = colorSchemeDisplayNames.entries.find { it.value == selected }?.key ?: ColorSchemeType.SMARTSCAN
+                        viewModel.updateColorScheme(color)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Text(
                     text = stringResource(id = R.string.search_settings),
                     style = MaterialTheme.typography.titleMedium,
