@@ -178,8 +178,12 @@ fun SettingsScreen(
                     }
                 )
                 ActionItem(
-                    text = stringResource(id = R.string.setting_searchable_folders),
-                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.SEARCHABLE_DIRS)) }
+                    text = stringResource(id = R.string.setting_searchable_image_folders),
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.SEARCHABLE_IMG_DIRS)) }
+                )
+                ActionItem(
+                    text = stringResource(id = R.string.setting_searchable_video_folders),
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.SEARCHABLE_VID_DIRS)) }
                 )
                 SelectorItem(
                     label = stringResource(id = R.string.setting_index_frequency),

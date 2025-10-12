@@ -69,7 +69,8 @@ fun MainScreen() {
             SettingTypes.ORGANISER_ACCURACY -> stringResource(R.string.setting_organisation_organiser_accuracy)
             SettingTypes.MODELS -> stringResource(R.string.setting_models)
             SettingTypes.MANAGE_MODELS -> stringResource(R.string.setting_manage_models)
-            SettingTypes.SEARCHABLE_DIRS -> stringResource(R.string.setting_searchable_folders)
+            SettingTypes.SEARCHABLE_IMG_DIRS -> stringResource(R.string.setting_searchable_image_folders)
+            SettingTypes.SEARCHABLE_VID_DIRS -> stringResource(R.string.setting_searchable_video_folders)
             else -> ""
         }
         else -> ""
