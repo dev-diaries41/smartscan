@@ -12,10 +12,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.loadBitmapFromUri
 import com.fpf.smartscan.lib.loadVideoThumbnailFromUri
-import com.fpf.smartscan.ui.screens.search.MediaType
 
 
 @Composable
