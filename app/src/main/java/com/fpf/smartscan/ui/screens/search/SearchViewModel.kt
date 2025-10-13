@@ -72,13 +72,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _isImageIndexAlertVisible = MutableStateFlow(false)
     val isImageIndexAlertVisible: StateFlow<Boolean> = _isImageIndexAlertVisible
 
-    private val _mode = MutableStateFlow(MediaType.IMAGE)
-    val mode: StateFlow<MediaType> = _mode
+    private val _mediaType = MutableStateFlow(MediaType.IMAGE)
+    val mediaType: StateFlow<MediaType> = _mediaType
 
     private val hasAnyImages: Flow<Boolean> = repository.hasAnyEmbedding
     private val hasAnyVideos: Flow<Boolean> = videoRepository.hasAnyVideoEmbeddings
     val hasIndexed: StateFlow<Boolean?> =
-        combine(_mode, hasAnyImages, hasAnyVideos) { mode, anyImages, anyVideos ->
+        combine(_mediaType, hasAnyImages, hasAnyVideos) { mode, anyImages, anyVideos ->
             when (mode) {
                 MediaType.IMAGE -> anyImages || imageStore.exists
                 MediaType.VIDEO -> anyVideos || videoStore.exists
@@ -104,7 +104,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _canSearchImages = MutableStateFlow(false)
     private val _canSearchVideos = MutableStateFlow(false)
     val canSearch: StateFlow<Boolean> =
-        combine(_mode, _canSearchImages, _canSearchVideos) { mode, canImages, canVideos ->
+        combine(_mediaType, _canSearchImages, _canSearchVideos) { mode, canImages, canVideos ->
             when (mode) {
                 MediaType.IMAGE -> canImages
                 MediaType.VIDEO -> canVideos
@@ -190,13 +190,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchResults.value = emptyList()
     }
 
-    fun setMode(newMode: MediaType) {
-        _mode.value = newMode
+    fun setMediaType(type: MediaType) {
+        _mediaType.value = type
         reset()
 
         // saves memory by lazy loading video index
         // This check is only valid if useCache true, which is default
-        if(newMode == MediaType.VIDEO && !videoStore.isCached){
+        if(type == MediaType.VIDEO && !videoStore.isCached){
             viewModelScope.launch(Dispatchers.IO){loadVideoIndex()}
         }
     }
@@ -215,7 +215,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             return
         }
 
-        val store = if(_mode.value == MediaType.VIDEO) videoStore else imageStore
+        val store = if(_mediaType.value == MediaType.VIDEO) videoStore else imageStore
         if(!store.exists) {
             _error.value = application.getString(R.string.search_error_not_indexed)
             return
@@ -244,7 +244,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     fun imageSearch(n: Int, threshold: Float = 0.2f) {
         if (_searchImageUri.value == null) return
 
-        val store = if(_mode.value == MediaType.VIDEO) videoStore else imageStore
+        val store = if(_mediaType.value == MediaType.VIDEO) videoStore else imageStore
         if(!store.exists) {
             _error.value = application.getString(R.string.search_error_not_indexed)
             return
@@ -272,7 +272,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, n: Int, threshold: Float = 0.2f) {
-        val retriever = if(_mode.value == MediaType.VIDEO) videoRetriever else imageRetriever
+        val retriever = if(_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
         val results = retriever.query(embedding, n, threshold)
 
         if (results.isEmpty()) {
@@ -282,7 +282,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
 
         val (filteredUris, idsToPurge) = results.map { embed ->
-            val uri = if (_mode.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
+            val uri = if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
             embed.id to uri
         }.partition { (_, uri) -> canOpenUri(application, uri) }
 
