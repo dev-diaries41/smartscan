@@ -7,6 +7,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -41,6 +44,7 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
             Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 NewImageUploader(
+                    size = 300,
                     uri = imageUri,
                     onImageSelected = { uri ->
                         viewModel.updateImageUri(uri)
@@ -50,17 +54,18 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
                     },
                     placeholderText = {
                         Text(text = "Upload image",
-                            style = MaterialTheme.typography.titleMedium,
+                            style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.alpha(0.8f).padding(8.dp),
                         )
                     }
                 )
                 Button(
                     enabled = !isLoading && imageUri != null ,
-                    modifier = Modifier.padding(vertical = 16.dp),
+                    modifier = Modifier.padding(vertical = 16.dp).width(300.dp),
                     onClick = { viewModel.inference(context, classPrototypes, threshold = appSettings.organiserSimilarityThreshold, confidenceMargin = appSettings.organiserConfMargin) },
                 ) {
-                    Text("Classify Image")
+                    Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Label icon", modifier = Modifier.padding(end = 4.dp))
+                    Text("Classify")
                     AnimatedVisibility(
                         visible = isLoading,
                         enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
