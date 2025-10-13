@@ -27,9 +27,11 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
 
     private val _predictedClass = MutableStateFlow<String?>(null)
     val predictedClass: StateFlow<String?> = _predictedClass
-
     private val _imageUri = MutableStateFlow<Uri?>(null)
     val imageUri: StateFlow<Uri?> = _imageUri
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading
+
 
     fun updateImageUri(uri: Uri?) {
         _imageUri.value = uri
@@ -44,7 +46,7 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
             Toast.makeText(context, context.getString(R.string.test_no_prototype_embeddings), Toast.LENGTH_SHORT).show()
             return
         }
-
+        _isLoading.value = true
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 if(!embeddingsHandler.isInitialized()) embeddingsHandler.initialize()
@@ -65,6 +67,8 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
                 }
             } catch (e: Exception) {
                 Log.e("TestViewModel", "Inference failed: ${e.message}", e)
+            }finally {
+                _isLoading.emit(false)
             }
         }
     }
