@@ -7,7 +7,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material3.*
@@ -19,7 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpf.smartscan.data.prototypes.toEmbedding
-import com.fpf.smartscan.ui.components.NewImageUploader
+import com.fpf.smartscan.ui.components.ImageUploader
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 
 
@@ -43,7 +42,7 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
     Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                NewImageUploader(
+                ImageUploader(
                     size = 300,
                     uri = imageUri,
                     onImageSelected = { uri ->
