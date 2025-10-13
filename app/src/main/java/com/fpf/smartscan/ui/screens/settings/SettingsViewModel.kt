@@ -29,6 +29,9 @@ import com.fpf.smartscan.lib.isWorkScheduled
 import com.fpf.smartscan.lib.loadSettings
 import com.fpf.smartscan.lib.saveSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.ui.theme.ColorSchemeType
+import com.fpf.smartscan.ui.theme.ThemeManager
+import com.fpf.smartscan.ui.theme.ThemeMode
 import com.fpf.smartscan.workers.ClassificationBatchWorker
 import com.fpf.smartscan.workers.ClassificationWorker
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
@@ -326,6 +329,20 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val currentSettings = _appSettings.value
         val newDirs = currentSettings.searchableVideoDirectories - dir
         _appSettings.value = currentSettings.copy(searchableVideoDirectories = newDirs)
+        saveSettings(sharedPrefs, _appSettings.value)
+    }
+
+    fun updateTheme(theme: ThemeMode){
+        ThemeManager.updateThemeMode(theme)
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(theme = theme)
+        saveSettings(sharedPrefs, _appSettings.value)
+    }
+
+    fun updateColorScheme(colorScheme: ColorSchemeType){
+        ThemeManager.updateColorScheme(colorScheme)
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(color = colorScheme)
         saveSettings(sharedPrefs, _appSettings.value)
     }
 }

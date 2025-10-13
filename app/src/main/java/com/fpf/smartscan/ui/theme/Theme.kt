@@ -3,9 +3,12 @@ package com.fpf.smartscan.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 
 enum class ColorSchemeType { DEFAULT, SMARTSCAN }
+enum class ThemeMode { LIGHT, DARK, SYSTEM }
 
 private val LightColorPalette = lightColorScheme(
     primary = Peach,
@@ -24,10 +27,17 @@ private val DarkColorPalette = darkColorScheme(
 
 @Composable
 fun MyAppTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    colorSchemeType: ColorSchemeType = ColorSchemeType.SMARTSCAN,
     content: @Composable () -> Unit
 ) {
+    val themeMode by ThemeManager.themeMode.collectAsState()
+    val colorSchemeType by ThemeManager.colorScheme.collectAsState()
+
+    val darkTheme = when (themeMode) {
+        ThemeMode.LIGHT -> false
+        ThemeMode.DARK -> true
+        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    }
+
     val colors = when (colorSchemeType) {
         ColorSchemeType.DEFAULT -> if (darkTheme) darkColorScheme() else lightColorScheme()
         ColorSchemeType.SMARTSCAN -> if (darkTheme) DarkColorPalette else LightColorPalette

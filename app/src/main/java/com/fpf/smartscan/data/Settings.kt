@@ -1,5 +1,7 @@
 package com.fpf.smartscan.data
 
+import com.fpf.smartscan.ui.theme.ColorSchemeType
+import com.fpf.smartscan.ui.theme.ThemeMode
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,4 +19,6 @@ data class AppSettings(
     val organiserConfMargin: Float = 0.03f,
     val searchableImageDirectories: List<String> = emptyList(),
     val searchableVideoDirectories: List<String> = emptyList(),
+    val theme: ThemeMode = ThemeMode.SYSTEM,
+    val color: ColorSchemeType = ColorSchemeType.SMARTSCAN
     )
