@@ -21,7 +21,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.constants.mediaTypeOptions
 import com.fpf.smartscan.data.MediaType
-import com.fpf.smartscan.ui.components.NewImageUploader
+import com.fpf.smartscan.ui.components.media.ImageUploader
 import com.fpf.smartscan.ui.components.SelectorItem
 
 
@@ -45,7 +45,7 @@ fun ImageSearcher(
 
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        NewImageUploader(
+        ImageUploader(
             uri = uri,
             onImageSelected = onImageSelected,
             placeholderText = {

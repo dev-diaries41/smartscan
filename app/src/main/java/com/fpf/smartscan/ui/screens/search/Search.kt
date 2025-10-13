@@ -1,10 +1,8 @@
 package com.fpf.smartscan.ui.screens.search
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
@@ -21,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.Icon
@@ -38,7 +35,8 @@ import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.data.QueryType
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
-import com.fpf.smartscan.ui.components.MediaViewer
+import com.fpf.smartscan.ui.components.LoadingIndicator
+import com.fpf.smartscan.ui.components.media.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorIconItem
 import com.fpf.smartscan.ui.components.SelectorItem
@@ -276,22 +274,7 @@ fun SearchScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            AnimatedVisibility(
-                visible = isLoading,
-                enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
-                exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(48.dp),
-                        strokeWidth = 4.dp
-                    )
-                }
-            }
+            LoadingIndicator(isVisible = isLoading, size = 48.dp, strokeWidth = 4.dp, modifier = Modifier.fillMaxWidth())
 
             if(!canSearch && hasIndexed == true && isLoading && hasStoragePermission){
                 Text(text = if (mediaType == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))

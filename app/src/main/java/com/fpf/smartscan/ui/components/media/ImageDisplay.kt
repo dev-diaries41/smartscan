@@ -1,4 +1,4 @@
-package com.fpf.smartscan.ui.components
+package com.fpf.smartscan.ui.components.media
 
 import android.graphics.Bitmap
 import android.net.Uri
