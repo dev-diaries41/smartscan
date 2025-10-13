@@ -1,5 +1,11 @@
 package com.fpf.smartscan.ui.screens.test
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +29,7 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
     val prototypesEntities by settingsViewModel.prototypeList.collectAsState()
     val appSettings by settingsViewModel.appSettings.collectAsState()
     val classPrototypes = prototypesEntities.map { it.toEmbedding() }
+    val isLoading by viewModel.isLoading.collectAsState(false)
 
     DisposableEffect(Unit) {
         onDispose {
@@ -48,10 +55,28 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
                         )
                     }
                 )
-                if (imageUri != null) {
-                    Button(modifier = Modifier.padding(vertical = 16.dp),
-                        onClick = { viewModel.inference(context, classPrototypes, threshold = appSettings.organiserSimilarityThreshold, confidenceMargin = appSettings.organiserConfMargin) },
-                    ) { Text("Classify Image") }
+                Button(
+                    enabled = !isLoading && imageUri != null ,
+                    modifier = Modifier.padding(vertical = 16.dp),
+                    onClick = { viewModel.inference(context, classPrototypes, threshold = appSettings.organiserSimilarityThreshold, confidenceMargin = appSettings.organiserConfMargin) },
+                ) {
+                    Text("Classify Image")
+                    AnimatedVisibility(
+                        visible = isLoading,
+                        enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
+                        exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
+                    ) {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier.padding(start = 8.dp)
+                        ) {
+                            CircularProgressIndicator(
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp
+                            )
+                        }
+                    }
                 }
                 inferenceResult?.let { Text(text = "Result: $it", modifier = Modifier.padding(vertical = 16.dp)) }
             }
