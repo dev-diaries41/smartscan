@@ -1,17 +1,12 @@
 package com.fpf.smartscan.ui.screens.scanhistory
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,7 +27,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.alpha
@@ -43,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.data.scans.ScanData
 import com.fpf.smartscan.R
 import com.fpf.smartscan.lib.toDateString
+import com.fpf.smartscan.ui.components.LoadingIndicator
 
 @Composable
 fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
@@ -141,26 +136,9 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                         ) {
                             Icon(Icons.AutoMirrored.Filled.Undo, contentDescription = "Undo icon", modifier = Modifier.padding(end = 4.dp))
                             Text(text = "Undo last scan")
-                            AnimatedVisibility(
-                                visible = isLoading,
-                                enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
-                                exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
-                            ) {
-                                Box(
-                                    contentAlignment = Alignment.Center,
-                                    modifier = Modifier.padding(start = 8.dp)
-                                ) {
-                                    CircularProgressIndicator(
-                                        color = MaterialTheme.colorScheme.onPrimary,
-                                        modifier = Modifier
-                                            .size(18.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                }
-                            }
+                            LoadingIndicator(isVisible = isLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.padding(start = 8.dp))
                         }
                     }
-
                 }
 
                 LazyColumn{
