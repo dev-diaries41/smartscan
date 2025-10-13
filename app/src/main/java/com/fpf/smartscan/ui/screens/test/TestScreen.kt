@@ -24,6 +24,12 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
     val appSettings by settingsViewModel.appSettings.collectAsState()
     val classPrototypes = prototypesEntities.map { it.toEmbedding() }
 
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.onDispose()
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally
             ) {

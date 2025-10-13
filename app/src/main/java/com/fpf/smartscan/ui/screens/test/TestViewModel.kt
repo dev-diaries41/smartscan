@@ -67,8 +67,12 @@ class TestViewModel(application: Application) : AndroidViewModel(application){
                 Log.e("TestViewModel", "Inference failed: ${e.message}", e)
             }
         }
-
     }
+
+    fun onDispose(){
+        embeddingsHandler.closeSession()
+    }
+
     override fun onCleared() {
         super.onCleared()
         embeddingsHandler.closeSession()
