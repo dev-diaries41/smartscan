@@ -1,4 +1,4 @@
-package com.fpf.smartscan.ui.screens.search
+package com.fpf.smartscan.ui.components.search
 
 import android.net.Uri
 import androidx.compose.foundation.border
