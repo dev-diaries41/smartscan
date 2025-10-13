@@ -12,7 +12,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpf.smartscan.data.prototypes.toEmbedding
-import com.fpf.smartscan.ui.components.ImageUploader
+import com.fpf.smartscan.ui.components.media.ImageUploader
 import com.fpf.smartscan.ui.components.LoadingIndicator
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 
