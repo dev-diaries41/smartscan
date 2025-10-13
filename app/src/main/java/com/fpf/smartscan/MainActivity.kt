@@ -3,10 +3,13 @@ package com.fpf.smartscan
 import android.os.Bundle
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import androidx.lifecycle.lifecycleScope
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.lib.loadSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
@@ -17,6 +20,8 @@ import com.fpf.smartscan.ui.theme.MyAppTheme
 import com.fpf.smartscan.ui.theme.ThemeManager
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.TimeUnit
 
@@ -34,7 +39,13 @@ class MainActivity : ComponentActivity() {
             channelName = getString(R.string.worker_channel_name),
             description = getString(R.string.worker_channel_description)
         )
-        enableEdgeToEdge()
+        updateEdgeToEdge()
+
+        lifecycleScope.launch {
+            ThemeManager.themeMode.collectLatest {
+                updateEdgeToEdge()
+            }
+        }
 
     setContent {
             MyAppTheme {
@@ -71,14 +82,16 @@ class MainActivity : ComponentActivity() {
 
     private fun createNotificationChannel(channelId: String, channelName: String, description: String) {
         val notificationManager = getSystemService(NotificationManager::class.java)
-
-        val channel = NotificationChannel(
-            channelId,
-            channelName,
-            NotificationManager.IMPORTANCE_HIGH
-        ).apply {
-            this.description = description
-        }
+        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_HIGH
+        ).apply { this.description = description }
         notificationManager.createNotificationChannel(channel)
     }
+    private fun updateEdgeToEdge() {
+        val isDarkTheme = ThemeManager.isDarkTheme(resources)
+        enableEdgeToEdge(
+            statusBarStyle = if (isDarkTheme) SystemBarStyle.dark(Color.Transparent.toArgb()) else SystemBarStyle.light(Color.Transparent.toArgb(), Color.Black.toArgb()),
+            navigationBarStyle = if (isDarkTheme) SystemBarStyle.dark(Color.Transparent.toArgb()) else SystemBarStyle.light(Color.Transparent.toArgb(), Color.Black.toArgb())
+        )
+    }
+
 }
