@@ -1,11 +1,5 @@
 package com.fpf.smartscan.ui.screens.test
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Label
@@ -19,8 +13,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpf.smartscan.data.prototypes.toEmbedding
 import com.fpf.smartscan.ui.components.ImageUploader
+import com.fpf.smartscan.ui.components.LoadingIndicator
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,22 +59,7 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
                 ) {
                     Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Label icon", modifier = Modifier.padding(end = 4.dp))
                     Text("Classify")
-                    AnimatedVisibility(
-                        visible = isLoading,
-                        enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
-                        exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.padding(start = 8.dp)
-                        ) {
-                            CircularProgressIndicator(
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp
-                            )
-                        }
-                    }
+                    LoadingIndicator(isVisible = isLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
                 }
                 inferenceResult?.let { Text(text = "Result: $it", modifier = Modifier.padding(vertical = 16.dp)) }
             }
