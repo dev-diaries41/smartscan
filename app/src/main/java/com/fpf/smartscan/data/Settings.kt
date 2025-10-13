@@ -13,7 +13,7 @@ data class AppSettings(
     val destinationDirectories: List<String> = emptyList(),
     val similarityThreshold: Float = 0.2f,
     @SerialName("numberSimilarResults") // maps old JSON key
-    val maxSearchResults: Int = 10,
+    val maxSearchResults: Int = 20,
     val indexFrequency: String = "1 Week",
     val organiserSimilarityThreshold: Float = 0.4f,
     val organiserConfMargin: Float = 0.03f,
