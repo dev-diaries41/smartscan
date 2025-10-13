@@ -36,7 +36,7 @@ import com.fpf.smartscan.data.QueryType
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.components.LoadingIndicator
-import com.fpf.smartscan.ui.components.MediaViewer
+import com.fpf.smartscan.ui.components.media.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorIconItem
 import com.fpf.smartscan.ui.components.SelectorItem

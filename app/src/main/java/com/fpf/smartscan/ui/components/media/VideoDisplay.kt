@@ -1,8 +1,9 @@
-package com.fpf.smartscan.ui.components
+package com.fpf.smartscan.ui.components.media
 
 import android.net.Uri
 import android.view.GestureDetector
 import android.view.MotionEvent
+import android.widget.FrameLayout
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -49,9 +50,9 @@ fun VideoDisplay(
             PlayerView(ctx).apply {
                 player = exoPlayer
                 useController = true
-                layoutParams = android.widget.FrameLayout.LayoutParams(
-                    android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-                    android.widget.FrameLayout.LayoutParams.WRAP_CONTENT
+                layoutParams = FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.WRAP_CONTENT
                 )
                 setOnTouchListener { view, event ->
                     val handled = gestureDetector.onTouchEvent(event)

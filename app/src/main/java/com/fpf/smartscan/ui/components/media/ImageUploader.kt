@@ -1,4 +1,4 @@
-package com.fpf.smartscan.ui.components
+package com.fpf.smartscan.ui.components.media
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
