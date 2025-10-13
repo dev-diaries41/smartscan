@@ -20,13 +20,13 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun LoadingIndicator(
-    isLoading: Boolean,
+    isVisible: Boolean,
     size: Int,
     color: Color = ProgressIndicatorDefaults.circularColor,
     strokeWidth: Dp = ProgressIndicatorDefaults.CircularStrokeWidth,
 ){
     AnimatedVisibility(
-        visible = isLoading,
+        visible = isVisible,
         enter = fadeIn(animationSpec = tween(durationMillis = 500)) + expandVertically(),
         exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
     ) {
