@@ -187,6 +187,7 @@ fun SearchScreen(
                     maxResults = appSettings.maxSearchResults,
                     threshold = appSettings.similarityThreshold,
                     mediaType = mode,
+                    searchEnabled = canSearch && searchImageUri != null,
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                     onSearch = searchViewModel::imageSearch,
                     onMediaTypeChange = searchViewModel::setMode,
@@ -367,6 +368,7 @@ fun ImageSearcher(
     maxResults: Int,
     threshold: Float,
     mediaType: MediaType,
+    searchEnabled: Boolean,
     mediaTypeSelectorEnabled: Boolean,
     onImageSelected: (Uri?) -> Unit,
     onMediaTypeChange: (type: MediaType) -> Unit,
@@ -411,7 +413,7 @@ fun ImageSearcher(
             )
             Button(
                 modifier = Modifier.width(140.dp),
-                enabled = uri != null,
+                enabled = searchEnabled ,
                 onClick = {onSearch(maxResults, threshold) }
             ) {
                 Icon(Icons.Default.ImageSearch, contentDescription = "Image search icon", modifier = Modifier.padding(end = 4.dp))
