@@ -69,7 +69,7 @@ fun SearchScreen(
     val searchQuery by searchViewModel.query.collectAsState("")
     val isLoading by searchViewModel.isLoading.collectAsState(false)
     val error by searchViewModel.error.collectAsState(null)
-    val mode by searchViewModel.mode.collectAsState(MediaType.IMAGE)
+    val mediaType by searchViewModel.mediaType.collectAsState(MediaType.IMAGE)
     val hasIndexed by searchViewModel.hasIndexed.collectAsState(null)
     val searchResults by searchViewModel.searchResults.collectAsState(emptyList())
     val resultToView by searchViewModel.resultToView.collectAsState()
@@ -86,10 +86,10 @@ fun SearchScreen(
         hasStoragePermission = storageGranted
     }
 
-    LaunchedEffect(hasIndexed, hasStoragePermission, mode) {
-        if(hasStoragePermission && hasIndexed == false && (mode == MediaType.IMAGE)){
+    LaunchedEffect(hasIndexed, hasStoragePermission, mediaType) {
+        if(hasStoragePermission && hasIndexed == false && (mediaType == MediaType.IMAGE)){
             searchViewModel.toggleAlert(MediaType.IMAGE)
-        }else if(hasStoragePermission && hasIndexed == false && (mode == MediaType.VIDEO)){
+        }else if(hasStoragePermission && hasIndexed == false && (mediaType == MediaType.VIDEO)){
             searchViewModel.toggleAlert(MediaType.VIDEO)
         }
     }
@@ -106,7 +106,7 @@ fun SearchScreen(
         }
     }
 
-    val label = if (mode == MediaType.IMAGE) "image" else "video"
+    val label = if (mediaType == MediaType.IMAGE) "image" else "video"
     val message = stringResource(R.string.first_indexing, label)
 
     if ( isImageIndexAlertVisible) {
@@ -185,11 +185,11 @@ fun SearchScreen(
                     uri = searchImageUri,
                     maxResults = appSettings.maxSearchResults,
                     threshold = appSettings.similarityThreshold,
-                    mediaType = mode,
+                    mediaType = mediaType,
                     searchEnabled = canSearch && searchImageUri != null,
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                     onSearch = searchViewModel::imageSearch,
-                    onMediaTypeChange = searchViewModel::setMode,
+                    onMediaTypeChange = searchViewModel::setMediaType,
                     onImageSelected = searchViewModel::updateSearchImageUri,
                 )
             }else{
@@ -201,7 +201,7 @@ fun SearchScreen(
                         searchViewModel.setQuery(newQuery)
                     },
                     onClearQuery = { searchViewModel.setQuery("") },
-                    label = when (mode) {
+                    label = when (mediaType) {
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
                     },
@@ -227,12 +227,12 @@ fun SearchScreen(
                                 enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                                 label = "Media type",
                                 options = mediaTypeOptions.values.toList(),
-                                selectedOption = mediaTypeOptions[mode]!!,
+                                selectedOption = mediaTypeOptions[mediaType]!!,
                                 onOptionSelected = { selected ->
                                     val newMode = mediaTypeOptions.entries
                                         .find { it.value == selected }
                                         ?.key ?: MediaType.IMAGE
-                                    searchViewModel.setMode(newMode)
+                                    searchViewModel.setMediaType(newMode)
                                 }
                             )
                         }
@@ -294,7 +294,7 @@ fun SearchScreen(
             }
 
             if(!canSearch && hasIndexed == true && isLoading && hasStoragePermission){
-                Text(text = if (mode == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
+                Text(text = if (mediaType == MediaType.IMAGE) "Loading indexed images..." else "Loading indexed videos...", modifier = Modifier.padding(top=8.dp))
             }
 
             error?.let {
@@ -309,7 +309,7 @@ fun SearchScreen(
 
             SearchResults(
                 isVisible = !isLoading && searchResults.isNotEmpty(),
-                type = mode,
+                type = mediaType,
                 searchResults = searchResults,
                 toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
             )
@@ -322,7 +322,7 @@ fun SearchScreen(
             ) {
                 MediaViewer(
                     uri = uri,
-                    type = mode,
+                    type = mediaType,
                     onClose = { searchViewModel.toggleViewResult(null) },
                 )
             }
