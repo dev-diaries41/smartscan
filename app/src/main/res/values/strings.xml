@@ -157,7 +157,11 @@
     <string name="help_include_text_from_media">Include specific text from the media (e.g. subtitles, overlay text) when available.</string>
     <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
 
-    <string name="update_copy_to_clipboard">Copy media to clipboard</string>
-    <string name="update_reddit">Join r/SmartScan subreddit to stay up-to-date, help shape the app and get support.</string>
-    <string name="update_settings_organiser_accuracy">Configure organiser accuracy in settings under Image Management.</string>
+    <!--Updates-->
+    <string name="update_image_to_image_search">Added image-to-image search</string>
+    <string name="update_select_searchable_folders">Select searchable folders for images and videos</string>
+    <string name="update_increase_search_limit">Increased search results limit to 100</string>
+    <string name="update_theme_settings">Added theme related settings</string>
+    <string name="update_new_results_layout">New search results layout</string>
+    <string name="update_auto_organisation_fix">Fixed auto-organisation bugs</string>
 </resources>
