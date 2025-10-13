@@ -63,16 +63,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         VideoEmbeddingDatabase.getDatabase(application).videoEmbeddingDao()
     )
 
-    private val _hasRefreshedImageIndex = MutableStateFlow<Boolean>(false)
-    private val _hasRefreshedVideoIndex = MutableStateFlow<Boolean>(false)
-    private val _hasShownImageIndexAlert = MutableStateFlow<Boolean>(false)
-    private val _hasShownVideoIndexAlert = MutableStateFlow<Boolean>(false)
-    private val _isVideoIndexAlertVisible = MutableStateFlow<Boolean>(false)
+    private val _hasRefreshedImageIndex = MutableStateFlow(false)
+    private val _hasRefreshedVideoIndex = MutableStateFlow(false)
+    private val _hasShownImageIndexAlert = MutableStateFlow(false)
+    private val _hasShownVideoIndexAlert = MutableStateFlow(false)
+    private val _isVideoIndexAlertVisible = MutableStateFlow(false)
     val isVideoIndexAlertVisible: StateFlow<Boolean> = _isVideoIndexAlertVisible
-    private val _isImageIndexAlertVisible = MutableStateFlow<Boolean>(false)
+    private val _isImageIndexAlertVisible = MutableStateFlow(false)
     val isImageIndexAlertVisible: StateFlow<Boolean> = _isImageIndexAlertVisible
 
-    private val _mode = MutableStateFlow<MediaType>(MediaType.IMAGE)
+    private val _mode = MutableStateFlow(MediaType.IMAGE)
     val mode: StateFlow<MediaType> = _mode
 
     private val hasAnyImages: Flow<Boolean> = repository.hasAnyEmbedding
@@ -89,20 +89,20 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             initialValue = null
         )
 
-    private val _query = MutableStateFlow<String>("")
+    private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
 
     private val _searchResults = MutableStateFlow<List<Uri>>(emptyList())
     val searchResults: StateFlow<List<Uri>> = _searchResults
 
-    private val _isLoading = MutableStateFlow<Boolean>(false)
+    private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
-    private val _canSearchImages = MutableStateFlow<Boolean>(false)
-    private val _canSearchVideos = MutableStateFlow<Boolean>(false)
+    private val _canSearchImages = MutableStateFlow(false)
+    private val _canSearchVideos = MutableStateFlow(false)
     val canSearch: StateFlow<Boolean> =
         combine(_mode, _canSearchImages, _canSearchVideos) { mode, canImages, canVideos ->
             when (mode) {
