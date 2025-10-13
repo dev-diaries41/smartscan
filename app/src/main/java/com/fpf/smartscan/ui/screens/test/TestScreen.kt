@@ -59,7 +59,7 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
                 ) {
                     Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Label icon", modifier = Modifier.padding(end = 4.dp))
                     Text("Classify")
-                    LoadingIndicator(isVisible = isLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary)
+                    LoadingIndicator(isVisible = isLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.padding(start = 8.dp))
                 }
                 inferenceResult?.let { Text(text = "Result: $it", modifier = Modifier.padding(vertical = 16.dp)) }
             }
