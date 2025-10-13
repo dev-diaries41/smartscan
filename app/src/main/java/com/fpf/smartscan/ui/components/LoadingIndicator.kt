@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.Dp
 fun LoadingIndicator(
     isVisible: Boolean,
     size: Dp,
+    modifier: Modifier = Modifier,
     color: Color = ProgressIndicatorDefaults.circularColor,
     strokeWidth: Dp = ProgressIndicatorDefaults.CircularStrokeWidth,
 ){
@@ -30,7 +31,7 @@ fun LoadingIndicator(
         exit = fadeOut(animationSpec = tween(durationMillis = 500)) + shrinkVertically()
     ) {
         Box(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = modifier,
             contentAlignment = Alignment.Center,
         ) {
             CircularProgressIndicator(
