@@ -4,68 +4,20 @@ import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.graphics.*
-import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Environment
 import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
-import android.util.LruCache
-import androidx.core.graphics.scale
 import androidx.documentfile.provider.DocumentFile
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.utils.getBitmapFromUri
-import com.fpf.smartscansdk.core.utils.getScaledDimensions
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.IOException
 import java.util.Locale
 
 const val DEFAULT_IMAGE_DISPLAY_SIZE = 1024
-
-/**
- * A simple LRU Cache to hold Bitmaps to avoid decoding them multiple times.
- */
-object BitmapCache {
-    private val cache: LruCache<Uri, Bitmap> = object : LruCache<Uri, Bitmap>(calculateMemoryCacheSize()) {
-        override fun sizeOf(key: Uri, value: Bitmap): Int {
-            return value.byteCount / 1024 // in KB
-        }
-    }
-
-    private fun calculateMemoryCacheSize(): Int {
-        val maxMemory = (Runtime.getRuntime().maxMemory() / 1024).toInt() // in KB
-        val calculatedCacheSize = maxMemory / 8
-        val maxAllowedCacheSize = 50 * 1024
-
-        return if (calculatedCacheSize > maxAllowedCacheSize) {
-            maxAllowedCacheSize
-        } else {
-            calculatedCacheSize
-        }
-    }
-
-    fun get(uri: Uri): Bitmap? = cache.get(uri)
-    fun put(uri: Uri, bitmap: Bitmap): Bitmap? = cache.put(uri, bitmap)
-}
-
-
-
-suspend fun loadBitmapFromUri(context: Context, uri: Uri, maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE): Bitmap? = withContext(Dispatchers.IO) {
-    BitmapCache.get(uri) ?: try {
-        val source = ImageDecoder.createSource(context.contentResolver, uri)
-        val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-            val (w, h) = getScaledDimensions(width  = info.size.width, height = info.size.height, maxSize)
-            decoder.setTargetSize(w, h)
-        }
-        BitmapCache.put(uri, bitmap)
-        bitmap
-    } catch (e: IOException) {
-        e.printStackTrace()
-        null
-    }
-}
 
 fun getImageUriFromId(id: Long): Uri {
     return ContentUris.withAppendedId(
@@ -114,30 +66,6 @@ fun getVideoUriFromId(id: Long): Uri {
         MediaStore.Video.Media.EXTERNAL_CONTENT_URI,
         id
     )
-}
-
-suspend fun loadVideoThumbnailFromUri(
-    context: Context,
-    uri: Uri,
-    maxSize: Int
-): Bitmap? {
-    return withContext(Dispatchers.IO) {
-        BitmapCache.get(uri) ?: try {
-            val retriever = MediaMetadataRetriever()
-            retriever.setDataSource(context, uri)
-            var bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-            retriever.release()
-            if (bitmap != null) {
-                val (w, h) = getScaledDimensions(width  = bitmap.width, height = bitmap.height, maxSize)
-                bitmap = bitmap.scale(w, h)
-            }
-            bitmap?.let { BitmapCache.put(uri, it) }
-            bitmap
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
-    }
 }
 
 fun openVideoInGallery(context: Context, uri: Uri) {
