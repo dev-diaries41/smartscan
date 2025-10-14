@@ -37,7 +37,7 @@ fun UpdatePopUp(
             // Centered content
             Column(
                 modifier = Modifier.align(Alignment.Center),
-                verticalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(

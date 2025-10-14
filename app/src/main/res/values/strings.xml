@@ -35,8 +35,12 @@
 
     <!-- Search screen -->
     <string name="first_indexing">
-      Start first %1$s index to enable search, this may take a few minutes. Searching will be limited until the process is complete. You can start it manually at anytime in settings.
+        Start the first %1$s index to enable search. You can start it manually anytime in settings—useful if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).
     </string>
+
+
+
+
 
     <string name="storage_permissions">Storage permission required to search.</string>
     <string name="search_error_not_indexed">Index is empty.</string>
@@ -160,8 +164,11 @@
     <!--Updates-->
     <string name="update_image_to_image_search">Added image-to-image search</string>
     <string name="update_select_searchable_folders">Select searchable folders for images and videos</string>
-    <string name="update_increase_search_limit">Increased search results limit to 100</string>
+    <string name="update_increase_search_limit">Unlimited search results</string>
     <string name="update_theme_settings">Added theme related settings</string>
     <string name="update_new_results_layout">New search results layout</string>
     <string name="update_auto_organisation_fix">Fixed auto-organisation bugs</string>
+    <string name="update_auto_organisation_notice">
+    Auto-organisation may be deprecated or removed in the next version. Visit the subreddit or GitHub discussion (links in settings) for more info.
+</string>
 </resources>
