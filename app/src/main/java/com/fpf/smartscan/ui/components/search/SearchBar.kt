@@ -31,8 +31,7 @@ fun SearchBar(
     enabled: Boolean,
     onQueryChange: (query: String) -> Unit,
     threshold: Float,
-    nSimilarResult: Int,
-    onSearch: (n: Int, threshold: Float) -> Unit,
+    onSearch: (threshold: Float) -> Unit,
     onClearQuery: () -> Unit,
     label: String,
     trailingIcon: @Composable (() -> Unit)? = null
@@ -48,7 +47,7 @@ fun SearchBar(
         keyboardActions = KeyboardActions(
             onSearch = {
                 if (query.isNotBlank()) {
-                    onSearch(nSimilarResult, threshold)
+                    onSearch(threshold)
                 }
             }
         ),
