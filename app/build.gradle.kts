@@ -76,6 +76,9 @@ android {
 }
 
 dependencies {
+    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
+    implementation("io.coil-kt.coil3:coil-video:3.3.0")
+
     implementation(libs.smartscan.extensions)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
