@@ -162,16 +162,9 @@ fun SettingsScreen(
                     modifier = Modifier.padding(vertical = 8.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
-                CustomSlider(
-                    label = stringResource(id = R.string.setting_similarity_threshold),
-                    minValue = 0.18f,
-                    maxValue = 0.28f,
-                    initialValue = appSettings.similarityThreshold,
-                    onValueChange = { value ->
-                        viewModel.updateSimilarityThreshold(value)
-                    },
-                    format = { "%.2f".format(it) },
-                    description = stringResource(R.string.setting_similarity_threshold_description)
+                ActionItem(
+                    text = stringResource(id = R.string.setting_similarity_threshold),
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.THRESHOLD)) }
                 )
                 ActionItem(
                     text = stringResource(id = R.string.setting_refresh_image_index),
