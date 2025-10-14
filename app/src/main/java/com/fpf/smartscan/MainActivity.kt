@@ -10,6 +10,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.lifecycle.lifecycleScope
+import coil3.ImageLoader
+import coil3.SingletonImageLoader
+import coil3.disk.DiskCache
+import coil3.disk.directory
+import coil3.memory.MemoryCache
+import coil3.request.crossfade
 import com.fpf.smartscan.lib.isServiceRunning
 import com.fpf.smartscan.lib.loadSettings
 import com.fpf.smartscan.services.MediaIndexForegroundService
@@ -45,6 +51,14 @@ class MainActivity : ComponentActivity() {
             ThemeManager.themeMode.collectLatest {
                 updateEdgeToEdge()
             }
+        }
+
+        SingletonImageLoader.setSafe {
+            ImageLoader.Builder(this)
+                .crossfade(true)
+                .memoryCache { MemoryCache.Builder().maxSizePercent(this, 0.25).build() }
+                .diskCache { DiskCache.Builder().directory(cacheDir.resolve("image_cache")).maxSizePercent(0.02).build() }
+                .build()
         }
 
     setContent {
