@@ -1,1 +1,1 @@
-SmartScan enables text-based search across images and videos, and image organisation
+Search images and videos offline using text or images, and image organisation.
