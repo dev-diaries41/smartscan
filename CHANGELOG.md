@@ -1,13 +1,13 @@
 ## v1.1.6 – 14/10/2025
 
 ### Added
-* Added image-to-image search
+* Added searching with images
 * Select searchable folders for images and videos
 * Unlimited search results
 * Add model downloading and importing
 * Updated search screen layout
 * Added theme related settings
-````
+
 ### Fixed
 * Fixed auto-organisation bugs
 
