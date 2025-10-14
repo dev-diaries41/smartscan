@@ -6,7 +6,7 @@ Search images and videos offline using text or images, and automatically organiz
 <ul>
 <li><b>Search Options:</b> Search using text or images.</li>
 <li><b>Folder Selection:</b> Choose which image and video folders are allowed to be indexed.</li>
-<li><b>Gallery Access:</b> Open search results directly in the gallery.</li>s
+<li><b>Gallery Access:</b> Open search results directly in the gallery.</li>
 <li><b>Weekly Updates:</b> Automatically refresh image and video indexes for new content.</li>
 </ul>
 
