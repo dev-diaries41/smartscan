@@ -5,10 +5,10 @@ import android.util.Log
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import com.fpf.smartscan.R
+import com.fpf.smartscan.data.ProcessorStatus
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.processors.IProcessorListener
 import com.fpf.smartscansdk.core.processors.Metrics
-import com.fpf.smartscansdk.core.processors.ProcessorStatus
 
 abstract class BaseIndexListener(private val notificationId: Int, private val tag: String) : IProcessorListener<Long, Embedding> {
     private val _progress = MutableStateFlow(0f)
