@@ -32,6 +32,7 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.mediaTypeOptions
 import com.fpf.smartscan.constants.queryOptions
 import com.fpf.smartscan.data.MediaType
+import com.fpf.smartscan.data.ProcessorStatus
 import com.fpf.smartscan.data.QueryType
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
@@ -45,7 +46,6 @@ import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
-import com.fpf.smartscansdk.core.processors.ProcessorStatus
 
 @Composable
 fun SearchScreen(
