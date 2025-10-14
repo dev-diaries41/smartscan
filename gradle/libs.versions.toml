@@ -19,7 +19,7 @@ mockk = "1.14.5"
 navigationCompose = "2.9.3"
 roomRuntime = "2.7.2"
 runner = "1.6.1"
-smartscanExtensions = "1.0.1"
+smartscanExtensions = "1.0.3"
 ui = "1.9.0"
 workRuntimeKtx = "2.10.3"
 
