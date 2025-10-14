@@ -56,7 +56,7 @@ suspend fun loadBitmapFromUri(context: Context, uri: Uri, maxSize: Int = DEFAULT
     BitmapCache.get(uri) ?: try {
         val source = ImageDecoder.createSource(context.contentResolver, uri)
         val bitmap = ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
-            val (w, h) = getScaledDimensions(imgWith  = info.size.width, imgHeight = info.size.height, maxSize)
+            val (w, h) = getScaledDimensions(width  = info.size.width, height = info.size.height, maxSize)
             decoder.setTargetSize(w, h)
         }
         BitmapCache.put(uri, bitmap)
@@ -128,7 +128,7 @@ suspend fun loadVideoThumbnailFromUri(
             var bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
             retriever.release()
             if (bitmap != null) {
-                val (w, h) = getScaledDimensions(imgWith  = bitmap.width, imgHeight = bitmap.height, maxSize)
+                val (w, h) = getScaledDimensions(width  = bitmap.width, height = bitmap.height, maxSize)
                 bitmap = bitmap.scale(w, h)
             }
             bitmap?.let { BitmapCache.put(uri, it) }

@@ -11,3 +11,5 @@ enum class QueryType {
 enum class SearchMode {
     GENERAL, FACE
 }
+
+enum class ProcessorStatus {IDLE, ACTIVE, COMPLETE, FAILED }
