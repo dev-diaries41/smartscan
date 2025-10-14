@@ -96,7 +96,7 @@ class MediaIndexForegroundService : Service() {
                     val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false)
                     val imageIndexer = ImageIndexer(embeddingHandler, application, ImageIndexListener, store = imageStore)
                     val ids = queryImageIds(application, appSettings.searchableImageDirectories.map{it.toUri()})
-                    val existingIds = if(imageStore.exists) imageStore.getAll().map{it.id}.toSet() else emptySet()
+                    val existingIds = if(imageStore.exists) imageStore.get().map{it.id}.toSet() else emptySet()
                     val filteredIds = ids.filterNot { existingIds.contains(it) }
                     imageIndexer.run(filteredIds)
                 }
@@ -105,7 +105,7 @@ class MediaIndexForegroundService : Service() {
                     val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false )
                     val videoIndexer = VideoIndexer(embeddingHandler, application=application, listener = VideoIndexListener, store = videoStore)
                     val ids = queryVideoIds(application, appSettings.searchableVideoDirectories.map { it.toUri() })
-                    val existingIds = if(videoStore.exists) videoStore.getAll().map{it.id}.toSet() else emptySet()
+                    val existingIds = if(videoStore.exists) videoStore.get().map{it.id}.toSet() else emptySet()
                     val filteredIds = ids.filterNot { existingIds.contains(it) }
                     videoIndexer.run(filteredIds)
                 }
