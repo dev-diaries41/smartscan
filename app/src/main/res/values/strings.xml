@@ -164,7 +164,7 @@
     <!--Updates-->
     <string name="update_image_to_image_search">Added image-to-image search</string>
     <string name="update_select_searchable_folders">Select searchable folders for images and videos</string>
-    <string name="update_increase_search_limit">Increased search results limit to 100</string>
+    <string name="update_increase_search_limit">Unlimited search results</string>
     <string name="update_theme_settings">Added theme related settings</string>
     <string name="update_new_results_layout">New search results layout</string>
     <string name="update_auto_organisation_fix">Fixed auto-organisation bugs</string>
