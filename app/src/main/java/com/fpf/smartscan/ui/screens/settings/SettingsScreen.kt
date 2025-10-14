@@ -163,16 +163,6 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 CustomSlider(
-                    label = stringResource(id = R.string.setting_max_search_results),
-                    minValue = 1f,
-                    maxValue = 100f,
-                    initialValue = appSettings.maxSearchResults.toFloat(),
-                    onValueChange = { value ->
-                        viewModel.updateMaxSearchResults(value.toInt())
-                    },
-                    format = { "%.0f".format(it) }
-                )
-                CustomSlider(
                     label = stringResource(id = R.string.setting_similarity_threshold),
                     minValue = 0.18f,
                     maxValue = 0.28f,
