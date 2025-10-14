@@ -1,11 +1,12 @@
-<b>SmartScan</b> is an ML powered app that enables <b>text-based search across both images and videos</b> and automatically organizes your images by <b>content similarity</b>, making gallery management effortless.
+Search images and videos offline using text or images, and automatically organize your images with on-device AI.
 
 <b>Key Features</b>
 
-<b>Text-Based Video & Image Search</b>
+<b>Search Images and Videos</b>
 <ul>
-<li><b>Gallery Access:</b> Open search results directly in the gallery.</li>
-<li><b>Result Display:</b> Show the top result plus up to 20 similar images or videos.</li>
+<li><b>Search Options:</b> Search using text or images.</li>
+<li><b>Folder Selection:</b> Choose which image and video folders are allowed to be indexed.</li>
+<li><b>Gallery Access:</b> Open search results directly in the gallery.</li>s
 <li><b>Weekly Updates:</b> Automatically refresh image and video indexes for new content.</li>
 </ul>
 
