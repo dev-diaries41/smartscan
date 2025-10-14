@@ -7,11 +7,13 @@ import com.fpf.smartscan.data.AppSettings
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
+val json = Json { ignoreUnknownKeys = true }
+
 fun loadSettings(sharedPrefs: SharedPreferences): AppSettings {
     val jsonSettings = sharedPrefs.getString("app_settings", null)
     return if (jsonSettings != null) {
         try {
-            Json.decodeFromString<AppSettings>(jsonSettings)
+            json.decodeFromString<AppSettings>(jsonSettings)
         } catch (e: Exception) {
             Log.e("loadSettings", "Failed to decode settings", e)
             AppSettings()
@@ -22,5 +24,5 @@ fun loadSettings(sharedPrefs: SharedPreferences): AppSettings {
 }
 
 fun saveSettings(sharedPrefs: SharedPreferences, settings: AppSettings) {
-    sharedPrefs.edit {putString("app_settings", Json.encodeToString(settings))  }
+    sharedPrefs.edit {putString("app_settings", json.encodeToString(settings))  }
 }
