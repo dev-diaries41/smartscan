@@ -168,4 +168,7 @@
     <string name="update_theme_settings">Added theme related settings</string>
     <string name="update_new_results_layout">New search results layout</string>
     <string name="update_auto_organisation_fix">Fixed auto-organisation bugs</string>
+    <string name="update_auto_organisation_notice">
+    Auto-organisation may be deprecated or removed in the next version. Visit the subreddit or GitHub discussion (links in settings) for more info.
+</string>
 </resources>

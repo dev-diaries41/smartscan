@@ -41,7 +41,9 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
             application.getString(R.string.update_increase_search_limit),
             application.getString(R.string.update_theme_settings),
             application.getString(R.string.update_new_results_layout),
-            application.getString(R.string.update_auto_organisation_fix)
+            application.getString(R.string.update_auto_organisation_fix),
+            application.getString(R.string.update_auto_organisation_notice)
+
         )
     }
 }
