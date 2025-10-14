@@ -45,6 +45,7 @@ import com.fpf.smartscan.ui.components.search.ImageSearcher
 import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
 import com.fpf.smartscan.ui.permissions.RequestPermissions
+import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 
 @Composable
@@ -74,6 +75,7 @@ fun SearchScreen(
     val canSearch by searchViewModel.canSearch.collectAsState(false)
     val queryType by searchViewModel.queryType.collectAsState()
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
+    val totalResults by searchViewModel.totalResults.collectAsState()
 
     var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
@@ -294,7 +296,10 @@ fun SearchScreen(
                 isVisible = !isLoading && searchResults.isNotEmpty(),
                 type = mediaType,
                 searchResults = searchResults,
-                toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) }
+                toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) },
+                onLoadMore = searchViewModel::onLoadMore,
+                totalResults=totalResults,
+                loadMoreBuffer = (RESULTS_BATCH_SIZE * 0.2).toInt()
             )
         }
         resultToView?.let { uri ->
