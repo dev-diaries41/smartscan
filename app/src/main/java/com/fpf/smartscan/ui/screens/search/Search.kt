@@ -183,7 +183,6 @@ fun SearchScreen(
             if(queryType == QueryType.IMAGE){
                 ImageSearcher(
                     uri = searchImageUri,
-                    maxResults = appSettings.maxSearchResults,
                     threshold = appSettings.similarityThreshold,
                     mediaType = mediaType,
                     searchEnabled = canSearch && searchImageUri != null,
@@ -205,7 +204,6 @@ fun SearchScreen(
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
                     },
-                    nSimilarResult = appSettings.maxSearchResults,
                     threshold = appSettings.similarityThreshold,
                     trailingIcon = {
                         val alpha =
