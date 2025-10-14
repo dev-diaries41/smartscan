@@ -150,7 +150,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 _isLoading.emit(true)
 
                 val embeddings = if(store.exists) {
-                    store.getAll()
+                    store.get()
                 } else  {
                     // For backwards compatibility with old Room storage
                     val embs = fetchFromRoom()
