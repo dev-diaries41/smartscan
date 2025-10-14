@@ -36,10 +36,12 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.util.concurrent.atomic.AtomicBoolean
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
     companion object {
         private const val TAG = "SearchViewModel"
+        const val RESULTS_BATCH_SIZE = 30
     }
 
     val imageIndexProgress = ImageIndexListener.progress
@@ -97,6 +99,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
+    private val isLoadingMoreSearchResults = AtomicBoolean(false)
+    private val _totalResults = MutableStateFlow(0)
+    val totalResults: StateFlow<Int> = _totalResults
 
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
@@ -273,7 +278,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, n: Int, threshold: Float = 0.2f) {
         val retriever = if(_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
-        val results = retriever.query(embedding, n, threshold)
+        var results = retriever.query(embedding, Int.MAX_VALUE, threshold)
+        _totalResults.emit( results.size)
+        results = results.take(RESULTS_BATCH_SIZE) // initial results the result loaded dynamically
 
         if (results.isEmpty()) {
             _error.emit(application.getString(R.string.search_error_no_results))
@@ -323,6 +330,40 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private fun shouldShutdownModel(lastUsage: Long?) = lastUsage != null && System.currentTimeMillis() - lastUsage >= modelShutdownThreshold
 
+
+    fun onLoadMore() {
+        if (isLoadingMoreSearchResults.getAndSet(true)) return
+        val retriever = if (_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
+        val currentItemsCount = _searchResults.value.size
+        if (currentItemsCount >= _totalResults.value) return
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+
+                val end = (currentItemsCount + RESULTS_BATCH_SIZE).coerceAtMost(_totalResults.value)
+                val batch = retriever.query(currentItemsCount, end).take(RESULTS_BATCH_SIZE)
+
+                val (filteredUris, idsToPurge) = batch.map { embed ->
+                    embed.id to if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(
+                        embed.id
+                    )
+                }.partition { (_, uri) -> canOpenUri(application, uri) }
+
+                if (filteredUris.isNotEmpty()) {
+                    _searchResults.emit(_searchResults.value + filteredUris.map { it.second })
+                }
+
+                if (idsToPurge.isNotEmpty()) {
+                    val store = if (_mediaType.value == MediaType.VIDEO) videoStore else imageStore
+                    viewModelScope.launch(Dispatchers.IO) {
+                        store.remove(idsToPurge.map { it.first })
+                    }
+                }
+            }finally {
+                isLoadingMoreSearchResults.set(false)
+            }
+        }
+    }
 
     override fun onCleared() {
         textEmbedder.closeSession()
