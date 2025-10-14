@@ -35,7 +35,7 @@ fun ImageSearcher(
     mediaTypeSelectorEnabled: Boolean,
     onImageSelected: (Uri?) -> Unit,
     onMediaTypeChange: (type: MediaType) -> Unit,
-    onSearch: (n: Int, threshold: Float) -> Unit,
+    onSearch: (threshold: Float) -> Unit,
 ){
     Row(
         modifier = Modifier.fillMaxWidth().background(
@@ -77,7 +77,7 @@ fun ImageSearcher(
             Button(
                 modifier = Modifier.width(140.dp),
                 enabled = searchEnabled ,
-                onClick = {onSearch(maxResults, threshold) }
+                onClick = {onSearch(threshold) }
             ) {
                 Icon(Icons.Default.ImageSearch, contentDescription = "Image search icon", modifier = Modifier.padding(end = 4.dp))
                 Text(text = "Search")

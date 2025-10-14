@@ -213,7 +213,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
 
-    fun textSearch(n: Int, threshold: Float = 0.2f) {
+    fun textSearch(threshold: Float = 0.2f) {
         val currentQuery = _query.value
         if (currentQuery.isBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
@@ -235,7 +235,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
                 if(shouldShutdownModel(imageEmbedderLastUsage)) imageEmbedder.closeSession() // prevent keeping both models open
                 val embedding = textEmbedder.embed(currentQuery)
-                search(store, embedding, n, threshold)
+                search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
                 _error.emit(application.getString(R.string.search_error_unknown))
@@ -246,7 +246,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun imageSearch(n: Int, threshold: Float = 0.2f) {
+    fun imageSearch(threshold: Float = 0.2f) {
         if (_searchImageUri.value == null) return
 
         val store = if(_mediaType.value == MediaType.VIDEO) videoStore else imageStore
@@ -265,7 +265,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 if(shouldShutdownModel(textEmbedderLastUsage)) textEmbedder.closeSession() // prevent keeping both models open
                 val bitmap = getBitmapFromUri(application, _searchImageUri.value!!, ClipConfig.IMAGE_SIZE_X)
                 val embedding = imageEmbedder.embed(bitmap)
-                search(store, embedding, n, threshold)
+                search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
                 _error.emit(application.getString(R.string.search_error_unknown))
@@ -276,7 +276,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, n: Int, threshold: Float = 0.2f) {
+    private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, threshold: Float = 0.2f) {
         val retriever = if(_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
         var results = retriever.query(embedding, Int.MAX_VALUE, threshold)
         _totalResults.emit( results.size)
