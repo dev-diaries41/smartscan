@@ -12,11 +12,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import coil3.ImageLoader
+import coil3.request.ImageRequest
+import coil3.request.allowHardware
+import coil3.toBitmap
+import coil3.video.VideoFrameDecoder
 import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
-import com.fpf.smartscan.lib.loadBitmapFromUri
-import com.fpf.smartscan.lib.loadVideoThumbnailFromUri
-
 
 @Composable
 fun ImageDisplay(
@@ -27,12 +29,26 @@ fun ImageDisplay(
     type: MediaType
 ) {
     val context = LocalContext.current
-    val bitmapState = produceState<Bitmap?>(initialValue = null, key1 = uri) {
-        value = when(type) {
-            MediaType.IMAGE -> loadBitmapFromUri(context, uri, maxSize)
-            MediaType.VIDEO -> loadVideoThumbnailFromUri(context, uri, maxSize)
-        }
+    val bitmapState = produceState<Bitmap?>(initialValue = null, key1 = uri, key2 = type) {
+        val loader = ImageLoader.Builder(context).components {
+                if (type == MediaType.VIDEO) {
+                    add(VideoFrameDecoder.Factory())
+                }
+            }
+            .build()
+
+        val request = ImageRequest.Builder(context)
+            .data(uri)
+            .size(maxSize, maxSize)
+            .allowHardware(true)
+            .target { bitmap ->
+                value = bitmap.toBitmap()
+            }
+            .build()
+
+        loader.enqueue(request)
     }
+
     val bitmap = bitmapState.value
     if (bitmap != null) {
         Image(
