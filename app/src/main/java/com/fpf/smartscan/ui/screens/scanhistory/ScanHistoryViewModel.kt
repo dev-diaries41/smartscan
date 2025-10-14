@@ -10,8 +10,8 @@ import kotlinx.coroutines.launch
 import com.fpf.smartscan.data.scans.*
 import com.fpf.smartscan.data.movehistory.*
 import com.fpf.smartscan.lib.moveFile
-import com.fpf.smartscansdk.core.utils.MemoryOptions
-import com.fpf.smartscansdk.core.utils.MemoryUtils
+import com.fpf.smartscansdk.core.processors.MemoryOptions
+import com.fpf.smartscansdk.core.processors.MemoryUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
