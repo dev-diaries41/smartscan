@@ -28,7 +28,6 @@ import com.fpf.smartscan.ui.components.SelectorItem
 @Composable
 fun ImageSearcher(
     uri: Uri?,
-    maxResults: Int,
     threshold: Float,
     mediaType: MediaType,
     searchEnabled: Boolean,
