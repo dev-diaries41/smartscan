@@ -1,6 +1,6 @@
 # SmartScan - Media organisation & search app
 
-SmartScan is an innovative app powered by a CLIP model that automatically organizes your images by content similarity and enables text-based search across both images and videos, making gallery management effortless.
+Search images and videos offline using text or images, and automatically organize your images with on-device AI.
 
 <div align="center">
   <img src="fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner" style="border-radius: 20px;">
@@ -8,8 +8,8 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 
 
 | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Screenshot 1" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Screenshot 2" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Screenshot 3" width="200px"> |
-| --- | --- | --- |
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Screenshot 4" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Screenshot 5" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" alt="Screenshot 6" width="200px"> |
+|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Screenshot 4" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Screenshot 5" width="200px"> |
 
 ---
 
@@ -17,25 +17,26 @@ SmartScan is an innovative app powered by a CLIP model that automatically organi
 
 The app is free, but if you enjoy using it and want to support project development and maintenance, please consider donating using one of the options below:
 
-| Wallet   | Address                              |
-| -------- | ------------------------------------ |
-| Bitcoin  | bc1qw46nxjp5gkh460ewamjd3jfeu0xv6ytq5et6xm        |
-| Ethereum | 0xa53aC18B25942C71019f85314AF67F6132E525ad       |
-| Litecoin | ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3       |
+| Wallet   | Address                                     |
+|----------|---------------------------------------------|
+| Bitcoin  | bc1qw46nxjp5gkh460ewamjd3jfeu0xv6ytq5et6xm  |
+| Ethereum | 0xa53aC18B25942C71019f85314AF67F6132E525ad  |
+| Litecoin | ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3 |
 
 ---
 
 ## Key Features
 
+### Search Images and Videos
+- **Search Options:** Search using text or images.
+- **Folder Selection:** Choose which image and video folders are allowed to be indexed.
+- **Gallery Access:** Open search results directly in the gallery.
+- **Weekly Updates:** Automatically refresh image and video indexes for new content.
+
 ### Automated Image Organisation
 - **Auto-Organisation:** Schedule regular scans automatically to organise images based on content similarity.
 - **Auto-Organisation Test:** Upload a test image to verify categorisation.
 - **Undo Scans:** Revert the most recent scan if needed.
-
-### Text-Based Video & Image Search
-- **Gallery Access:** Open search results directly in the gallery.
-- **Result Display:** Show the top result plus up to 20 similar images.
-- **Index Auto-Updates:** Automatically updates image and videos indexes for new images weekly or daily.
 
 ### Fully On-Device
 All processing—including both image organisation and text-based search—is handled entirely on-device, ensuring privacy, speed, and offline functionality.
