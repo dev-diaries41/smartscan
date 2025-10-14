@@ -35,8 +35,12 @@
 
     <!-- Search screen -->
     <string name="first_indexing">
-      Start first %1$s index to enable search, this may take a few minutes. Searching will be limited until the process is complete. You can start it manually at anytime in settings.
+        Start the first %1$s index to enable search. You can start it manually anytime in settings—useful if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).
     </string>
+
+
+
+
 
     <string name="storage_permissions">Storage permission required to search.</string>
     <string name="search_error_not_indexed">Index is empty.</string>
