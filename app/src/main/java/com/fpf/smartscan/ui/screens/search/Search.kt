@@ -294,7 +294,8 @@ fun SearchScreen(
                 isVisible = !isLoading && searchResults.isNotEmpty(),
                 type = mediaType,
                 searchResults = searchResults,
-                toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) },
+                toggleViewResult = searchViewModel::toggleViewResult,
+                updateSearchImage = searchViewModel::updateSearchImageUri,
                 onLoadMore = searchViewModel::onLoadMore,
                 totalResults=totalResults,
                 loadMoreBuffer = (RESULTS_BATCH_SIZE * 0.2).toInt()
@@ -310,6 +311,10 @@ fun SearchScreen(
                     uri = uri,
                     type = mediaType,
                     onClose = { searchViewModel.toggleViewResult(null) },
+                    onUpdateSearchImage = {
+                        searchViewModel.updateSearchImageUri(uri)
+                        searchViewModel.toggleViewResult(null)
+                    }
                 )
             }
         }
