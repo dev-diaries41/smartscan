@@ -22,7 +22,6 @@ import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
-import com.fpf.smartscan.ui.theme.MyAppTheme
 import com.fpf.smartscan.ui.theme.ThemeManager
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
@@ -62,7 +61,7 @@ class MainActivity : ComponentActivity() {
         }
 
     setContent {
-            MyAppTheme {
+            App {
                 MainScreen()
             }
         }
