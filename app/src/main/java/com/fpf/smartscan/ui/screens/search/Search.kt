@@ -311,6 +311,10 @@ fun SearchScreen(
                     uri = uri,
                     type = mediaType,
                     onClose = { searchViewModel.toggleViewResult(null) },
+                    onUpdateSearchImage = {
+                        searchViewModel.updateSearchImageUri(uri)
+                        searchViewModel.toggleViewResult(null)
+                    }
                 )
             }
         }
