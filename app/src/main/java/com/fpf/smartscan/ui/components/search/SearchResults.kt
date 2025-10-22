@@ -6,7 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -40,6 +40,7 @@ fun SearchResults(
     isVisible: Boolean,
     searchResults: List<Uri>,
     toggleViewResult: (uri: Uri?) -> Unit,
+    updateSearchImage: (uri: Uri) -> Unit,
     type: MediaType,
     onLoadMore: () -> Unit,
     totalResults: Int,
@@ -99,10 +100,12 @@ fun SearchResults(
                             .aspectRatio(1f)
                             .padding(1.dp)
                             .border(1.dp, Color.Gray.copy(alpha = 0.2f))
-                            .clickable(
+                            .combinedClickable(
                                 indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) { toggleViewResult(uri) },
+                                interactionSource = remember { MutableInteractionSource() },
+                                onClick = { toggleViewResult(uri) },
+                                onLongClick = {updateSearchImage(uri)}
+                            ),
                         contentScale = ContentScale.Crop,
                         type = type
                     )
