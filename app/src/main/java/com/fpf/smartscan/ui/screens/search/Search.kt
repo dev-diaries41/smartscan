@@ -10,8 +10,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.runtime.*
@@ -30,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.mediaTypeOptions
-import com.fpf.smartscan.constants.queryOptions
 import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.data.ProcessorStatus
 import com.fpf.smartscan.data.QueryType
@@ -40,7 +37,6 @@ import com.fpf.smartscan.ui.components.LoadingIndicator
 import com.fpf.smartscan.ui.components.media.MediaViewer
 import com.fpf.smartscan.ui.components.ProgressBar
 import com.fpf.smartscan.ui.components.SelectorIconItem
-import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.components.search.ImageSearcher
 import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
@@ -77,7 +73,6 @@ fun SearchScreen(
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
     val totalResults by searchViewModel.totalResults.collectAsState()
 
-    var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
 
@@ -189,7 +184,10 @@ fun SearchScreen(
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                     onSearch = searchViewModel::imageSearch,
                     onMediaTypeChange = searchViewModel::setMediaType,
-                    onImageSelected = searchViewModel::updateSearchImageUri,
+                    onRemoveImage = {
+                        searchViewModel.updateSearchImageUri(null)
+                        searchViewModel.updateQueryType(QueryType.TEXT)
+                    }
                 )
             }else{
                 SearchBar(
@@ -200,6 +198,10 @@ fun SearchScreen(
                         searchViewModel.setQuery(newQuery)
                     },
                     onClearQuery = { searchViewModel.setQuery("") },
+                    onImageSelected = {
+                        searchViewModel.updateSearchImageUri(it)
+                        searchViewModel.updateQueryType(QueryType.IMAGE)
+                                      },
                     label = when (mediaType) {
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
@@ -238,38 +240,10 @@ fun SearchScreen(
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ){
-                TextButton(onClick = {isMoreOptionsVisible = !isMoreOptionsVisible }) {
-                    Text("More options")
-                    if(isMoreOptionsVisible){
-                        Icon(Icons.Default.ArrowDropUp, contentDescription = "DropUp icon")
-                    }else{
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "DropDown icon")
-                    }
-                }
-                if(searchResults.isNotEmpty()){
-                    TextButton(onClick = {searchViewModel.clearResults() }) {
-                        Text("Clear results")
-                    }
-                }
-            }
 
-            if(isMoreOptionsVisible) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                    SelectorItem(
-                        label = "Query type",
-                        options = queryOptions.values.toList(),
-                        selectedOption = queryOptions[queryType]!!,
-                        onOptionSelected = { selected ->
-                            val type = queryOptions.entries.find { it.value == selected }?.key ?: QueryType.TEXT
-                            isMoreOptionsVisible = false
-                            searchViewModel.updateQueryType(type)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            if(searchResults.isNotEmpty()){
+                TextButton(onClick = {searchViewModel.clearResults() },  modifier = Modifier.align(Alignment.End)) {
+                    Text("Clear results")
                 }
             }
 
@@ -295,7 +269,10 @@ fun SearchScreen(
                 type = mediaType,
                 searchResults = searchResults,
                 toggleViewResult = searchViewModel::toggleViewResult,
-                updateSearchImage = searchViewModel::updateSearchImageUri,
+                updateSearchImage = {
+                    searchViewModel.updateSearchImageUri(it)
+                    searchViewModel.updateQueryType(QueryType.IMAGE)
+                                    },
                 onLoadMore = searchViewModel::onLoadMore,
                 totalResults=totalResults,
                 loadMoreBuffer = (RESULTS_BATCH_SIZE * 0.2).toInt()
@@ -314,6 +291,7 @@ fun SearchScreen(
                     onUpdateSearchImage = {
                         searchViewModel.updateSearchImageUri(uri)
                         searchViewModel.toggleViewResult(null)
+                        searchViewModel.updateQueryType(QueryType.IMAGE)
                     }
                 )
             }

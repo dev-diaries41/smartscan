@@ -1,5 +1,8 @@
 package com.fpf.smartscan.ui.components.search
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,8 +15,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -33,9 +36,18 @@ fun SearchBar(
     threshold: Float,
     onSearch: (threshold: Float) -> Unit,
     onClearQuery: () -> Unit,
+    onImageSelected: (Uri?) -> Unit,
     label: String,
     trailingIcon: @Composable (() -> Unit)? = null
 ) {
+
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent(),
+        onResult = { uri: Uri? ->
+            uri?.let { onImageSelected(it) }
+        }
+    )
+
     OutlinedTextField(
         singleLine = true,
         enabled = enabled,
@@ -55,11 +67,13 @@ fun SearchBar(
             imeAction = ImeAction.Search
         ),
         leadingIcon = {
-            Icon(
-                imageVector = Icons.Filled.Search,
-                contentDescription = "Search",
-                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = if (enabled) 1f else 0.3f)
-            )
+          IconButton(onClick = { imagePickerLauncher.launch("image/*") }){
+              Icon(
+                  imageVector = Icons.Filled.AddPhotoAlternate,
+                  contentDescription = "Upload image",
+                  tint = MaterialTheme.colorScheme.onBackground.copy(alpha = if (enabled) 1f else 0.3f)
+              )
+          }
         },
         trailingIcon = {
             Box(
