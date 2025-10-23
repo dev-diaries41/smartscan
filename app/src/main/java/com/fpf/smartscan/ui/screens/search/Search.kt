@@ -77,7 +77,6 @@ fun SearchScreen(
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
     val totalResults by searchViewModel.totalResults.collectAsState()
 
-    var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
 
@@ -245,38 +244,10 @@ fun SearchScreen(
                 )
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ){
-                TextButton(onClick = {isMoreOptionsVisible = !isMoreOptionsVisible }) {
-                    Text("More options")
-                    if(isMoreOptionsVisible){
-                        Icon(Icons.Default.ArrowDropUp, contentDescription = "DropUp icon")
-                    }else{
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "DropDown icon")
-                    }
-                }
-                if(searchResults.isNotEmpty()){
-                    TextButton(onClick = {searchViewModel.clearResults() }) {
-                        Text("Clear results")
-                    }
-                }
-            }
 
-            if(isMoreOptionsVisible) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                    SelectorItem(
-                        label = "Query type",
-                        options = queryOptions.values.toList(),
-                        selectedOption = queryOptions[queryType]!!,
-                        onOptionSelected = { selected ->
-                            val type = queryOptions.entries.find { it.value == selected }?.key ?: QueryType.TEXT
-                            isMoreOptionsVisible = false
-                            searchViewModel.updateQueryType(type)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            if(searchResults.isNotEmpty()){
+                TextButton(onClick = {searchViewModel.clearResults() },  modifier = Modifier.align(Alignment.End)) {
+                    Text("Clear results")
                 }
             }
 
