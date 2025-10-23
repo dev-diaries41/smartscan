@@ -190,6 +190,10 @@ fun SearchScreen(
                     onSearch = searchViewModel::imageSearch,
                     onMediaTypeChange = searchViewModel::setMediaType,
                     onImageSelected = searchViewModel::updateSearchImageUri,
+                    onRemoveImage = {
+                        searchViewModel.updateSearchImageUri(null)
+                        searchViewModel.updateQueryType(QueryType.TEXT)
+                    }
                 )
             }else{
                 SearchBar(
@@ -299,7 +303,10 @@ fun SearchScreen(
                 type = mediaType,
                 searchResults = searchResults,
                 toggleViewResult = searchViewModel::toggleViewResult,
-                updateSearchImage = searchViewModel::updateSearchImageUri,
+                updateSearchImage = {
+                    searchViewModel.updateSearchImageUri(it)
+                    searchViewModel.updateQueryType(QueryType.IMAGE)
+                                    },
                 onLoadMore = searchViewModel::onLoadMore,
                 totalResults=totalResults,
                 loadMoreBuffer = (RESULTS_BATCH_SIZE * 0.2).toInt()
@@ -318,6 +325,7 @@ fun SearchScreen(
                     onUpdateSearchImage = {
                         searchViewModel.updateSearchImageUri(uri)
                         searchViewModel.toggleViewResult(null)
+                        searchViewModel.updateQueryType(QueryType.IMAGE)
                     }
                 )
             }
