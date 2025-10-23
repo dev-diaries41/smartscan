@@ -200,6 +200,10 @@ fun SearchScreen(
                         searchViewModel.setQuery(newQuery)
                     },
                     onClearQuery = { searchViewModel.setQuery("") },
+                    onImageSelected = {
+                        searchViewModel.updateSearchImageUri(it)
+                        searchViewModel.updateQueryType(QueryType.IMAGE)
+                                      },
                     label = when (mediaType) {
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
