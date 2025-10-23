@@ -189,7 +189,6 @@ fun SearchScreen(
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                     onSearch = searchViewModel::imageSearch,
                     onMediaTypeChange = searchViewModel::setMediaType,
-                    onImageSelected = searchViewModel::updateSearchImageUri,
                     onRemoveImage = {
                         searchViewModel.updateSearchImageUri(null)
                         searchViewModel.updateQueryType(QueryType.TEXT)
