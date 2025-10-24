@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
@@ -61,7 +60,6 @@ fun SearchScreen(
     val isVideoIndexAlertVisible by searchViewModel.isVideoIndexAlertVisible.collectAsState(false)
 
     // Search state
-    val searchQuery by searchViewModel.query.collectAsState("")
     val isLoading by searchViewModel.isLoading.collectAsState(false)
     val error by searchViewModel.error.collectAsState(null)
     val mediaType by searchViewModel.mediaType.collectAsState(MediaType.IMAGE)
@@ -180,6 +178,7 @@ fun SearchScreen(
                     uri = searchImageUri,
                     threshold = appSettings.similarityThreshold,
                     mediaType = mediaType,
+                    imageSize = 120.dp,
                     searchEnabled = canSearch && searchImageUri != null,
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                     onSearch = searchViewModel::imageSearch,
@@ -191,51 +190,34 @@ fun SearchScreen(
                 )
             }else{
                 SearchBar(
-                    query = searchQuery,
                     enabled = canSearch && hasStoragePermission && !isLoading,
                     onSearch = searchViewModel::textSearch,
-                    onQueryChange = { newQuery ->
-                        searchViewModel.setQuery(newQuery)
-                    },
-                    onClearQuery = { searchViewModel.setQuery("") },
                     onImageSelected = {
                         searchViewModel.updateSearchImageUri(it)
                         searchViewModel.updateQueryType(QueryType.IMAGE)
                                       },
+                    onImagePasted = {
+                        searchViewModel.updateSearchImageUri(it)
+                        searchViewModel.updateQueryType(QueryType.IMAGE)
+                    },
                     label = when (mediaType) {
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
                     },
                     threshold = appSettings.similarityThreshold,
                     trailingIcon = {
-                        val alpha =
-                            if (canSearch && hasStoragePermission && !isLoading) 0.6f else 0.1f
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .height(IntrinsicSize.Min)
-                                .padding(vertical = 1.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(1.5.dp)
-                                    .fillMaxHeight()
-                                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = alpha))
-                            )
-                            SelectorIconItem(
-                                enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
-                                label = "Media type",
-                                options = mediaTypeOptions.values.toList(),
-                                selectedOption = mediaTypeOptions[mediaType]!!,
-                                onOptionSelected = { selected ->
-                                    val newMode = mediaTypeOptions.entries
-                                        .find { it.value == selected }
-                                        ?.key ?: MediaType.IMAGE
-                                    searchViewModel.setMediaType(newMode)
-                                }
-                            )
-                        }
+                        SelectorIconItem(
+                            enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
+                            label = "Media type",
+                            options = mediaTypeOptions.values.toList(),
+                            selectedOption = mediaTypeOptions[mediaType]!!,
+                            onOptionSelected = { selected ->
+                                val newMode = mediaTypeOptions.entries
+                                    .find { it.value == selected }
+                                    ?.key ?: MediaType.IMAGE
+                                searchViewModel.setMediaType(newMode)
+                            }
+                        )
                     }
                 )
             }
