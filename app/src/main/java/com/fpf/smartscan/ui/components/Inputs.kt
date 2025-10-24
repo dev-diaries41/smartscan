@@ -41,6 +41,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
@@ -312,30 +313,25 @@ fun SelectorIconItem(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.padding(vertical = 4.dp)
+    Box(
+        modifier.minimumInteractiveComponentSize()
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        IconButton (
+            enabled = enabled,
+            onClick = { showDialog = true }
         ) {
-            IconButton (
-                enabled = enabled,
-                onClick = { showDialog = true }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
-                    tint = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Dropdown",
+                tint = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
         }
     }
-
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },
