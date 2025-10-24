@@ -178,6 +178,7 @@ fun SearchScreen(
                     uri = searchImageUri,
                     threshold = appSettings.similarityThreshold,
                     mediaType = mediaType,
+                    imageSize = 120.dp,
                     searchEnabled = canSearch && searchImageUri != null,
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                     onSearch = searchViewModel::imageSearch,
