@@ -61,7 +61,6 @@ fun SearchScreen(
     val isVideoIndexAlertVisible by searchViewModel.isVideoIndexAlertVisible.collectAsState(false)
 
     // Search state
-    val searchQuery by searchViewModel.query.collectAsState("")
     val isLoading by searchViewModel.isLoading.collectAsState(false)
     val error by searchViewModel.error.collectAsState(null)
     val mediaType by searchViewModel.mediaType.collectAsState(MediaType.IMAGE)
@@ -191,17 +190,16 @@ fun SearchScreen(
                 )
             }else{
                 SearchBar(
-                    query = searchQuery,
                     enabled = canSearch && hasStoragePermission && !isLoading,
                     onSearch = searchViewModel::textSearch,
-                    onQueryChange = { newQuery ->
-                        searchViewModel.setQuery(newQuery)
-                    },
-                    onClearQuery = { searchViewModel.setQuery("") },
                     onImageSelected = {
                         searchViewModel.updateSearchImageUri(it)
                         searchViewModel.updateQueryType(QueryType.IMAGE)
                                       },
+                    onImagePasted = {
+                        searchViewModel.updateSearchImageUri(it)
+                        searchViewModel.updateQueryType(QueryType.IMAGE)
+                    },
                     label = when (mediaType) {
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
