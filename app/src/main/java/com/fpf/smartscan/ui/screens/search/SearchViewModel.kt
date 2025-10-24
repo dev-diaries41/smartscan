@@ -91,9 +91,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             initialValue = null
         )
 
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query
-
     private val _searchResults = MutableStateFlow<List<Uri>>(emptyList())
     val searchResults: StateFlow<List<Uri>> = _searchResults
 
@@ -184,13 +181,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun setQuery(newQuery: String) {
-        _query.value = newQuery
-        if(newQuery.isEmpty()){
-            _error.value = null
-        }
-    }
-
     fun clearResults(){
         _searchResults.value = emptyList()
     }
@@ -208,14 +198,12 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private fun reset(){
         _error.value = null
-        _query.value = ""
         clearResults()
     }
 
 
-    fun textSearch(threshold: Float = 0.2f) {
-        val currentQuery = _query.value
-        if (currentQuery.isBlank()) {
+    fun textSearch(query: String, threshold: Float = 0.2f) {
+        if (query.isBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
             return
         }
@@ -234,7 +222,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     textEmbedder.initialize()
                 }
                 if(shouldShutdownModel(imageEmbedderLastUsage)) imageEmbedder.closeSession() // prevent keeping both models open
-                val embedding = textEmbedder.embed(currentQuery)
+                val embedding = textEmbedder.embed(query)
                 search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
