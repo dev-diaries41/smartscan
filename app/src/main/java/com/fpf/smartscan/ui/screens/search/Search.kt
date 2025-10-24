@@ -215,12 +215,12 @@ fun SearchScreen(
                                 .height(IntrinsicSize.Min)
                                 .padding(vertical = 1.dp)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(1.5.dp)
-                                    .fillMaxHeight()
-                                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = alpha))
-                            )
+//                            Box(
+//                                modifier = Modifier
+//                                    .width(1.5.dp)
+//                                    .fillMaxHeight()
+//                                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = alpha))
+//                            )
                             SelectorIconItem(
                                 enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
                                 label = "Media type",
