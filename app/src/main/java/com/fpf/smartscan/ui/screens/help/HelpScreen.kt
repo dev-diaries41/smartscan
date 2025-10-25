@@ -19,38 +19,6 @@ fun HelpScreen() {
     ) {
         Column(modifier = Modifier.verticalScroll(scrollState)) {
             Text(
-                text = stringResource(R.string.help_image_management_title),
-                style = MaterialTheme.typography.titleLarge
-            )
-            Spacer(Modifier.height(8.dp))
-            BulletPoint(stringResource(R.string.help_enable_auto_organisation))
-            BulletPoint(stringResource(R.string.help_select_folders_to_monitor))
-            BulletPoint(stringResource(R.string.help_select_destination_folders))
-            BulletPoint(stringResource(R.string.help_test_auto_organisation))
-            BulletPoint(stringResource(R.string.help_curated_images_requirement))
-
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.help_undo_last_scan_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(Modifier.height(8.dp))
-            BulletPoint(stringResource(R.string.help_undo_last_scan_description))
-            BulletPoint(stringResource(R.string.help_undo_version_requirement))
-
-            Spacer(Modifier.height(16.dp))
-            Text(
-                text = stringResource(R.string.help_limitations_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(Modifier.height(8.dp))
-            BulletPoint(stringResource(R.string.help_accuracy_note))
-            BulletPoint(stringResource(R.string.help_incorrect_moves_warning))
-            BulletPoint(stringResource(R.string.help_reduce_errors_tip))
-            BulletPoint(stringResource(R.string.help_disable_and_report))
-
-            Spacer(Modifier.height(24.dp))
-            Text(
                 text = stringResource(R.string.help_search_title),
                 style = MaterialTheme.typography.titleLarge
             )

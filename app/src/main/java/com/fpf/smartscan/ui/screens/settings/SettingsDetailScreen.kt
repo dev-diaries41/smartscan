@@ -8,11 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -35,21 +33,7 @@ fun SettingsDetailScreen(
     val appSettings by viewModel.appSettings.collectAsState()
     val models by viewModel.importedModels.collectAsState()
     val context = LocalContext.current
-    val initialTargetDirectories = remember { appSettings.targetDirectories }
-    val initialDestinationDirectories = remember { appSettings.destinationDirectories }
-    val initialOrganiserSimilarity = remember { appSettings.organiserSimilarityThreshold }
-    val initialOrganiserConfMargin = remember { appSettings.organiserConfMargin }
 
-    DisposableEffect(Unit) {
-        onDispose {
-            viewModel.onSettingsDetailsExit(
-                initialDestinationDirectories = initialDestinationDirectories,
-                initialTargetDirectories = initialTargetDirectories,
-                initialOrganiserSimilarity = initialOrganiserSimilarity,
-                initialOrganiserConfMargin = initialOrganiserConfMargin
-            )
-        }
-    }
 
     LaunchedEffect(Unit) {
         viewModel.importEvent.collect { msg ->
@@ -63,30 +47,6 @@ fun SettingsDetailScreen(
     ) {
         Column {
             when (type) {
-                SettingTypes.TARGETS -> {
-                    DirectoryPicker(
-                        directories = appSettings.targetDirectories,
-                        addDirectory = { newDir ->
-                            viewModel.addTargetDirectory(newDir)
-                        },
-                        deleteDirectory = { newDir ->
-                            viewModel.deleteTargetDirectory(newDir)
-                        },
-                        description = stringResource(R.string.setting_target_folders_description)
-                    )
-                }
-                SettingTypes.DESTINATIONS -> {
-                    DirectoryPicker(
-                        directories = appSettings.destinationDirectories,
-                        addDirectory = { newDir ->
-                            viewModel.addDestinationDirectory(newDir)
-                        },
-                        deleteDirectory = { newDir ->
-                            viewModel.deleteDestinationDirectory(newDir)
-                        },
-                        description = stringResource(R.string.setting_destination_folders_description)
-                    )
-                }
                 SettingTypes.THRESHOLD -> {
                     CustomSlider(
                         label = stringResource(R.string.setting_similarity_threshold),
@@ -99,30 +59,6 @@ fun SettingsDetailScreen(
                         description = stringResource(R.string.setting_similarity_threshold_description)
                     )
                 }
-
-                SettingTypes.ORGANISER_ACCURACY -> {
-                    CustomSlider(
-                        label = stringResource(R.string.setting_similarity_threshold),
-                        minValue = 0.4f,
-                        maxValue = 0.7f,
-                        initialValue = appSettings.organiserSimilarityThreshold,
-                        onValueChange = { value ->
-                            viewModel.updateOrganiserSimilarityThreshold(value)
-                        },
-                        description = stringResource(R.string.setting_similarity_threshold_description)
-                    )
-                    CustomSlider(
-                        label = stringResource(R.string.setting_organisation_conf_margin_title),
-                        minValue = 0.01f,
-                        maxValue = 0.05f,
-                        initialValue = appSettings.organiserConfMargin,
-                        onValueChange = { value ->
-                            viewModel.updateOrganiserConfidenceMargin(value)
-                        },
-                        description = stringResource(R.string.setting_organisation_conf_margin_description)
-                    )
-                }
-
                 SettingTypes.MODELS -> {
                     ModelsList(
                         models = getDownloadableModels(context),

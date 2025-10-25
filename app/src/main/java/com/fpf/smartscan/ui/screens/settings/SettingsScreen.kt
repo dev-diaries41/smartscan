@@ -25,7 +25,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.ActionItem
 import com.fpf.smartscan.ui.components.SelectorItem
-import com.fpf.smartscan.ui.components.SwitchItem
 import androidx.core.net.toUri
 import com.fpf.smartscan.constants.Routes
 import com.fpf.smartscan.constants.SettingTypes
@@ -33,7 +32,6 @@ import com.fpf.smartscan.constants.colorSchemeDisplayNames
 import com.fpf.smartscan.constants.themeModeDisplayNames
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.refreshIndex
-import com.fpf.smartscan.ui.components.CustomSlider
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.theme.ColorSchemeType
@@ -210,50 +208,6 @@ fun SettingsScreen(
                     selectedOption = appSettings.indexFrequency,
                     onOptionSelected = { selected ->
                         viewModel.updateIndexFrequency(selected)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Text(
-                    text = stringResource(id = R.string.image_management_settings),
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(vertical = 8.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-                SwitchItem(
-                    text = stringResource(id = R.string.setting_enable_scan),
-                    checked = appSettings.enableScan,
-                    onCheckedChange = { checked ->
-                        viewModel.updateEnableScan(checked)
-                    }
-                )
-                ActionItem(
-                    enabled = appSettings.enableScan,
-                    text = stringResource(id = R.string.setting_target_folders),
-                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.TARGETS)) }
-                )
-                ActionItem(
-                    enabled = appSettings.enableScan,
-                    text = stringResource(id = R.string.setting_destination_folders),
-                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.DESTINATIONS)) }
-                )
-                ActionItem(
-                    enabled = appSettings.enableScan,
-                    text = stringResource(id = R.string.setting_organisation_organiser_accuracy),
-                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.ORGANISER_ACCURACY)) }
-                )
-                SelectorItem(
-                    enabled = appSettings.enableScan,
-                    label = stringResource(id = R.string.setting_scan_frequency),
-                    options = listOf(
-                        stringResource(id = R.string.scan_frequency_1d),
-                        stringResource(id = R.string.scan_frequency_1w)
-                    ),
-                    selectedOption = appSettings.frequency,
-                    onOptionSelected = { selected ->
-                        viewModel.updateFrequency(selected)
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
