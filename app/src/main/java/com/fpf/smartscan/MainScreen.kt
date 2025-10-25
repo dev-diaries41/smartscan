@@ -9,7 +9,6 @@ import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Science
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -30,7 +29,6 @@ import com.fpf.smartscan.ui.screens.search.SearchViewModel
 import com.fpf.smartscan.ui.screens.settings.SettingsDetailScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
-import com.fpf.smartscan.ui.screens.test.TestScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -50,7 +48,6 @@ fun MainScreen() {
         currentRoute == Routes.SETTINGS -> stringResource(R.string.title_settings)
         currentRoute == Routes.DONATE -> stringResource(R.string.title_donate)
         currentRoute == Routes.HELP -> stringResource(R.string.title_help)
-        currentRoute == Routes.TEST -> stringResource(R.string.title_test_organisation)
         currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true -> when (typeVal) {
             SettingTypes.THRESHOLD -> stringResource(R.string.setting_similarity_threshold)
             SettingTypes.MODELS -> stringResource(R.string.setting_models)
@@ -62,7 +59,7 @@ fun MainScreen() {
         else -> ""
     }
 
-    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
+    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf( Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
 
     if(isUpdatePopUpVisible) {
         UpdatePopUp(
@@ -91,14 +88,6 @@ fun MainScreen() {
                                 Icon(
                                     imageVector = Icons.Filled.History,
                                     contentDescription = "Scan History"
-                                )
-                            }
-                        }
-                        if (currentRoute != Routes.TEST) {
-                            IconButton(onClick = { navController.navigate(Routes.TEST) }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Science,
-                                    contentDescription = "Test Model"
                                 )
                             }
                         }
@@ -140,11 +129,6 @@ fun MainScreen() {
                     SettingsDetailScreen(
                         type = type,
                         viewModel = settingsViewModel,
-                    )
-                }
-                composable(Routes.TEST) {
-                    TestScreen(
-                        settingsViewModel = settingsViewModel
                     )
                 }
                 composable(Routes.DONATE) {
