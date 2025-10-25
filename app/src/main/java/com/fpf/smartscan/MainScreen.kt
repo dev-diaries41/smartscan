@@ -11,6 +11,10 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,7 +22,12 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fpf.smartscan.constants.Routes
 import com.fpf.smartscan.constants.SettingTypes
+import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.services.refreshIndex
+import com.fpf.smartscan.ui.components.OverflowMenu
 import com.fpf.smartscan.ui.components.UpdatePopUp
+import com.fpf.smartscan.ui.permissions.StorageAccess
+import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.help.HelpScreen
 import com.fpf.smartscan.ui.screens.search.SearchScreen
@@ -30,6 +39,7 @@ import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -57,6 +67,60 @@ fun MainScreen() {
 
     val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf( Routes.DONATE, Routes.HELP)
 
+    var showRefreshImageIndexDialog by remember { mutableStateOf(false) }
+    var showRefreshVideoIndexDialog by remember { mutableStateOf(false) }
+
+    if (showRefreshImageIndexDialog || showRefreshVideoIndexDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if(showRefreshImageIndexDialog) {
+                    showRefreshImageIndexDialog = false
+                }else{
+                    showRefreshVideoIndexDialog = false
+                }
+            },
+            title = { Text(text = if (showRefreshImageIndexDialog) {
+                stringResource(id = R.string.setting_refresh_image_index)
+            } else {
+                stringResource(id = R.string.setting_refresh_video_index)
+            }) },
+            text = { Text(text = mainViewModel.getRefreshMessage()) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val storageAccess = getStorageAccess(context)
+                        if (storageAccess != StorageAccess.Denied) {
+                            if(showRefreshImageIndexDialog){
+                                refreshIndex(context.applicationContext, MediaIndexForegroundService.TYPE_IMAGE)
+                            }else{
+                                refreshIndex(context.applicationContext, MediaIndexForegroundService.TYPE_VIDEO)
+                            }
+                        }
+                        if(showRefreshImageIndexDialog){
+                            showRefreshImageIndexDialog = false
+                        }else{
+                            showRefreshVideoIndexDialog = false
+                        }
+                    }
+                ) {
+                    Text(text = "Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        if(showRefreshImageIndexDialog){
+                            showRefreshImageIndexDialog = false
+                        }else{
+                            showRefreshVideoIndexDialog = false
+                        } }
+                ) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
+
     if(isUpdatePopUpVisible) {
         UpdatePopUp(
             isVisible = true,
@@ -78,7 +142,12 @@ fun MainScreen() {
                             }
                         }
                     },
-                    actions = {}
+                    actions = {
+                        OverflowMenu(
+                            onRefreshImageIndex = { showRefreshImageIndexDialog = true },
+                            onRefreshVideoIndex = { showRefreshVideoIndexDialog = true }
+                        )
+                    }
                 )
             },
             bottomBar = { BottomNavigationBar(navController) }

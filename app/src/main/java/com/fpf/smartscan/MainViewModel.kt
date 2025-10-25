@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
+import com.fpf.smartscan.ui.permissions.StorageAccess
+import com.fpf.smartscan.ui.permissions.getStorageAccess
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -15,6 +17,11 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
         private const val UPDATES_KEY = "UPDATES_KEY"
     }
     private val sharedPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    val refreshMessageFull = application.getString(R.string.setting_refresh_index_description_full)
+    val refreshMessagePartial = application.getString(R.string.setting_refresh_index_description_partial)
+    val refreshMessageDenied = application.getString(R.string.setting_refresh_index_description_denied)
+
 
     val versionName: String? = try {
         val packageInfo = application.packageManager.getPackageInfo(application.packageName, 0)
@@ -45,5 +52,14 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
             application.getString(R.string.update_auto_organisation_notice)
 
         )
+    }
+
+    fun getRefreshMessage(): String{
+        val storageAccess = getStorageAccess(application)
+        return  when (storageAccess) {
+            StorageAccess.Full -> refreshMessageFull
+            StorageAccess.Partial -> refreshMessagePartial
+            StorageAccess.Denied -> refreshMessageDenied
+        }
     }
 }
