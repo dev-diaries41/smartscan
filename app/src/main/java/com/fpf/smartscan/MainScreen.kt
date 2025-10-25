@@ -24,7 +24,7 @@ import com.fpf.smartscan.constants.Routes
 import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.services.MediaIndexForegroundService
 import com.fpf.smartscan.services.refreshIndex
-import com.fpf.smartscan.ui.components.MainMenu
+import com.fpf.smartscan.ui.components.OverflowMenu
 import com.fpf.smartscan.ui.components.UpdatePopUp
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
@@ -143,7 +143,7 @@ fun MainScreen() {
                         }
                     },
                     actions = {
-                        MainMenu(
+                        OverflowMenu(
                             onRefreshImageIndex = { showRefreshImageIndexDialog = true },
                             onRefreshVideoIndex = { showRefreshVideoIndexDialog = true }
                         )

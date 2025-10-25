@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.DropdownMenu
@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.R
 
 @Composable
-fun MainMenu(
+fun OverflowMenu(
     onRefreshImageIndex: () -> Unit,
     onRefreshVideoIndex: () -> Unit
 ){
@@ -34,7 +34,7 @@ fun MainMenu(
     Box() {
         IconButton(onClick = { expanded = true }) {
             Icon(
-                imageVector = Icons.Filled.Menu,
+                imageVector = Icons.Filled.MoreVert,
                 contentDescription = "menu"
             )
         }
