@@ -8,7 +8,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.History
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,8 +21,6 @@ import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.ui.components.UpdatePopUp
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.help.HelpScreen
-import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryViewModel
-import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryScreen
 import com.fpf.smartscan.ui.screens.search.SearchScreen
 import com.fpf.smartscan.ui.screens.search.SearchViewModel
 import com.fpf.smartscan.ui.screens.settings.SettingsDetailScreen
@@ -44,7 +41,6 @@ fun MainScreen() {
 
     val headerTitle = when {
         currentRoute == Routes.SEARCH -> stringResource(R.string.title_search)
-        currentRoute == Routes.SCAN_HISTORY -> stringResource(R.string.title_scan_history)
         currentRoute == Routes.SETTINGS -> stringResource(R.string.title_settings)
         currentRoute == Routes.DONATE -> stringResource(R.string.title_donate)
         currentRoute == Routes.HELP -> stringResource(R.string.title_help)
@@ -59,7 +55,7 @@ fun MainScreen() {
         else -> ""
     }
 
-    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf( Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
+    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf( Routes.DONATE, Routes.HELP)
 
     if(isUpdatePopUpVisible) {
         UpdatePopUp(
@@ -82,16 +78,7 @@ fun MainScreen() {
                             }
                         }
                     },
-                    actions = {
-                        if (currentRoute != Routes.SCAN_HISTORY) {
-                            IconButton(onClick = { navController.navigate(Routes.SCAN_HISTORY) }) {
-                                Icon(
-                                    imageVector = Icons.Filled.History,
-                                    contentDescription = "Scan History"
-                                )
-                            }
-                        }
-                    }
+                    actions = {}
                 )
             },
             bottomBar = { BottomNavigationBar(navController) }
@@ -105,12 +92,6 @@ fun MainScreen() {
                     SearchScreen(
                         searchViewModel = searchViewModel,
                         settingsViewModel = settingsViewModel
-                    )
-                }
-                composable(Routes.SCAN_HISTORY) {
-                    val scanHistoryViewModel: ScanHistoryViewModel = viewModel()
-                    ScanHistoryScreen(
-                        viewModel = scanHistoryViewModel,
                     )
                 }
                 composable(Routes.SETTINGS) {
