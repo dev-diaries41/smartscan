@@ -51,8 +51,6 @@ fun MainScreen() {
     val mainViewModel: MainViewModel = viewModel()
     val settingsViewModel: SettingsViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
-    val classificationViewModel: ClassificationViewModel = viewModel()
-    val isOrganiseActive by classificationViewModel.organisationActive.collectAsState(false)
     val isUpdatePopUpVisible by mainViewModel.isUpdatePopUpVisible.collectAsState()
 
     val headerTitle = when {
@@ -115,27 +113,6 @@ fun MainScreen() {
                                     contentDescription = "Test Model"
                                 )
                             }
-                        }
-
-                        if (isOrganiseActive) {
-                            val infiniteTransition = rememberInfiniteTransition()
-                            val rotation by infiniteTransition.animateFloat(
-                                initialValue = 0f,
-                                targetValue = 360f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(
-                                        durationMillis = 10000,
-                                        easing = LinearEasing
-                                    ),
-                                    repeatMode = RepeatMode.Restart
-                                )
-                            )
-                            Icon(
-                                imageVector = Icons.Filled.Sync,
-                                modifier = Modifier.rotate(rotation),
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "Organisation is active"
-                            )
                         }
                     }
                 )
