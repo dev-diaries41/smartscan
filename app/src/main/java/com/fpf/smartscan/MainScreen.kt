@@ -52,10 +52,7 @@ fun MainScreen() {
         currentRoute == Routes.HELP -> stringResource(R.string.title_help)
         currentRoute == Routes.TEST -> stringResource(R.string.title_test_organisation)
         currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true -> when (typeVal) {
-            SettingTypes.TARGETS -> stringResource(R.string.setting_target_folders)
             SettingTypes.THRESHOLD -> stringResource(R.string.setting_similarity_threshold)
-            SettingTypes.DESTINATIONS -> stringResource(R.string.setting_destination_folders)
-            SettingTypes.ORGANISER_ACCURACY -> stringResource(R.string.setting_organisation_organiser_accuracy)
             SettingTypes.MODELS -> stringResource(R.string.setting_models)
             SettingTypes.MANAGE_MODELS -> stringResource(R.string.setting_manage_models)
             SettingTypes.SEARCHABLE_IMG_DIRS -> stringResource(R.string.setting_searchable_image_folders)
