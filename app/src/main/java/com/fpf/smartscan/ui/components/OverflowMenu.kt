@@ -12,6 +12,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +44,7 @@ fun OverflowMenu(
             expanded = expanded,
             onDismissRequest = { expanded = false },
             offset = DpOffset(x = 0.dp, y = (-40).dp),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         ) {
             DropdownMenuItem(
                 text = { Text(stringResource(R.string.setting_refresh_image_index)) },
