@@ -148,7 +148,7 @@ suspend fun zipFiles(outputFile: File, files: List<File>) = withContext(Dispatch
     if (filteredFiles.isEmpty()) error("No valid files")
 
     ZipOutputStream(BufferedOutputStream(FileOutputStream(outputFile))).use{zipOutputStream ->
-        for(file in files){
+        for(file in filteredFiles){
             FileInputStream(file).use { fileInputStream ->
                 val entry = ZipEntry(file.name)
                 zipOutputStream.putNextEntry(entry)
