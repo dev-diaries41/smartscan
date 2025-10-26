@@ -50,7 +50,7 @@ fun ImageSearcher(
 ){
     Row(
         modifier = Modifier.fillMaxWidth().background(
-            color = MaterialTheme.colorScheme.surfaceVariant,
+            color = MaterialTheme.colorScheme.surfaceContainer,
             shape = MaterialTheme.shapes.medium
         ).padding(12.dp),
 
