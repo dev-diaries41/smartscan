@@ -40,7 +40,7 @@ fun HelpScreen() {
             Spacer(Modifier.height(8.dp))
             BulletPoint(stringResource(R.string.help_short_specific_queries))
             BulletPoint(stringResource(R.string.help_include_text_from_media))
-            BulletPoint(stringResource(R.string.help_adjust_similar_results))
+            BulletPoint(stringResource(R.string.help_reverse_image_search))
         }
     }
 }
