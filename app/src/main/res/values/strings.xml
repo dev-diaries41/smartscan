@@ -97,15 +97,15 @@
     <!--Search -->
     <string name="help_search_title">Search</string>
     <string name="help_media_search_intro">Search across both images and videos with the following behavior:</string>
-    <string name="help_indexing_first_time">First-time use requires indexing of media files. This may take several minutes depending on your library size.</string>
+    <string name="help_indexing_first_time">First-time use requires indexing of media files. This may take several minutes depending on the number of images.</string>
     <string name="help_indexing_schedule">Indexing occurs automatically on a schedule (daily or weekly) based on your settings.</string>
-    <string name="help_manual_refresh_index">You can also manually refresh the image or video index anytime via settings.</string>
+    <string name="help_manual_refresh_index">You can also manually refresh the image or video index anytime from the menu.</string>
 
     <!-- Search Tips -->
     <string name="help_search_tips_title">Search Tips:</string>
     <string name="help_short_specific_queries">Use short, specific queries.</string>
     <string name="help_include_text_from_media">Include specific text from the media (e.g. subtitles, overlay text) when available.</string>
-    <string name="help_adjust_similar_results">Adjust the number of similar results shown in settings.</string>
+    <string name="help_reverse_image_search">Reverse image search is generally more accurate than text queries, especially when searching videos.</string>
 
     <!--Updates-->
     <string name="update_image_to_image_search">Added searching with images</string>
