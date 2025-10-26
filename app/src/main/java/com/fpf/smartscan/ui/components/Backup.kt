@@ -23,22 +23,33 @@ import com.fpf.smartscan.R
 @Composable
 fun BackupAndRestore(
     onRestore: (uri: Uri) -> Unit,
-    onBackup: () -> Unit
+    onBackup:(uri: Uri) -> Unit,
+    backupFilename: String
 ){
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
+    val restoreLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri: Uri? ->
         uri?.let { selectedUri ->
             context.contentResolver.takePersistableUriPermission(selectedUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
             onRestore(selectedUri)
         }
     }
-    val backupDescription = "${stringResource(R.string.setting_backup_restore_description, "Export")}. ${stringResource(R.string.setting_backup_extra_description)}."
+    val backupLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri: Uri? ->
+        uri?.let { fileUri ->
+            context.contentResolver.takePersistableUriPermission(
+                fileUri,
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            onBackup(fileUri)
+        }
+    }
 
     ActionItem(
         text = stringResource(id = R.string.setting_backup),
-        description = backupDescription,
-        onClick = { onBackup() },
+        description = stringResource(R.string.setting_backup_restore_description, "Export"),
+        onClick = { backupLauncher.launch(backupFilename) },
         buttonContent = { enabled, onClick ->
             Button(
                 modifier = Modifier.padding(horizontal = 8.dp),
@@ -57,7 +68,7 @@ fun BackupAndRestore(
     ActionItem(
         text = stringResource(id = R.string.setting_restore),
         description = stringResource(R.string.setting_backup_restore_description, "Import"),
-        onClick = {launcher.launch(arrayOf("application/zip", "application/octet-stream")) },
+        onClick = {restoreLauncher.launch(arrayOf("application/zip", "application/octet-stream")) },
         buttonContent = { enabled, onClick ->
             Button(
                 modifier = Modifier.padding(horizontal = 8.dp),

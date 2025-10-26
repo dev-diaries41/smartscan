@@ -14,8 +14,8 @@ import com.fpf.smartscan.data.ImportedModel
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscan.lib.copyFromUri
+import com.fpf.smartscan.lib.copyToUri
 import com.fpf.smartscan.lib.deleteModel
-import com.fpf.smartscan.lib.exportFile
 import com.fpf.smartscan.lib.getImportedModels
 import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.loadSettings
@@ -46,7 +46,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     companion object {
         private const val SETTINGS_PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
         private const val TAG = "SettingsViewModel"
-        private const val BACKUP_FILENAME = "smartscan_backup.zip"
+        const val BACKUP_FILENAME = "smartscan_backup.zip"
     }
 
     init {
@@ -126,7 +126,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         saveSettings(sharedPrefs, _appSettings.value)
     }
 
-    fun backup(){
+    fun backup(uri: Uri){
         val indexZipFile = File(application.cacheDir, BACKUP_FILENAME)
         val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
         val videoIndexFile = File(application.filesDir,  VideoIndexer.INDEX_FILENAME)
@@ -134,7 +134,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             try {
                 zipFiles(indexZipFile, listOf(imageIndexFile, videoIndexFile))
                 if(indexZipFile.exists()){
-                    exportFile(application, indexZipFile, BACKUP_FILENAME)
+                    copyToUri(application, uri, indexZipFile)
                     indexZipFile.delete()
                     _event.emit("Backup successful")
                 }

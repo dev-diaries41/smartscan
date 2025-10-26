@@ -6,6 +6,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
@@ -182,18 +183,10 @@ suspend fun copyFromUri(context: Context, uri: Uri, outputFile: File) = withCont
     }
 }
 
-suspend fun exportFile(context: Context, file: File, fileName: String) = withContext(Dispatchers.IO) {
-    val resolver = context.contentResolver
-    val contentValues = ContentValues().apply {
-        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
-        put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream")
-        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-    }
-
-    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-        ?: error("Failed to create new MediaStore record.")
-
-    resolver.openOutputStream(uri)?.use { outputStream ->
+suspend fun copyToUri(context: Context, outputUri: Uri, file: File) = withContext(Dispatchers.IO) {
+    context.contentResolver.openOutputStream(outputUri)?.use { outputStream ->
         FileInputStream(file).use { inputStream -> inputStream.copyTo(outputStream) }
     }
 }
+
+
