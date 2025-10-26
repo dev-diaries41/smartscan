@@ -108,13 +108,11 @@
     <string name="help_reverse_image_search">Reverse image search is generally more accurate than text queries, especially when searching videos.</string>
 
     <!--Updates-->
-    <string name="update_image_to_image_search">Added searching with images</string>
-    <string name="update_select_searchable_folders">Select searchable folders for images and videos</string>
-    <string name="update_increase_search_limit">Unlimited search results</string>
-    <string name="update_theme_settings">Added theme related settings</string>
-    <string name="update_new_results_layout">New search results layout</string>
-    <string name="update_auto_organisation_fix">Fixed auto-organisation bugs</string>
-    <string name="update_auto_organisation_notice">
-    Auto-organisation may be deprecated or removed in the next version. Visit the subreddit or GitHub discussion (links in settings) for more info.
-</string>
+    <string name="update_reverse_image_search_upload">Upload images directly from the search bar for reverse image search</string>
+    <string name="update_paste_image_search">Paste images into the search bar</string>
+    <string name="update_reverse_search_from_results">Long-press a result or tap the image-search icon in the media viewer to reverse search the image</string>
+    <string name="update_menu_refresh_index">Added new menu with “Refresh index” options for images and videos, accessible from all screens</string>
+    <string name="update_backup_restore_settings">Added backup and restore options</string>
+    <string name="update_remove_auto_organisation">Removed auto-organisation feature</string>
+
 </resources>
