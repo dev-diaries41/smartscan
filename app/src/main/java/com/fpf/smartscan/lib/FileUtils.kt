@@ -1,7 +1,12 @@
 package com.fpf.smartscan.lib
 
+import android.app.DownloadManager
+import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toUri
@@ -10,7 +15,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONException
+import java.io.BufferedOutputStream
 import java.io.File
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 suspend fun moveFile(context: Context, sourceUri: Uri, destinationDirUri: Uri): Uri? = withContext(
     Dispatchers.IO) {
@@ -131,3 +142,58 @@ fun getFileName(context: Context, uri: Uri): String? {
     }
 }
 
+suspend fun zipFiles(outputFile: File, files: List<File>) = withContext(Dispatchers.IO){
+    val filteredFiles = files.filter { it.exists() }
+
+    if (filteredFiles.isEmpty()) error("No valid files")
+
+    ZipOutputStream(BufferedOutputStream(FileOutputStream(outputFile))).use{zipOutputStream ->
+        for(file in files){
+            FileInputStream(file).use { fileInputStream ->
+                val entry = ZipEntry(file.name)
+                zipOutputStream.putNextEntry(entry)
+                fileInputStream.copyTo(zipOutputStream)
+                zipOutputStream.closeEntry()
+            }
+        }
+    }
+}
+
+suspend fun unzipFiles(zipFile: File, targetDir: File) = withContext(Dispatchers.IO){
+    if(!zipFile.name.endsWith(".zip")) error ("Invalid zip file")
+    if(!targetDir.exists()) targetDir.mkdirs()
+
+    ZipInputStream(FileInputStream(zipFile)).use {zipInputStream ->
+        var entry = zipInputStream.nextEntry
+        while(entry != null){
+            val entryFile = File(targetDir, entry.name)
+            FileOutputStream(entryFile).use { outputStream ->
+                zipInputStream.copyTo(outputStream)
+                zipInputStream.closeEntry()
+                entry = zipInputStream.nextEntry
+            }
+        }
+    }
+}
+
+suspend fun copyFromUri(context: Context, uri: Uri, outputFile: File) = withContext(Dispatchers.IO){
+    context.contentResolver.openInputStream(uri)?.use { inputStream ->
+        FileOutputStream(outputFile).use { outputStream -> inputStream.copyTo(outputStream) }
+    }
+}
+
+suspend fun exportFile(context: Context, file: File, fileName: String) = withContext(Dispatchers.IO) {
+    val resolver = context.contentResolver
+    val contentValues = ContentValues().apply {
+        put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+        put(MediaStore.MediaColumns.MIME_TYPE, "application/octet-stream")
+        put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+    }
+
+    val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+        ?: error("Failed to create new MediaStore record.")
+
+    resolver.openOutputStream(uri)?.use { outputStream ->
+        FileInputStream(file).use { inputStream -> inputStream.copyTo(outputStream) }
+    }
+}
