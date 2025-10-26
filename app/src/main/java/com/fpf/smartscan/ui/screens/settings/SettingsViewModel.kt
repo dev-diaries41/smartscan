@@ -11,17 +11,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.ImportedModel
+import com.fpf.smartscan.lib.ImageIndexListener
+import com.fpf.smartscan.lib.VideoIndexListener
+import com.fpf.smartscan.lib.copyFromUri
 import com.fpf.smartscan.lib.deleteModel
+import com.fpf.smartscan.lib.exportFile
 import com.fpf.smartscan.lib.getImportedModels
 import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.loadSettings
 import com.fpf.smartscan.lib.saveSettings
+import com.fpf.smartscan.lib.unzipFiles
+import com.fpf.smartscan.lib.zipFiles
 import com.fpf.smartscan.ui.theme.ColorSchemeType
 import com.fpf.smartscan.ui.theme.ThemeManager
 import com.fpf.smartscan.ui.theme.ThemeMode
+import com.fpf.smartscansdk.core.processors.Metrics
+import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
+import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import java.io.File
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
     private val sharedPrefs = application.getSharedPreferences(SETTINGS_PREF_NAME, Context.MODE_PRIVATE)
@@ -30,12 +40,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
     private val _importedModels = MutableStateFlow(getImportedModels(application))
     val importedModels: StateFlow<List<ImportedModel>> = _importedModels
-    private val _importEvent = MutableSharedFlow<String>()
-    val importEvent = _importEvent.asSharedFlow()
+    private val _event = MutableSharedFlow<String>()
+    val event = _event.asSharedFlow()
 
     companion object {
         private const val SETTINGS_PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
         private const val TAG = "SettingsViewModel"
+        private const val BACKUP_FILENAME = "smartscan_backup.zip"
     }
 
     init {
@@ -59,13 +70,13 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
             try {
                 importModel(application, uri)
                 _importedModels.value = getImportedModels(application)
-                _importEvent.emit("Model imported successfully")
+                _event.emit("Model imported successfully")
             } catch (e: Exception) {
                 val defaultErrorMessage = "Error importing model"
                 val invalidFileError = "Invalid model file"
                 Log.e(TAG, "$defaultErrorMessage: ${e.message}")
                 val errorMessage = if(e.message == invalidFileError) invalidFileError else defaultErrorMessage
-                _importEvent.emit(errorMessage)
+                _event.emit(errorMessage)
             }
         }
     }
@@ -113,5 +124,44 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val currentSettings = _appSettings.value
         _appSettings.value = currentSettings.copy(color = colorScheme)
         saveSettings(sharedPrefs, _appSettings.value)
+    }
+
+    fun backup(){
+        val indexZipFile = File(application.cacheDir, BACKUP_FILENAME)
+        val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
+        val videoIndexFile = File(application.filesDir,  VideoIndexer.INDEX_FILENAME)
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                zipFiles(indexZipFile, listOf(imageIndexFile, videoIndexFile))
+                if(indexZipFile.exists()){
+                    exportFile(application, indexZipFile, BACKUP_FILENAME)
+                    indexZipFile.delete()
+                    _event.emit("Backup successful")
+                }
+            }catch (e: Exception){
+                Log.e(TAG, "Error backing up: ${e.message}")
+                _event.emit("Backup error")
+            }
+        }
+    }
+
+    fun restore(uri: Uri){
+        val indexZipFile = File(application.cacheDir, BACKUP_FILENAME)
+
+        viewModelScope.launch(Dispatchers.IO){
+            try {
+                copyFromUri(application, uri, indexZipFile)
+                if(indexZipFile.exists()){
+                    unzipFiles(indexZipFile, application.filesDir)
+                    indexZipFile.delete()
+                    _event.emit("Restore successful")
+                    ImageIndexListener.onComplete(application, Metrics.Success()) // call onComplete to trigger refresh in search screen
+                    VideoIndexListener.onComplete(application, Metrics.Success())
+                }
+            }catch (e: Exception){
+                Log.e(TAG, "Error restoring: ${e.message}")
+                _event.emit("Restore error")
+            }
+        }
     }
 }

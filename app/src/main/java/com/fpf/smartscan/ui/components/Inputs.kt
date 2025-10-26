@@ -54,10 +54,16 @@ fun ActionItem(
     text: String,
     onClick: () -> Unit,
     description: String? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    buttonContent: @Composable (enabled: Boolean, onClick: () -> Unit) -> Unit = { enabled, onClick ->
+        IconButton(enabled = enabled, onClick = onClick) {
+            Icon(Icons.Default.ChevronRight, contentDescription = "chevron right icon")
+        }
+    }
 ) {
     val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -66,16 +72,14 @@ fun ActionItem(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge, color = textColor)
-            IconButton(enabled=enabled, onClick=onClick,) {
-                Icon(Icons.Default.ChevronRight, contentDescription = "Open screen to update setting")
-            }
+            buttonContent(enabled, onClick)
         }
-        if (description != null) {
-            Text(text = description,
+        description?.let {
+            Text(
+                text = it,
                 style = MaterialTheme.typography.bodyMedium,
                 color = textColor,
                 modifier = Modifier.fillMaxWidth(0.7f).alpha(0.8f)
@@ -83,6 +87,7 @@ fun ActionItem(
         }
     }
 }
+
 
 @Composable
 fun SwitchItem(

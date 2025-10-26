@@ -21,8 +21,10 @@ import com.fpf.smartscan.ui.components.CustomSlider
 import androidx.core.net.toUri
 import com.fpf.smartscan.constants.SettingTypes
 import com.fpf.smartscan.lib.getDownloadableModels
+import com.fpf.smartscan.ui.components.BackupAndRestore
 import com.fpf.smartscan.ui.components.models.ModelManager
 import com.fpf.smartscan.ui.components.models.ModelsList
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,11 +38,10 @@ fun SettingsDetailScreen(
 
 
     LaunchedEffect(Unit) {
-        viewModel.importEvent.collect { msg ->
+        viewModel.event.collect { msg ->
             Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
         }
     }
-
 
     Box(
         modifier = Modifier.padding(16.dp).fillMaxSize()
@@ -85,6 +86,12 @@ fun SettingsDetailScreen(
                         addDirectory = { newDir -> viewModel.addSearchableVideoDirectory(newDir) },
                         deleteDirectory = { newDir -> viewModel.deleteSearchableVideoDirectory(newDir) },
                         description = stringResource(R.string.setting_searchable_folders_description)
+                    )
+                }
+                SettingTypes.BACKUP_RESTORE -> {
+                    BackupAndRestore(
+                        onBackup = viewModel::backup,
+                        onRestore = viewModel::restore
                     )
                 }
                 else -> {}

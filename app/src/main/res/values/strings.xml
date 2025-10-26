@@ -79,6 +79,11 @@
     <!--General Settings-->
     <string name="setting_theme">Theme</string>
     <string name="setting_color">Color</string>
+    <string name="setting_backup_restore">Backup &amp; Restore</string>
+    <string name="setting_backup">Backup</string>
+    <string name="setting_restore">Restore</string>
+    <string name="setting_backup_restore_description">%1s index files</string>
+    <string name="setting_backup_extra_description">A zip file will be save to your Downloads folder</string>
 
     <!--Search Settings-->
     <string name="setting_index_frequency">Index frequency</string>
