@@ -5,14 +5,13 @@
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
     <string name="reddit_url">https://www.reddit.com/r/SmartScan/</string>
 
+    <!--Models info-->
     <string name="inception_resnet_v1_model">Inception Resnet V1</string>
     <string name="inception_resnet_v1_model_url">https://github.com/dev-diaries41/smartscan-models/releases/download/1.0.0/facial_recognition_inception_resnet_v1.zip</string>
 
     <!-- Screen titles-->
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
-    <string name="title_scan_history">Scan History</string>
-    <string name="title_test_organisation">Test Auto-Organisation</string>
     <string name="title_donate">Donate</string>
     <string name="title_help">Help</string>
 
@@ -26,22 +25,10 @@
     <string name="notif_content_media_index_service">Indexing in progress, this can take a few minutes.</string>
     <string name="notif_title_index_error_service">%1$s indexing error</string>
     <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index in settings by clicking the Refresh %1$s index option.</string>
-    <string name="notif_title_auto_organisation_complete">Auto-organisation complete</string>
     <string name="notif_title_index_complete">Indexing complete</string>
-    <string name="notif_title_index_issue">Indexing issue detected</string>
-    <string name="notif_title_index_issue_description">It will automatically try to resume. If the problem does not resolve within a few minutes, you can restart indexing manually from Settings.</string>
-    <string name="notif_title_smart_scan_issue">Smart scan issue detected</string>
-    <string name="notif_title_smart_scan_issue_description">You can manually restart it by toggling `Enable scan` in settings or leave it to run at the next scheduled time.</string>
 
     <!-- Search screen -->
-    <string name="first_indexing">
-        Start the first %1$s index to enable search. You can start it manually anytime in settings—useful if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).
-    </string>
-
-
-
-
-
+    <string name="first_indexing">Start the first %1$s index to enable search. You can start it manually anytime in settings—useful if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).</string>
     <string name="storage_permissions">Storage permission required to search.</string>
     <string name="search_error_not_indexed">Index is empty.</string>
     <string name="search_error_no_results">No matching results found.</string>
@@ -58,19 +45,8 @@
     <string name="eth_wallet">0xa53aC18B25942C71019f85314AF67F6132E525ad</string>
     <string name="ltc_wallet">ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3</string>
 
-    <!-- Test screen -->
-    <string name="test_no_prototype_embeddings">Missing destination folders or their embeddings</string>
-
-    <!-- Scan history screen -->
-    <string name="no_scan_history">No Scan History</string>
-    <string name="no_scan_history_description">"Enable auto-organisation in settings to allow smart folder organisation"</string>
-    <string name="clear_logs_alert_title">Clear history</string>
-    <string name="clear_logs_alert_description">Press `OK` to clear history.</string>
-    <string name="undo_alert_title">Undo last scan</string>
-    <string name="undo_alert_description">Press `OK` to undo the last scan.</string>
 
     <!-- Settings-Screen -->
-    <string name="image_management_settings">Image Management</string>
     <string name="search_settings">Search</string>
     <string name="advanced_settings">Advanced</string>
     <string name="other_settings">Other</string>
@@ -83,7 +59,6 @@
     <string name="setting_backup">Backup</string>
     <string name="setting_restore">Restore</string>
     <string name="setting_backup_restore_description">%1s index files</string>
-    <string name="setting_backup_extra_description">A zip file will be save to your Downloads folder</string>
 
     <!--Search Settings-->
     <string name="setting_index_frequency">Index frequency</string>
@@ -99,21 +74,8 @@
     <string name="setting_searchable_image_folders">Searchable images</string>
     <string name="setting_searchable_video_folders">Searchable videos</string>
     <string name="setting_searchable_folders_description">Optionally select folders which should be indexed for search. If none are selected all will be indexed except those with `.nomedia` files.</string>
-
-    <!--Auto-Organisation Settings-->
     <string name="scan_frequency_1d">1 Day</string>
     <string name="scan_frequency_1w">1 Week</string>
-    <string name="setting_enable_scan">Enable auto-organisation</string>
-    <string name="setting_enable_scan_description">Enable periodic scanning of the folder you want to organise.</string>
-    <string name="setting_target_folders">Target folders</string>
-    <string name="setting_target_folders_description">Select which folders should be monitored for new images to organize automatically.</string>
-    <string name="setting_destination_folders">Destination folders</string>
-    <string name="setting_destination_folders_description">Select destination folders for new images. Each folder must contain at least 10 images to ensure accurate matching.</string>
-    <string name="setting_scan_frequency">Scan frequency</string>
-    <string name="setting_scan_frequency_description">Choose how often the app should scan for new images and organize them.</string>
-    <string name="setting_organisation_organiser_accuracy">Organiser accuracy</string>
-    <string name="setting_organisation_conf_margin_title">Confidence margin</string>
-    <string name="setting_organisation_conf_margin_description">Minimum difference required between the top match and second-best. Lower values are permissive; higher values are stricter.</string>
 
     <!--Advanced Settings-->
     <string name="setting_models">Models</string>
@@ -124,7 +86,6 @@
     <string name="setting_source_code">Source code</string>
     <string name="setting_social_reddit">Reddit</string>
 
-
     <!--Model Manager-->
     <string name="delete_model_alert_title">Delete model</string>
     <string name="delete_model_alert_description">Press `OK` to delete model.</string>
@@ -133,26 +94,6 @@
     <string name="download_model_alert_description">Press `OK` to download model. This will open your browser.</string>
 
     <!--Help screen-->
-    <!-- Image Management -->
-    <string name="help_image_management_title">Image Management</string>
-    <string name="help_enable_auto_organisation">Enable auto-organisation to automatically move new images to categorised folders.</string>
-    <string name="help_select_folders_to_monitor">In settings, select folders to monitor for new images (Target Folders).</string>
-    <string name="help_select_destination_folders">Select the allowed folders for moving categorised images (Destination Folders).</string>
-    <string name="help_test_auto_organisation">Test auto-organisation using the test tube icon and uploading an image.</string>
-    <string name="help_curated_images_requirement">Each destination folder should contain at least 10 well-curated images that accurately represent the types of images you expect to be moved there.</string>
-
-    <!-- Undo Last Scan -->
-    <string name="help_undo_last_scan_title">Undo Last Scan</string>
-    <string name="help_undo_last_scan_description">You can now undo the last scan if undesired moves are noticed.</string>
-    <string name="help_undo_version_requirement">Undo is only available for scans performed with version 1.1.0 or newer.</string>
-
-    <!-- Limitations -->
-    <string name="help_limitations_title">Limitations</string>
-    <string name="help_accuracy_note">Accuracy depends on consistency of images in each destination folder.</string>
-    <string name="help_incorrect_moves_warning">Incorrect moves can occur if folders are not representative.</string>
-    <string name="help_reduce_errors_tip">To reduce errors, ensure destination folders are well-curated.</string>
-    <string name="help_disable_and_report">If persistent issues occur, disable auto-organisation and open a GitHub issue.</string>
-
     <!--Search -->
     <string name="help_search_title">Search</string>
     <string name="help_media_search_intro">Search across both images and videos with the following behavior:</string>
