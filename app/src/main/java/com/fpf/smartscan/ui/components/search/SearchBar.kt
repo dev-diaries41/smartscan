@@ -82,7 +82,7 @@ fun SearchBar(
             .fillMaxWidth()
             .heightIn(min = 56.dp)
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
             .contentReceiver(receiveContentListener)
     ) {
         BasicTextField(
