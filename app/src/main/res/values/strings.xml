@@ -24,11 +24,11 @@
     <string name="notif_title_media_index_service">Indexing media</string>
     <string name="notif_content_media_index_service">Indexing in progress, this can take a few minutes.</string>
     <string name="notif_title_index_error_service">%1$s indexing error</string>
-    <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index in settings by clicking the Refresh %1$s index option.</string>
+    <string name="notif_content_index_error_service">An error occurred during indexing. You can manually index from the menu by clicking the Refresh %1$s index option.</string>
     <string name="notif_title_index_complete">Indexing complete</string>
 
     <!-- Search screen -->
-    <string name="first_indexing">Start the first %1$s index to enable search. You can start it manually anytime in settings—useful if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).</string>
+    <string name="first_indexing">Start the first %1$s index to enable search. You can start it manually anytime in the menu, which is recommended if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).</string>
     <string name="storage_permissions">Storage permission required to search.</string>
     <string name="search_error_not_indexed">Index is empty.</string>
     <string name="search_error_no_results">No matching results found.</string>
@@ -58,7 +58,7 @@
     <string name="setting_backup_restore">Backup &amp; Restore</string>
     <string name="setting_backup">Backup</string>
     <string name="setting_restore">Restore</string>
-    <string name="setting_backup_restore_description">%1s index files</string>
+    <string name="setting_backup_restore_description">%1$s index files</string>
 
     <!--Search Settings-->
     <string name="setting_index_frequency">Index frequency</string>
