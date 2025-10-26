@@ -108,11 +108,11 @@
     <string name="help_reverse_image_search">Reverse image search is generally more accurate than text queries, especially when searching videos.</string>
 
     <!--Updates-->
-    <string name="update_reverse_image_search_upload">Upload images directly from the search bar for reverse image search</string>
-    <string name="update_paste_image_search">Paste images into the search bar</string>
-    <string name="update_reverse_search_from_results">Long-press a result or tap the image-search icon in the media viewer to reverse search the image</string>
-    <string name="update_menu_refresh_index">Added new menu with “Refresh index” options for images and videos, accessible from all screens</string>
-    <string name="update_backup_restore_settings">Added backup and restore options</string>
+    <string name="update_reverse_image_search_upload">Reverse image search by uploading images directly from the search bar</string>
+    <string name="update_paste_image_search">Reverse image search by pasting images into the search bar</string>
+    <string name="update_reverse_search_from_results">Reverse image search by long-pressing a result or using the Media Viewer</string>
+    <string name="update_menu_refresh_index">Added new menu with “Refresh index” options for images and videos</string>
+    <string name="update_backup_restore_settings">Added backup and restore settings</string>
     <string name="update_remove_auto_organisation">Removed auto-organisation feature</string>
 
 </resources>
