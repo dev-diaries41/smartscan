@@ -82,6 +82,10 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+                ActionItem(
+                    text = stringResource(id = R.string.setting_backup_restore),
+                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.BACKUP_RESTORE)) }
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
