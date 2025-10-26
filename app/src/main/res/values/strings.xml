@@ -82,7 +82,7 @@
     <string name="setting_backup_restore">Backup &amp; Restore</string>
     <string name="setting_backup">Backup</string>
     <string name="setting_restore">Restore</string>
-    <string name="setting_backup_restore_description">%1s image and video index files</string>
+    <string name="setting_backup_restore_description">%1s index files</string>
 
     <!--Search Settings-->
     <string name="setting_index_frequency">Index frequency</string>
