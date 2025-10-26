@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import com.fpf.smartscan.data.AppSettings
 import com.fpf.smartscan.data.ImportedModel
+import com.fpf.smartscan.lib.ImageIndexListener
+import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscan.lib.copyFromUri
 import com.fpf.smartscan.lib.deleteModel
 import com.fpf.smartscan.lib.exportFile
@@ -23,6 +25,7 @@ import com.fpf.smartscan.lib.zipFiles
 import com.fpf.smartscan.ui.theme.ColorSchemeType
 import com.fpf.smartscan.ui.theme.ThemeManager
 import com.fpf.smartscan.ui.theme.ThemeMode
+import com.fpf.smartscansdk.core.processors.Metrics
 import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
 import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
 import kotlinx.coroutines.Dispatchers
@@ -152,6 +155,8 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                     unzipFiles(indexZipFile, application.filesDir)
                     indexZipFile.delete()
                     _event.emit("Restore successful")
+                    ImageIndexListener.onComplete(application, Metrics.Success()) // call onComplete to trigger refresh in search screen
+                    VideoIndexListener.onComplete(application, Metrics.Success())
                 }
             }catch (e: Exception){
                 Log.e(TAG, "Error restoring: ${e.message}")
