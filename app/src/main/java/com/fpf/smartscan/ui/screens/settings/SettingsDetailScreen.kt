@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -110,9 +109,11 @@ fun SettingsDetailScreen(
                             viewModel.restore(uri)
                         }
                     }
+                    val backupDescription = "${stringResource(R.string.setting_backup_restore_description, "Export")}. ${stringResource(R.string.setting_backup_extra_description)}."
+                        
                     ActionItem(
                         text = stringResource(id = R.string.setting_backup),
-                        description = stringResource(R.string.setting_backup_restore_description, "Export"),
+                        description = backupDescription,
                         onClick = { viewModel.backup() },
                         buttonContent = { enabled, onClick ->
                             Button(
