@@ -11,6 +11,8 @@ import androidx.compose.foundation.content.ReceiveContentListener
 import androidx.compose.foundation.content.consume
 import androidx.compose.foundation.content.contentReceiver
 import androidx.compose.foundation.content.hasMediaType
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -33,6 +35,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,17 +79,22 @@ fun SearchBar(
     }
 
     val textFieldState = rememberTextFieldState()
+    val interactionSource = remember { MutableInteractionSource() }
+    val isFocused by interactionSource.collectIsFocusedAsState()
+    val outlineColor = if(isFocused) MaterialTheme.colorScheme.primary else Color.Transparent
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
+            .border( width = 1.dp, color = outlineColor, shape = RoundedCornerShape(8.dp) )
             .clip(RoundedCornerShape(8.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .contentReceiver(receiveContentListener)
     ) {
         BasicTextField(
             state = textFieldState,
+            interactionSource = interactionSource,
             enabled = enabled,
             textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
             keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
