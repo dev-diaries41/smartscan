@@ -60,6 +60,7 @@ fun MainScreen() {
             SettingTypes.MANAGE_MODELS -> stringResource(R.string.setting_manage_models)
             SettingTypes.SEARCHABLE_IMG_DIRS -> stringResource(R.string.setting_searchable_image_folders)
             SettingTypes.SEARCHABLE_VID_DIRS -> stringResource(R.string.setting_searchable_video_folders)
+            SettingTypes.BACKUP_RESTORE -> stringResource(R.string.setting_backup_restore)
             else -> ""
         }
         else -> ""
