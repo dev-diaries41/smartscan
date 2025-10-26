@@ -24,6 +24,7 @@ import com.fpf.smartscan.lib.getDownloadableModels
 import com.fpf.smartscan.ui.components.BackupAndRestore
 import com.fpf.smartscan.ui.components.models.ModelManager
 import com.fpf.smartscan.ui.components.models.ModelsList
+import com.fpf.smartscan.ui.screens.settings.SettingsViewModel.Companion.BACKUP_FILENAME
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,7 +92,8 @@ fun SettingsDetailScreen(
                 SettingTypes.BACKUP_RESTORE -> {
                     BackupAndRestore(
                         onBackup = viewModel::backup,
-                        onRestore = viewModel::restore
+                        onRestore = viewModel::restore,
+                        backupFilename = BACKUP_FILENAME
                     )
                 }
                 else -> {}
