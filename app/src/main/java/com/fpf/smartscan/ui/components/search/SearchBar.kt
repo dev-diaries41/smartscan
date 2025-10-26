@@ -14,6 +14,7 @@ import androidx.compose.foundation.content.hasMediaType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -36,6 +37,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -79,13 +81,8 @@ fun SearchBar(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = 56.dp)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outline,
-                shape = RoundedCornerShape(8.dp)
-            )
             .clip(RoundedCornerShape(8.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerLow)
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
             .contentReceiver(receiveContentListener)
     ) {
         BasicTextField(
@@ -106,12 +103,12 @@ fun SearchBar(
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp).heightIn(min = 56.dp)
                 ) {
                     IconButton(
                         onClick = { imagePickerLauncher.launch("image/*") },
                         enabled = enabled,
-                        modifier = Modifier.align(Alignment.Top)
+                        modifier = Modifier.align(Alignment.Top).padding(top = 4.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Filled.AddPhotoAlternate,
@@ -121,7 +118,9 @@ fun SearchBar(
                     }
 
                     Box(
-                        modifier = Modifier.weight(1f).padding(vertical = 4.dp)) {
+                        contentAlignment = Alignment.CenterStart,
+                        modifier = Modifier.weight(1f).padding(vertical = 16.dp)
+                    ) {
                         innerTextField()
                         if (textFieldState.text.isEmpty()) {
                             Text(
@@ -135,7 +134,7 @@ fun SearchBar(
                         IconButton(
                             enabled = enabled,
                             onClick = { textFieldState.clearText() },
-                            modifier = Modifier.align(Alignment.Top)
+                            modifier = Modifier.align(Alignment.Top).padding(top = 4.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
@@ -143,12 +142,12 @@ fun SearchBar(
                                 tint = MaterialTheme.colorScheme.surface,
                                 modifier = Modifier
                                     .background(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f), shape = CircleShape)
-                                    .size(18.dp)
+                                    .size(16.dp)
                                     .padding(2.dp)
                             )
                         }
                     }
-                    Box(modifier = Modifier.align(Alignment.Top)){
+                    Box(modifier = Modifier.align(Alignment.Top).padding(top = 4.dp)){
                         trailingIcon?.invoke()
                     }
                 }
