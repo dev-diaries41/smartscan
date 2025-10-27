@@ -1,6 +1,7 @@
 [versions]
 activityCompose = "1.10.1"
 agp = "8.11.1"
+coilCompose = "3.3.0"
 core = "1.7.0"
 junitJupiterApi = "5.10.0"
 kotlin = "2.2.20"
@@ -19,7 +20,7 @@ mockk = "1.14.5"
 navigationCompose = "2.9.3"
 roomRuntime = "2.7.2"
 runner = "1.6.1"
-smartscanExtensions = "1.0.3"
+smartscanExtensions = "1.0.4"
 ui = "1.9.0"
 workRuntimeKtx = "2.10.3"
 
@@ -46,6 +47,8 @@ androidx-work-runtime-ktx = { module = "androidx.work:work-runtime-ktx", version
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-video = { module = "io.coil-kt.coil3:coil-video", version.ref = "coilCompose" }
 junit-jupiter-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junitJupiterApi" }
 junit-jupiter-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junitJupiterApi" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxSerializationJson" }
