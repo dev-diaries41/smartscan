@@ -359,6 +359,71 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /**
+     * Importuje preset tagy do databáze
+     *
+     * Tato metoda:
+     * - Načte preset tagy z PresetTags.RECOMMENDED
+     * - Vygeneruje embeddingy pro každý preset tag
+     * - Vloží pouze tagy, které ještě neexistují (skip duplicit)
+     * - Vrátí počet nově importovaných tagů
+     *
+     * @param onProgress Callback pro progress reporting (current, total)
+     * @return Result s počtem importovaných tagů nebo chybou
+     */
+    suspend fun importPresetTags(
+        onProgress: ((Int, Int) -> Unit)? = null
+    ): Result<Int> {
+        return try {
+            _isLoading.value = true
+            _error.value = null
+
+            val presetTags = com.fpf.smartscan.data.tags.PresetTags.RECOMMENDED
+            val total = presetTags.size
+            var importedCount = 0
+
+            presetTags.forEachIndexed { index, preset ->
+                try {
+                    // Kontrola, zda tag již existuje
+                    val existingTag = repository.getTagByName(preset.name)
+                    if (existingTag == null) {
+                        // Generování embeddingu
+                        val embedding = generateEmbedding(preset.description)
+
+                        // Vytvoření entity
+                        val tag = UserTagEntity(
+                            name = preset.name,
+                            description = preset.description,
+                            embedding = embedding,
+                            threshold = preset.threshold,
+                            color = preset.color,
+                            isActive = true
+                        )
+
+                        // Vložení do databáze
+                        repository.insertTag(tag)
+                        importedCount++
+                    }
+
+                    onProgress?.invoke(index + 1, total)
+                } catch (e: Exception) {
+                    // Pokračujeme i když jeden tag selže
+                    _error.value = "Chyba při importu tagu ${preset.name}: ${e.message}"
+                }
+            }
+
+            // Refresh counts
+            loadTagsWithCounts()
+
+            Result.success(importedCount)
+        } catch (e: Exception) {
+            _error.value = e.message
+            Result.failure(e)
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    /**
      * Generuje CLIP embedding z textového popisu
      */
     private suspend fun generateEmbedding(description: String): FloatArray {

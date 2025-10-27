@@ -61,6 +61,11 @@ fun TagManagerScreen(
     // State pro re-tagging confirmation
     var showRetagDialog by remember { mutableStateOf(false) }
 
+    // State pro preset import dialog
+    var showImportDialog by remember { mutableStateOf(false) }
+    var importProgress by remember { mutableStateOf(0 to 0) } // current to total
+    var isImporting by remember { mutableStateOf(false) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -149,6 +154,12 @@ fun TagManagerScreen(
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                        Spacer(modifier = Modifier.height(24.dp))
+                        Button(
+                            onClick = { showImportDialog = true }
+                        ) {
+                            Text("Importovat doporučené tagy")
+                        }
                     }
                 }
                 else -> {
@@ -173,6 +184,45 @@ fun TagManagerScreen(
                                         color = MaterialTheme.colorScheme.onErrorContainer,
                                         modifier = Modifier.padding(12.dp)
                                     )
+                                }
+                            }
+                        }
+
+                        // Import preset tags button (pokud uživatel má < 19 tagů)
+                        if (tagsWithCounts.size < 19) {
+                            item {
+                                OutlinedCard(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable { showImportDialog = true },
+                                    colors = CardDefaults.outlinedCardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                    )
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "📦",
+                                            style = MaterialTheme.typography.headlineSmall
+                                        )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "Importovat doporučené tagy",
+                                                style = MaterialTheme.typography.titleMedium,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                text = "Přidat zbývající preset tagy pro auto-kategorizaci",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -266,6 +316,74 @@ fun TagManagerScreen(
                     dismissButton = {
                         TextButton(
                             onClick = { showRetagDialog = false }
+                        ) {
+                            Text(stringResource(R.string.action_cancel))
+                        }
+                    }
+                )
+            }
+
+            // Import preset tags dialog
+            if (showImportDialog) {
+                AlertDialog(
+                    onDismissRequest = { if (!isImporting) showImportDialog = false },
+                    title = { Text("Importovat doporučené tagy") },
+                    text = {
+                        Column {
+                            if (isImporting) {
+                                // Progress indicator během importu
+                                Text("Importuji tagy... ${importProgress.first}/${importProgress.second}")
+                                Spacer(modifier = Modifier.height(16.dp))
+                                LinearProgressIndicator(
+                                    progress = {
+                                        if (importProgress.second > 0) {
+                                            importProgress.first.toFloat() / importProgress.second.toFloat()
+                                        } else {
+                                            0f
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            } else {
+                                Text("Chcete importovat 19 doporučených tagů pro automatickou kategorizaci?\n\nZahrnuje: Explicitní obsah, Rekonstrukce, Děti, Art, Selfie, Screenshots, Dokumenty, Jídlo, Příroda, Mazlíčci, Auta, Cestování, Oslavy, Sport, Memes")
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                scope.launch {
+                                    isImporting = true
+                                    val result = tagViewModel.importPresetTags { current, total ->
+                                        importProgress = current to total
+                                    }
+                                    isImporting = false
+                                    result.onSuccess { count ->
+                                        if (count > 0) {
+                                            // Úspěšně importováno
+                                            showImportDialog = false
+                                            importProgress = 0 to 0
+                                        }
+                                    }
+                                    result.onFailure {
+                                        // Chyba zůstane zobrazena v error state
+                                        showImportDialog = false
+                                        importProgress = 0 to 0
+                                    }
+                                }
+                            },
+                            enabled = !isImporting
+                        ) {
+                            Text("Importovat")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                showImportDialog = false
+                                importProgress = 0 to 0
+                            },
+                            enabled = !isImporting
                         ) {
                             Text(stringResource(R.string.action_cancel))
                         }
