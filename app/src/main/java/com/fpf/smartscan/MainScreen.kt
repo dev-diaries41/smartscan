@@ -38,6 +38,8 @@ import com.fpf.smartscan.ui.screens.search.SearchViewModel
 import com.fpf.smartscan.ui.screens.settings.SettingsDetailScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
+import com.fpf.smartscan.ui.screens.tags.TagEditScreen
+import com.fpf.smartscan.ui.screens.tags.TagManagerScreen
 import com.fpf.smartscan.ui.screens.test.TestScreen
 import com.fpf.smartscan.workers.ClassificationViewModel
 
@@ -62,6 +64,9 @@ fun MainScreen() {
         currentRoute == Routes.DONATE -> stringResource(R.string.title_donate)
         currentRoute == Routes.HELP -> stringResource(R.string.title_help)
         currentRoute == Routes.TEST -> stringResource(R.string.title_test_organisation)
+        currentRoute == Routes.TAG_MANAGER -> "Správa tagů"
+        currentRoute == Routes.TAG_ADD -> "Přidat tag"
+        currentRoute?.startsWith("tag_edit") == true -> "Upravit tag"
         currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true -> when (typeVal) {
             SettingTypes.TARGETS -> stringResource(R.string.setting_target_folders)
             SettingTypes.THRESHOLD -> stringResource(R.string.setting_similarity_threshold)
@@ -76,7 +81,9 @@ fun MainScreen() {
         else -> ""
     }
 
-    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
+    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true ||
+            currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP, Routes.TAG_MANAGER, Routes.TAG_ADD) ||
+            currentRoute?.startsWith("tag_edit") == true
 
     if(isUpdatePopUpVisible) {
         UpdatePopUp(
@@ -188,6 +195,38 @@ fun MainScreen() {
 
                 composable(Routes.HELP) {
                     HelpScreen()
+                }
+
+                // Tag management routes
+                composable(Routes.TAG_MANAGER) {
+                    TagManagerScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToEdit = { tagName ->
+                            if (tagName == null) {
+                                navController.navigate(Routes.TAG_ADD)
+                            } else {
+                                navController.navigate(Routes.tagEdit(tagName))
+                            }
+                        }
+                    )
+                }
+
+                composable(Routes.TAG_ADD) {
+                    TagEditScreen(
+                        tagName = null,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
+
+                composable(
+                    route = Routes.TAG_EDIT,
+                    arguments = listOf(navArgument("tagName") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val tagName = backStackEntry.arguments?.getString("tagName")
+                    TagEditScreen(
+                        tagName = tagName,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
                 }
             }
         }

@@ -8,7 +8,12 @@ object Routes {
     const val TEST = "test"
     const val DONATE = "donate"
     const val HELP = "help"
+    const val TAG_MANAGER = "tag_manager"
+    const val TAG_EDIT = "tag_edit/{tagName}"
+    const val TAG_ADD = "tag_add"
+
     fun settingsDetail(type: String) = "settings_detail/$type"
+    fun tagEdit(tagName: String) = "tag_edit/$tagName"
 }
 
 object SettingTypes {

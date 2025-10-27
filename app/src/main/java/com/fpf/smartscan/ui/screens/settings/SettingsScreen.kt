@@ -163,6 +163,10 @@ fun SettingsScreen(
                     color = MaterialTheme.colorScheme.primary
                 )
                 ActionItem(
+                    text = "Správa tagů",
+                    onClick = { onNavigate(Routes.TAG_MANAGER) }
+                )
+                ActionItem(
                     text = stringResource(id = R.string.setting_similarity_threshold),
                     onClick = { onNavigate(Routes.settingsDetail(SettingTypes.THRESHOLD)) }
                 )
