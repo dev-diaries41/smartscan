@@ -142,15 +142,15 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
         val videoIndexFile = File(application.filesDir,  VideoIndexer.INDEX_FILENAME)
         val hashFile = File(application.cacheDir, HASH_FILENAME)
+        val filesToZip = listOf(imageIndexFile, videoIndexFile, hashFile)
         _isBackupLoading.value = true
 
         viewModelScope.launch(Dispatchers.IO){
             try {
-                val imageHash = hashFile(imageIndexFile)
-                val videoHash = hashFile(videoIndexFile)
-                hashFile.writeText("$imageHash\n$videoHash")
+                val hashes: List<String> = listOf(imageIndexFile, videoIndexFile).filter { it.exists() }.map{hashFile(it)}
+                hashFile.writeText(hashes.joinToString("\n") )
 
-                zipFiles(indexZipFile, listOf(imageIndexFile, videoIndexFile, hashFile))
+                zipFiles(indexZipFile, filesToZip)
                 copyToUri(application, uri, indexZipFile)
                 _event.emit("Backup successful")
             }catch (e: Exception){
@@ -193,7 +193,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private suspend fun isValidBackupFile(extractedFiles: List<File>): Boolean{
         val hashFile = extractedFiles.find { it.name == HASH_FILENAME }?: return false
         val hashesFromFile: List<String> = hashFile.readLines()
-        if(hashesFromFile.size < 2) return false
+        if(hashesFromFile.isEmpty()) return false // must have hash for at least 1 of image or video index file
 
         val indexFiles = extractedFiles.filterNot{it.name == HASH_FILENAME}
         val indexHashes = indexFiles.map{hashFile(it)}
