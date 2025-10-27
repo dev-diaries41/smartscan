@@ -1,4 +1,4 @@
-# SmartScan - Media search engine app``
+# SmartScan - Media search engine app
 
 Search images and videos offline using text or by reverse image search with on-device AI.
 
