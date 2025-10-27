@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -24,7 +25,9 @@ import com.fpf.smartscan.R
 fun BackupAndRestore(
     onRestore: (uri: Uri) -> Unit,
     onBackup:(uri: Uri) -> Unit,
-    backupFilename: String
+    backupFilename: String,
+    backupLoading: Boolean,
+    restoreLoading: Boolean
 ){
     val context = LocalContext.current
 
@@ -53,7 +56,7 @@ fun BackupAndRestore(
         buttonContent = { enabled, onClick ->
             Button(
                 modifier = Modifier.padding(horizontal = 8.dp),
-                enabled=enabled,
+                enabled=enabled && !backupLoading,
                 onClick = { onClick() }
             ) {
                 Icon(
@@ -62,6 +65,7 @@ fun BackupAndRestore(
                     modifier = Modifier.padding(end = 4.dp).size(16.dp)
                 )
                 Text(text = "Backup", fontSize = 12.sp)
+                LoadingIndicator(isVisible = backupLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.padding(start = 8.dp))
             }
         }
     )
@@ -72,7 +76,7 @@ fun BackupAndRestore(
         buttonContent = { enabled, onClick ->
             Button(
                 modifier = Modifier.padding(horizontal = 8.dp),
-                enabled=enabled,
+                enabled=enabled && !restoreLoading,
                 onClick = { onClick() }
             ) {
                 Icon(
@@ -81,6 +85,8 @@ fun BackupAndRestore(
                     modifier = Modifier.padding(end = 4.dp).size(16.dp)
                 )
                 Text(text = "Restore", fontSize = 12.sp)
+                LoadingIndicator(isVisible = restoreLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.padding(start = 8.dp))
+
             }
         }
 
