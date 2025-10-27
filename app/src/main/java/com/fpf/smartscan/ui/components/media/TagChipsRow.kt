@@ -21,6 +21,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.tags.ImageTagEntity
 import com.fpf.smartscan.ui.screens.tags.TagViewModel
 
@@ -64,7 +66,7 @@ fun TagChipsRow(
         // Tlačítko pro přidání nového tagu
         AssistChip(
             onClick = { onAddTag(imageId) },
-            label = { Text("Přidat tag") },
+            label = { Text(stringResource(R.string.tags_add_tag)) },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Add,

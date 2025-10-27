@@ -50,7 +50,7 @@ fun DownloadableModelCard(
                 TextButton(onClick = {
                     isDownloadAlertVisible = false
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {

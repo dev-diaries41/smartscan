@@ -50,7 +50,7 @@ fun ImportedModelCard(
                 TextButton(onClick = {
                     isDeleteAlertVisible = false
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
