@@ -18,6 +18,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.tags.UserTagEntity
 import kotlinx.coroutines.launch
 
@@ -107,13 +109,13 @@ fun TagEditScreen(
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Název tagu *") },
-                    placeholder = { Text("např. Rekonstrukce domu") },
+                    label = { Text(stringResource(R.string.tag_edit_name_label)) },
+                    placeholder = { Text(stringResource(R.string.tag_edit_name_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                     isError = name.isNotBlank() && !isNameValid,
                     supportingText = {
                         if (name.isNotBlank() && !isNameValid) {
-                            Text("Název nesmí být prázdný")
+                            Text(stringResource(R.string.tag_edit_name_error))
                         }
                     },
                     enabled = !isLoading
@@ -123,8 +125,8 @@ fun TagEditScreen(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Popis pro AI *") },
-                    placeholder = { Text("např. fotografie renovace a rekonstrukce interiéru domu...") },
+                    label = { Text(stringResource(R.string.tag_edit_description_label)) },
+                    placeholder = { Text(stringResource(R.string.tag_edit_description_placeholder)) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp),
@@ -133,9 +135,9 @@ fun TagEditScreen(
                     isError = description.isNotBlank() && !isDescriptionValid,
                     supportingText = {
                         if (description.isNotBlank() && !isDescriptionValid) {
-                            Text("Popis musí mít minimálně 10 znaků")
+                            Text(stringResource(R.string.tag_edit_description_error))
                         } else {
-                            Text("${description.length} znaků")
+                            Text(stringResource(R.string.tag_edit_character_count, description.length))
                         }
                     },
                     enabled = !isLoading
@@ -299,7 +301,7 @@ fun TagEditScreen(
                         modifier = Modifier.weight(1f),
                         enabled = !isLoading
                     ) {
-                        Text("Zrušit")
+                        Text(stringResource(R.string.action_cancel))
                     }
                     Button(
                         onClick = {
