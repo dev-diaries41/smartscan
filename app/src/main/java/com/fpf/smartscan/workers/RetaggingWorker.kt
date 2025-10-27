@@ -42,9 +42,16 @@ class RetaggingWorker(
 
     private val taggingService = TaggingService(applicationContext)
 
+    // Tracking proměnné pro statistiky
+    private var startTime: Long = 0
+    private var tagsAssignedTotal = 0
+    private val tagCountMap = mutableMapOf<String, MutableMap<String, Any>>() // name -> (count, color)
+
     override suspend fun doWork(): Result = withContext(Dispatchers.IO) {
         try {
             Log.d(TAG, "Starting image re-tagging")
+
+            startTime = System.currentTimeMillis()
 
             // Nastavení foreground notifikace
             setForeground(createForegroundInfo(0, 0))
@@ -71,19 +78,45 @@ class RetaggingWorker(
 
             Log.d(TAG, "Re-tagging $totalImages images")
 
-            // Progress callback pro notifikaci a WorkManager progress
-            val onProgress: (Int, Int) -> Unit = { current, total ->
+            // Načtení aktivních tagů pro stats
+            val activeTags = getActiveTagsWithColors()
+
+            // Progress callback pro notifikaci a WorkManager progress s rozšířenými statistikami
+            suspend fun reportProgress(current: Int, total: Int) {
                 try {
                     // Update foreground notification
                     setForegroundAsync(createForegroundInfo(current, total))
 
-                    // Update WorkManager progress pro UI tracking
+                    // Výpočet statistik
+                    val elapsedMs = System.currentTimeMillis() - startTime
+                    val avgTimePerImage = if (current > 0) elapsedMs.toFloat() / current.toFloat() else 0f
+                    val imagesPerMinute = if (elapsedMs > 0) (current.toFloat() / (elapsedMs / 60000f)) else 0f
+
+                    // Update tag counts - načtení aktuálního stavu z DB
+                    updateTagCounts()
+
+                    // Top 5 tagů
+                    val topTagsJson = getTopTagsJson()
+
+                    // Update WorkManager progress pro UI tracking s rozšířenými daty
                     setProgressAsync(workDataOf(
                         "current" to current,
-                        "total" to total
+                        "total" to total,
+                        "tagsAssigned" to tagsAssignedTotal,
+                        "activeTagsCount" to activeTags.size,
+                        "topTags" to topTagsJson,
+                        "avgTimePerImage" to avgTimePerImage,
+                        "imagesPerMinute" to imagesPerMinute
                     ))
                 } catch (e: Exception) {
                     Log.w(TAG, "Failed to update notification: ${e.message}")
+                }
+            }
+
+            val onProgress: (Int, Int) -> Unit = { current, total ->
+                // Volání suspend funkce musí být v coroutine scope
+                kotlinx.coroutines.runBlocking {
+                    reportProgress(current, total)
                 }
             }
 
@@ -92,6 +125,8 @@ class RetaggingWorker(
                 embeddings = embeddings,
                 onProgress = onProgress
             )
+
+            tagsAssignedTotal = totalTagsAssigned
 
             Log.d(TAG, "Re-tagging complete: $totalTagsAssigned tags assigned to $totalImages images")
 
@@ -102,7 +137,7 @@ class RetaggingWorker(
         } catch (e: Exception) {
             Log.e(TAG, "Re-tagging failed", e)
             showErrorNotification(e.message)
-            Result.failure()
+            Result.failure(workDataOf("error" to (e.message ?: "Unknown error")))
         }
     }
 
@@ -182,5 +217,69 @@ class RetaggingWorker(
 
         val manager = applicationContext.getSystemService(NotificationManager::class.java)
         manager.notify(NOTIFICATION_ID + 2, notification)
+    }
+
+    /**
+     * Načte aktivní tagy s jejich barvami
+     */
+    private suspend fun getActiveTagsWithColors(): List<Pair<String, Int>> {
+        return try {
+            val database = com.fpf.smartscan.data.tags.TagDatabase.getDatabase(applicationContext)
+            val userTags = database.userTagDao().getActiveTagsSync()
+            userTags.map { it.name to it.color }
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to get active tags: ${e.message}")
+            emptyList()
+        }
+    }
+
+    /**
+     * Update počty tagů z databáze
+     */
+    private suspend fun updateTagCounts() {
+        try {
+            val database = com.fpf.smartscan.data.tags.TagDatabase.getDatabase(applicationContext)
+            val activeTags = database.userTagDao().getActiveTagsSync()
+
+            var totalAssigned = 0
+            activeTags.forEach { tag ->
+                val count = database.imageTagDao().getImageCountForTag(tag.name)
+                if (count > 0) {
+                    tagCountMap[tag.name] = mutableMapOf(
+                        "count" to count,
+                        "color" to tag.color
+                    )
+                    totalAssigned += count
+                }
+            }
+
+            tagsAssignedTotal = totalAssigned
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to update tag counts: ${e.message}")
+        }
+    }
+
+    /**
+     * Získá top 5 tagů jako JSON string
+     *
+     * Formát: [{"name":"X","count":N,"color":C},...]
+     */
+    private fun getTopTagsJson(): String {
+        return try {
+            val sorted = tagCountMap.entries
+                .sortedByDescending { (it.value["count"] as? Int) ?: 0 }
+                .take(5)
+
+            val items = sorted.map { (name, data) ->
+                val count = data["count"] as? Int ?: 0
+                val color = data["color"] as? Int ?: 0
+                """{"name":"$name","count":$count,"color":$color}"""
+            }
+
+            "[${items.joinToString(",")}]"
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to generate top tags JSON: ${e.message}")
+            "[]"
+        }
     }
 }

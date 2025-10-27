@@ -48,7 +48,8 @@ import kotlinx.coroutines.delay
 fun TagManagerScreen(
     tagViewModel: TagViewModel = viewModel(),
     onNavigateBack: () -> Unit,
-    onNavigateToEdit: (String?) -> Unit // null = nový tag, String = edit existujícího
+    onNavigateToEdit: (String?) -> Unit, // null = nový tag, String = edit existujícího
+    onNavigateToRetagging: (java.util.UUID) -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -67,44 +68,6 @@ fun TagManagerScreen(
     var showImportDialog by remember { mutableStateOf(false) }
     var importProgress by remember { mutableStateOf(0 to 0) } // current to total
     var isImporting by remember { mutableStateOf(false) }
-
-    // State pro re-tagging progress
-    var isRetagging by remember { mutableStateOf(false) }
-    var retagProgress by remember { mutableStateOf(0 to 0) } // current to total
-    var retagWorkId by remember { mutableStateOf<java.util.UUID?>(null) }
-
-    // Sledování WorkManager progress pro re-tagging
-    LaunchedEffect(retagWorkId) {
-        retagWorkId?.let { workId ->
-            while (isRetagging) {
-                val workInfo = WorkManager.getInstance(context)
-                    .getWorkInfoById(workId)
-                    .get()
-
-                when (workInfo?.state) {
-                    WorkInfo.State.RUNNING -> {
-                        // Progress z workData (pokud bude přidán)
-                        val current = workInfo.progress.getInt("current", 0)
-                        val total = workInfo.progress.getInt("total", 0)
-                        retagProgress = current to total
-                    }
-                    WorkInfo.State.SUCCEEDED -> {
-                        isRetagging = false
-                        retagWorkId = null
-                        retagProgress = 0 to 0
-                    }
-                    WorkInfo.State.FAILED, WorkInfo.State.CANCELLED -> {
-                        isRetagging = false
-                        retagWorkId = null
-                        retagProgress = 0 to 0
-                    }
-                    else -> {}
-                }
-
-                delay(500) // Poll každých 500ms
-            }
-        }
-    }
 
     Scaffold(
         topBar = {
@@ -347,10 +310,9 @@ fun TagManagerScreen(
                                 WorkManager.getInstance(context)
                                     .enqueue(workRequest)
 
-                                // Nastavení stavu pro sledování progress
-                                retagWorkId = workRequest.id
-                                isRetagging = true
+                                // Navigace na RetaggingScreen
                                 showRetagDialog = false
+                                onNavigateToRetagging(workRequest.id)
                             }
                         ) {
                             Text(stringResource(R.string.action_run))
@@ -432,68 +394,6 @@ fun TagManagerScreen(
                         }
                     }
                 )
-            }
-
-            // Re-tagging progress overlay
-            if (isRetagging) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.95f))
-                        .clickable(enabled = false) { /* Block clicks */ },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth(0.85f)
-                            .padding(24.dp),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .padding(24.dp)
-                                .fillMaxWidth(),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            Text(
-                                text = "Přeznačkování obrázků",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            if (retagProgress.second > 0) {
-                                Text(
-                                    text = "Zpracováno ${retagProgress.first} z ${retagProgress.second}",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-
-                                LinearProgressIndicator(
-                                    progress = {
-                                        retagProgress.first.toFloat() / retagProgress.second.toFloat()
-                                    },
-                                    modifier = Modifier.fillMaxWidth(),
-                                )
-
-                                Text(
-                                    text = "${String.format("%.1f", (retagProgress.first.toFloat() / retagProgress.second.toFloat()) * 100)}%",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                            } else {
-                                // Indeterminate progress pro přípravu
-                                CircularProgressIndicator()
-                                Text(
-                                    text = "Příprava re-taggingu...",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
     }

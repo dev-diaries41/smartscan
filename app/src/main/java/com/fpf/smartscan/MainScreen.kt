@@ -40,8 +40,10 @@ import com.fpf.smartscan.ui.screens.settings.SettingsScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 import com.fpf.smartscan.ui.screens.tags.TagEditScreen
 import com.fpf.smartscan.ui.screens.tags.TagManagerScreen
+import com.fpf.smartscan.ui.screens.retagging.RetaggingScreen
 import com.fpf.smartscan.ui.screens.test.TestScreen
 import com.fpf.smartscan.workers.ClassificationViewModel
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -82,7 +84,7 @@ fun MainScreen() {
     }
 
     val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true ||
-            currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP, Routes.TAG_MANAGER, Routes.TAG_ADD) ||
+            currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP, Routes.TAG_MANAGER, Routes.TAG_ADD, Routes.RETAGGING) ||
             currentRoute?.startsWith("tag_edit") == true
 
     if(isUpdatePopUpVisible) {
@@ -207,6 +209,9 @@ fun MainScreen() {
                             } else {
                                 navController.navigate(Routes.tagEdit(tagName))
                             }
+                        },
+                        onNavigateToRetagging = { workId ->
+                            navController.navigate("${Routes.RETAGGING}/${workId}")
                         }
                     )
                 }
@@ -227,6 +232,29 @@ fun MainScreen() {
                         tagName = tagName,
                         onNavigateBack = { navController.popBackStack() }
                     )
+                }
+
+                // Retagging screen
+                composable(
+                    route = "${Routes.RETAGGING}/{workId}",
+                    arguments = listOf(navArgument("workId") { type = NavType.StringType })
+                ) { backStackEntry ->
+                    val workIdString = backStackEntry.arguments?.getString("workId") ?: ""
+                    val workId = try {
+                        UUID.fromString(workIdString)
+                    } catch (e: Exception) {
+                        null
+                    }
+
+                    if (workId != null) {
+                        RetaggingScreen(
+                            workId = workId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    } else {
+                        // Fallback - invalid work ID
+                        navController.popBackStack()
+                    }
                 }
             }
         }

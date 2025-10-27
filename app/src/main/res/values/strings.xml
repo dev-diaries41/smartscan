@@ -245,4 +245,24 @@
     <string name="action_share">Share</string>
     <string name="share_single_file">Share file</string>
     <string name="share_multiple_files">Share files (%1$d)</string>
+
+    <!-- Retagging Screen -->
+    <string name="retagging_title">Re-tagging Images</string>
+    <string name="retagging_processed_images">Processed images</string>
+    <string name="retagging_preparing">Preparing re-tagging…</string>
+    <string name="retagging_stats_title">Statistics</string>
+    <string name="retagging_stats_tags_assigned">Tags assigned</string>
+    <string name="retagging_stats_active_tags">Active tags</string>
+    <string name="retagging_stats_avg_time">Average time</string>
+    <string name="retagging_stats_speed">Speed</string>
+    <string name="retagging_top_tags_title">Assigned tags (top 5)</string>
+    <string name="retagging_complete_title">Re-tagging Complete!</string>
+    <string name="retagging_summary_processed">Processed</string>
+    <string name="retagging_summary_assigned">Assigned</string>
+    <string name="retagging_summary_duration">Duration</string>
+    <string name="retagging_auto_return">Auto-return in %1$d seconds</string>
+    <string name="retagging_back_button">Back to Tag Management</string>
+    <string name="retagging_error_title">Re-tagging Failed</string>
+    <string name="images">images</string>
+    <string name="tags">tags</string>
 </resources>

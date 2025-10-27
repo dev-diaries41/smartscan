@@ -240,4 +240,24 @@
     <string name="action_share">Sdílet</string>
     <string name="share_single_file">Sdílet soubor</string>
     <string name="share_multiple_files">Sdílet soubory (%1$d)</string>
+
+    <!-- Přeznačkování -->
+    <string name="retagging_title">Přeznačkování obrázků</string>
+    <string name="retagging_processed_images">Zpracované obrázky</string>
+    <string name="retagging_preparing">Příprava přeznačkování…</string>
+    <string name="retagging_stats_title">Statistiky</string>
+    <string name="retagging_stats_tags_assigned">Přiřazené tagy</string>
+    <string name="retagging_stats_active_tags">Aktivní tagy</string>
+    <string name="retagging_stats_avg_time">Průměrný čas</string>
+    <string name="retagging_stats_speed">Rychlost</string>
+    <string name="retagging_top_tags_title">Přiřazené tagy (top 5)</string>
+    <string name="retagging_complete_title">Přeznačkování dokončeno!</string>
+    <string name="retagging_summary_processed">Zpracováno</string>
+    <string name="retagging_summary_assigned">Přiřazeno</string>
+    <string name="retagging_summary_duration">Trvání</string>
+    <string name="retagging_auto_return">Automatický návrat za %1$d sekund</string>
+    <string name="retagging_back_button">Zpět na správu tagů</string>
+    <string name="retagging_error_title">Přeznačkování selhalo</string>
+    <string name="images">obrázků</string>
+    <string name="tags">tagů</string>
 </resources>
