@@ -1,13 +1,7 @@
 package com.fpf.smartscan.lib
 
-import android.app.DownloadManager
-import android.content.ContentValues
 import android.content.Context
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import android.provider.OpenableColumns
 import android.util.Log
 import androidx.core.net.toUri
@@ -20,6 +14,7 @@ import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import java.security.MessageDigest
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -160,14 +155,17 @@ suspend fun zipFiles(outputFile: File, files: List<File>) = withContext(Dispatch
     }
 }
 
-suspend fun unzipFiles(zipFile: File, targetDir: File) = withContext(Dispatchers.IO){
+suspend fun unzipFiles(zipFile: File, targetDir: File): List<File> = withContext(Dispatchers.IO){
     if(!zipFile.name.endsWith(".zip")) error ("Invalid zip file")
     if(!targetDir.exists()) targetDir.mkdirs()
+
+    val extractedFiles = mutableListOf<File>()
 
     ZipInputStream(FileInputStream(zipFile)).use {zipInputStream ->
         var entry = zipInputStream.nextEntry
         while(entry != null){
             val entryFile = File(targetDir, entry.name)
+            extractedFiles.add(entryFile)
             FileOutputStream(entryFile).use { outputStream ->
                 zipInputStream.copyTo(outputStream)
                 zipInputStream.closeEntry()
@@ -175,6 +173,7 @@ suspend fun unzipFiles(zipFile: File, targetDir: File) = withContext(Dispatchers
             }
         }
     }
+    extractedFiles
 }
 
 suspend fun copyFromUri(context: Context, uri: Uri, outputFile: File) = withContext(Dispatchers.IO){
@@ -187,6 +186,18 @@ suspend fun copyToUri(context: Context, outputUri: Uri, file: File) = withContex
     context.contentResolver.openOutputStream(outputUri)?.use { outputStream ->
         FileInputStream(file).use { inputStream -> inputStream.copyTo(outputStream) }
     }
+}
+
+suspend fun hashFile(file: File, algorithm: String = "SHA-256"): String = withContext(Dispatchers.IO) {
+    val digest = MessageDigest.getInstance(algorithm)
+    file.inputStream().use { fis ->
+        val buffer = ByteArray(1024)
+        var read: Int
+        while (fis.read(buffer).also { read = it } != -1) {
+            digest.update(buffer, 0, read)
+        }
+    }
+    digest.digest().joinToString("") { "%02x".format(it) }
 }
 
 

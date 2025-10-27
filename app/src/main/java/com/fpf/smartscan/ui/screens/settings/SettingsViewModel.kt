@@ -17,6 +17,7 @@ import com.fpf.smartscan.lib.copyFromUri
 import com.fpf.smartscan.lib.copyToUri
 import com.fpf.smartscan.lib.deleteModel
 import com.fpf.smartscan.lib.getImportedModels
+import com.fpf.smartscan.lib.hashFile
 import com.fpf.smartscan.lib.importModel
 import com.fpf.smartscan.lib.loadSettings
 import com.fpf.smartscan.lib.saveSettings
@@ -43,10 +44,19 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
 
+    private val _isBackupLoading = MutableStateFlow(false)
+    val isBackupLoading: StateFlow<Boolean> = _isBackupLoading
+
+    private val _isRestoreLoading = MutableStateFlow(false)
+    val isRestoreLoading: StateFlow<Boolean> = _isRestoreLoading
+
+
+
     companion object {
         private const val SETTINGS_PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
         private const val TAG = "SettingsViewModel"
         const val BACKUP_FILENAME = "smartscan_backup.zip"
+        private const val HASH_FILENAME = "hash.txt"
     }
 
     init {
@@ -130,38 +140,61 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val indexZipFile = File(application.cacheDir, BACKUP_FILENAME)
         val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
         val videoIndexFile = File(application.filesDir,  VideoIndexer.INDEX_FILENAME)
+        val hashFile = File(application.cacheDir, HASH_FILENAME)
+        _isBackupLoading.value = true
+
         viewModelScope.launch(Dispatchers.IO){
             try {
-                zipFiles(indexZipFile, listOf(imageIndexFile, videoIndexFile))
-                if(indexZipFile.exists()){
-                    copyToUri(application, uri, indexZipFile)
-                    indexZipFile.delete()
-                    _event.emit("Backup successful")
-                }
+                val imageHash = hashFile(imageIndexFile)
+                val videoHash = hashFile(videoIndexFile)
+                hashFile.writeText("$imageHash\n$videoHash")
+
+                zipFiles(indexZipFile, listOf(imageIndexFile, videoIndexFile, hashFile))
+                copyToUri(application, uri, indexZipFile)
+                _event.emit("Backup successful")
             }catch (e: Exception){
                 Log.e(TAG, "Error backing up: ${e.message}")
                 _event.emit("Backup error")
+            }finally {
+                indexZipFile.delete()
+                hashFile.delete()
+                _isBackupLoading.emit(false)
             }
         }
     }
 
     fun restore(uri: Uri){
         val indexZipFile = File(application.cacheDir, BACKUP_FILENAME)
+        _isRestoreLoading.value = true
 
         viewModelScope.launch(Dispatchers.IO){
             try {
                 copyFromUri(application, uri, indexZipFile)
-                if(indexZipFile.exists()){
-                    unzipFiles(indexZipFile, application.filesDir)
-                    indexZipFile.delete()
-                    _event.emit("Restore successful")
-                    ImageIndexListener.onComplete(application, Metrics.Success()) // call onComplete to trigger refresh in search screen
-                    VideoIndexListener.onComplete(application, Metrics.Success())
+                val extractedFiles = unzipFiles(indexZipFile, application.filesDir)
+                if(!isValidBackupFile((extractedFiles))){
+                    extractedFiles.forEach { it.delete() }
+                    error("Invalid backup file")
                 }
+                _event.emit("Restore successful")
+                ImageIndexListener.onComplete(application, Metrics.Success()) // call onComplete to trigger refresh in search screen
+                VideoIndexListener.onComplete(application, Metrics.Success())
             }catch (e: Exception){
                 Log.e(TAG, "Error restoring: ${e.message}")
                 _event.emit("Restore error")
+            }finally {
+                indexZipFile.delete()
+                _isRestoreLoading.emit(false)
             }
         }
+    }
+
+    private suspend fun isValidBackupFile(extractedFiles: List<File>): Boolean{
+        val hashFile = extractedFiles.find { it.name == HASH_FILENAME }?: return false
+        val hashesFromFile: List<String> = hashFile.readLines()
+        if(hashesFromFile.size < 2) return false
+
+        val indexFiles = extractedFiles.filterNot{it.name == HASH_FILENAME}
+        val indexHashes = indexFiles.map{hashFile(it)}
+        return hashesFromFile.toSet() == indexHashes.toSet()
     }
 }

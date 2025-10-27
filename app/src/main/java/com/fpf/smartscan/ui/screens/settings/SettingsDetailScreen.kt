@@ -35,8 +35,9 @@ fun SettingsDetailScreen(
 ) {
     val appSettings by viewModel.appSettings.collectAsState()
     val models by viewModel.importedModels.collectAsState()
+    val isBackupLoading by viewModel.isBackupLoading.collectAsState()
+    val isRestoreLoading by viewModel.isRestoreLoading.collectAsState()
     val context = LocalContext.current
-
 
     LaunchedEffect(Unit) {
         viewModel.event.collect { msg ->
@@ -93,7 +94,9 @@ fun SettingsDetailScreen(
                     BackupAndRestore(
                         onBackup = viewModel::backup,
                         onRestore = viewModel::restore,
-                        backupFilename = BACKUP_FILENAME
+                        backupFilename = BACKUP_FILENAME,
+                        backupLoading = isBackupLoading,
+                        restoreLoading = isRestoreLoading
                     )
                 }
                 else -> {}
