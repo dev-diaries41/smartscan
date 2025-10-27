@@ -11,6 +11,8 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.prototypes.toEmbedding
 import com.fpf.smartscan.ui.components.media.ImageUploader
 import com.fpf.smartscan.ui.components.LoadingIndicator
@@ -58,7 +60,7 @@ fun TestScreen(viewModel: TestViewModel = viewModel(), settingsViewModel: Settin
                     onClick = { viewModel.inference(context, classPrototypes, threshold = appSettings.organiserSimilarityThreshold, confidenceMargin = appSettings.organiserConfMargin) },
                 ) {
                     Icon(Icons.AutoMirrored.Filled.Label, contentDescription = "Label icon", modifier = Modifier.padding(end = 4.dp))
-                    Text("Classify")
+                    Text(stringResource(R.string.action_classify))
                     LoadingIndicator(isVisible = isLoading, size = 18.dp, strokeWidth = 2.dp, color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.padding(start = 8.dp))
                 }
                 inferenceResult?.let { Text(text = "Result: $it", modifier = Modifier.padding(vertical = 16.dp)) }
