@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.tags.UserTagEntity
 import com.fpf.smartscan.workers.RetaggingWorker
 import kotlinx.coroutines.launch
@@ -64,7 +66,7 @@ fun TagManagerScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Správa tagů")
+                        Text(stringResource(R.string.tag_manager_title))
                         if (tagsWithCounts.isNotEmpty()) {
                             Text(
                                 text = "${tagsWithCounts.size} ${if (tagsWithCounts.size == 1) "tag" else if (tagsWithCounts.size < 5) "tagy" else "tagů"}",
@@ -202,9 +204,9 @@ fun TagManagerScreen(
             if (showDeleteDialog && tagToDelete != null) {
                 AlertDialog(
                     onDismissRequest = { showDeleteDialog = false },
-                    title = { Text("Smazat tag?") },
+                    title = { Text(stringResource(R.string.tag_manager_delete_dialog_title)) },
                     text = {
-                        Text("Opravdu chcete smazat tag \"${tagToDelete!!.name}\"? Tato akce také odstraní všechna přiřazení tohoto tagu k obrázkům.")
+                        Text(stringResource(R.string.tag_manager_delete_dialog_message, tagToDelete!!.name))
                     },
                     confirmButton = {
                         TextButton(
@@ -221,7 +223,7 @@ fun TagManagerScreen(
                                 contentColor = MaterialTheme.colorScheme.error
                             )
                         ) {
-                            Text("Smazat")
+                            Text(stringResource(R.string.action_delete))
                         }
                     },
                     dismissButton = {
@@ -231,7 +233,7 @@ fun TagManagerScreen(
                                 tagToDelete = null
                             }
                         ) {
-                            Text("Zrušit")
+                            Text(stringResource(R.string.action_cancel))
                         }
                     }
                 )
@@ -241,16 +243,9 @@ fun TagManagerScreen(
             if (showRetagDialog) {
                 AlertDialog(
                     onDismissRequest = { showRetagDialog = false },
-                    title = { Text("Re-taggovat všechny obrázky?") },
+                    title = { Text(stringResource(R.string.tag_manager_retag_dialog_title)) },
                     text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Tato operace přepočítá tagy pro všechny indexované obrázky podle aktuálních pravidel.")
-                            Text(
-                                text = "Proces může trvat několik minut v závislosti na počtu obrázků.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
+                        Text(stringResource(R.string.tag_manager_retag_dialog_message))
                     },
                     confirmButton = {
                         TextButton(
@@ -265,14 +260,14 @@ fun TagManagerScreen(
                                 showRetagDialog = false
                             }
                         ) {
-                            Text("Spustit")
+                            Text(stringResource(R.string.action_run))
                         }
                     },
                     dismissButton = {
                         TextButton(
                             onClick = { showRetagDialog = false }
                         ) {
-                            Text("Zrušit")
+                            Text(stringResource(R.string.action_cancel))
                         }
                     }
                 )
@@ -421,7 +416,7 @@ private fun TagCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Upravit")
+                    Text(stringResource(R.string.action_edit))
                 }
 
                 OutlinedButton(
@@ -437,7 +432,7 @@ private fun TagCard(
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Smazat")
+                    Text(stringResource(R.string.action_delete))
                 }
             }
         }
