@@ -32,6 +32,7 @@
     <string name="notif_title_index_issue_description">It will automatically try to resume. If the problem does not resolve within a few minutes, you can restart indexing manually from Settings.</string>
     <string name="notif_title_smart_scan_issue">Smart scan issue detected</string>
     <string name="notif_title_smart_scan_issue_description">You can manually restart it by toggling `Enable scan` in settings or leave it to run at the next scheduled time.</string>
+    <string name="notif_title_retagging">Re-tagging obrázků</string>
 
     <!-- Search screen -->
     <string name="first_indexing">

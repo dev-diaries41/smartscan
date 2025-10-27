@@ -13,16 +13,21 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.fpf.smartscan.data.tags.UserTagEntity
+import com.fpf.smartscan.workers.RetaggingWorker
 import kotlinx.coroutines.launch
 
 /**
@@ -42,6 +47,7 @@ fun TagManagerScreen(
     onNavigateToEdit: (String?) -> Unit // null = nový tag, String = edit existujícího
 ) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val tagsWithCounts by tagViewModel.tagsWithCounts.collectAsState()
     val isLoading by tagViewModel.isLoading.collectAsState()
     val error by tagViewModel.error.collectAsState()
@@ -49,6 +55,9 @@ fun TagManagerScreen(
     // State pro delete dialog
     var tagToDelete by remember { mutableStateOf<UserTagEntity?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // State pro re-tagging confirmation
+    var showRetagDialog by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -68,6 +77,23 @@ fun TagManagerScreen(
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Zpět")
+                    }
+                },
+                actions = {
+                    // Re-tagging button
+                    IconButton(
+                        onClick = { showRetagDialog = true },
+                        enabled = tagsWithCounts.isNotEmpty()
+                    ) {
+                        Icon(
+                            Icons.Filled.Refresh,
+                            contentDescription = "Re-taggovat všechny obrázky",
+                            tint = if (tagsWithCounts.isNotEmpty()) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            }
+                        )
                     }
                 }
             )
@@ -204,6 +230,47 @@ fun TagManagerScreen(
                                 showDeleteDialog = false
                                 tagToDelete = null
                             }
+                        ) {
+                            Text("Zrušit")
+                        }
+                    }
+                )
+            }
+
+            // Re-tagging confirmation dialog
+            if (showRetagDialog) {
+                AlertDialog(
+                    onDismissRequest = { showRetagDialog = false },
+                    title = { Text("Re-taggovat všechny obrázky?") },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text("Tato operace přepočítá tagy pro všechny indexované obrázky podle aktuálních pravidel.")
+                            Text(
+                                text = "Proces může trvat několik minut v závislosti na počtu obrázků.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                // Spuštění RetaggingWorker
+                                val workRequest = OneTimeWorkRequestBuilder<RetaggingWorker>()
+                                    .build()
+
+                                WorkManager.getInstance(context)
+                                    .enqueue(workRequest)
+
+                                showRetagDialog = false
+                            }
+                        ) {
+                            Text("Spustit")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = { showRetagDialog = false }
                         ) {
                             Text("Zrušit")
                         }
