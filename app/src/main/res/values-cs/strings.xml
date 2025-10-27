@@ -235,4 +235,9 @@
     <string name="date_picker_date_from_label">Datum od</string>
     <string name="date_picker_date_to_label">Datum do</string>
     <string name="date_picker_click_to_select">Klikněte pro výběr data</string>
+
+    <!-- Sdílení -->
+    <string name="action_share">Sdílet</string>
+    <string name="share_single_file">Sdílet soubor</string>
+    <string name="share_multiple_files">Sdílet soubory (%1$d)</string>
 </resources>

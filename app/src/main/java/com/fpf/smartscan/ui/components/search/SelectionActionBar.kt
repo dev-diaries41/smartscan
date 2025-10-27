@@ -7,11 +7,14 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DriveFileMove
 import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.fpf.smartscan.R
 
 @Composable
 fun SelectionActionBar(
@@ -20,6 +23,7 @@ fun SelectionActionBar(
     onSelectAll: () -> Unit,
     onMove: () -> Unit,
     onDelete: () -> Unit,
+    onShare: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Surface(
@@ -59,6 +63,14 @@ fun SelectionActionBar(
                     Icon(
                         imageVector = Icons.Default.SelectAll,
                         contentDescription = "Vybrat vše"
+                    )
+                }
+                IconButton(onClick = onShare, enabled = selectedCount > 0) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = stringResource(R.string.action_share),
+                        tint = if (selectedCount > 0) MaterialTheme.colorScheme.primary
+                               else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
                     )
                 }
                 IconButton(onClick = onMove, enabled = selectedCount > 0) {

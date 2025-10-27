@@ -240,4 +240,9 @@
     <string name="date_picker_date_from_label">Date from</string>
     <string name="date_picker_date_to_label">Date to</string>
     <string name="date_picker_click_to_select">Click to select date</string>
+
+    <!-- Share -->
+    <string name="action_share">Share</string>
+    <string name="share_single_file">Share file</string>
+    <string name="share_multiple_files">Share files (%1$d)</string>
 </resources>

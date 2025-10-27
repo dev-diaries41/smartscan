@@ -271,7 +271,8 @@ fun SearchScreen(
                     onClose = { searchViewModel.toggleSelectionMode() },
                     onSelectAll = { searchViewModel.selectAllUris() },
                     onMove = { directoryPickerLauncher.launch(null) },
-                    onDelete = { showDeleteConfirmDialog = true }
+                    onDelete = { showDeleteConfirmDialog = true },
+                    onShare = { searchViewModel.shareSelectedFiles() }
                 )
             }
 

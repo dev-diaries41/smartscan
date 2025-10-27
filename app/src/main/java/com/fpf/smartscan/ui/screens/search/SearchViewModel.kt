@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.getImageUriFromId
+import com.fpf.smartscan.lib.ShareManager
 import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.MediaType
@@ -482,6 +483,28 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
 
         return result
+    }
+
+    /**
+     * Sdílí vybrané soubory pomocí Android Share Sheet.
+     */
+    fun shareSelectedFiles() {
+        val urisToShare = _selectedUris.value.toList()
+        if (urisToShare.isEmpty()) {
+            Log.w(TAG, "Žádné vybrané soubory ke sdílení")
+            return
+        }
+
+        val shareTitle = when (urisToShare.size) {
+            1 -> application.getString(R.string.share_single_file)
+            else -> application.getString(R.string.share_multiple_files, urisToShare.size)
+        }
+
+        ShareManager.shareFiles(
+            context = application,
+            uris = urisToShare,
+            shareTitle = shareTitle
+        )
     }
 
     // ============ TAG FILTERING ============
