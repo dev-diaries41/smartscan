@@ -1,0 +1,170 @@
+<resources>
+    <!-- O aplikaci -->
+    <string name="app_name">SmartScan</string>
+    <string name="copyright">© 2025 D41 Dev</string>
+    <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
+    <string name="reddit_url">https://www.reddit.com/r/SmartScan/</string>
+
+    <string name="inception_resnet_v1_model">Inception Resnet V1</string>
+    <string name="inception_resnet_v1_model_url">https://github.com/dev-diaries41/smartscan-models/releases/download/1.0.0/facial_recognition_inception_resnet_v1.zip</string>
+
+    <!-- Názvy obrazovek -->
+    <string name="title_search">Vyhledávání</string>
+    <string name="title_settings">Nastavení</string>
+    <string name="title_scan_history">Historie skenování</string>
+    <string name="title_test_organisation">Test auto-organizace</string>
+    <string name="title_donate">Přispět</string>
+    <string name="title_help">Nápověda</string>
+
+    <!-- Notifikace -->
+    <string name="worker_channel_id">Background Tasks</string>
+    <string name="worker_channel_name">Notifikace na pozadí</string>
+    <string name="worker_channel_description">Notifikace pro úlohy běžící na pozadí</string>
+    <string name="service_media_index_channel_id">Media Index</string>
+    <string name="service_media_index_channel_name">Notifikace pro indexování médií</string>
+    <string name="notif_title_media_index_service">Indexování médií</string>
+    <string name="notif_content_media_index_service">Probíhá indexování, může to trvat několik minut.</string>
+    <string name="notif_title_index_error_service">Chyba indexování %1$s</string>
+    <string name="notif_content_index_error_service">Během indexování došlo k chybě. Můžete ručně spustit indexování v nastavení kliknutím na možnost Obnovit %1$s index.</string>
+    <string name="notif_title_auto_organisation_complete">Auto-organizace dokončena</string>
+    <string name="notif_title_index_complete">Indexování dokončeno</string>
+    <string name="notif_title_index_issue">Zjištěn problém s indexováním</string>
+    <string name="notif_title_index_issue_description">Zkusí se automaticky obnovit. Pokud se problém nevyřeší do několika minut, můžete restartovat indexování ručně z nastavení.</string>
+    <string name="notif_title_smart_scan_issue">Zjištěn problém se skenováním</string>
+    <string name="notif_title_smart_scan_issue_description">Můžete jej ručně restartovat přepnutím `Povolit skenování` v nastavení, nebo jej nechat běžet v dalším naplánovaném čase.</string>
+    <string name="notif_title_retagging">Přeznačkování obrázků</string>
+
+    <!-- Obrazovka vyhledávání -->
+    <string name="first_indexing">
+        Spusťte první %1$s index pro aktivaci vyhledávání. Můžete jej spustit ručně kdykoli v nastavení—užitečné pokud chcete nejdříve nakonfigurovat prohledávané %1$s (standardně se indexují všechny %1$s).
+    </string>
+
+    <string name="storage_permissions">Pro vyhledávání je vyžadováno oprávnění k úložišti.</string>
+    <string name="search_error_not_indexed">Index je prázdný.</string>
+    <string name="search_error_no_results">Nenalezeny žádné výsledky.</string>
+    <string name="search_error_missing_permissions_for_results">Chybí oprávnění k úložišti pro 1 nebo více obrázků.</string>
+    <string name="search_error_empty_query">Dotaz nemůže být prázdný.</string>
+    <string name="search_error_unknown">Došlo k neznámé chybě.</string>
+    <string name="search_error_index_loading">Chyba při načítání indexu.</string>
+
+    <!-- Obrazovka přispět -->
+    <string name="label_btc">Bitcoin</string>
+    <string name="label_eth">Ethereum</string>
+    <string name="label_ltc">Litecoin</string>
+    <string name="btc_wallet">bc1qw46nxjp5gkh460ewamjd3jfeu0xv6ytq5et6xm</string>
+    <string name="eth_wallet">0xa53aC18B25942C71019f85314AF67F6132E525ad</string>
+    <string name="ltc_wallet">ltc1q2hspfea9rw5j2ymvv22hx7dmckh8c99sqk7av3</string>
+
+    <!-- Testovací obrazovka -->
+    <string name="test_no_prototype_embeddings">Chybí cílové složky nebo jejich embeddings</string>
+
+    <!-- Obrazovka historie skenování -->
+    <string name="no_scan_history">Žádná historie skenování</string>
+    <string name="no_scan_history_description">Povolte auto-organizaci v nastavení pro automatickou organizaci složek</string>
+    <string name="clear_logs_alert_title">Vymazat historii</string>
+    <string name="clear_logs_alert_description">Stiskněte `OK` pro vymazání historie.</string>
+    <string name="undo_alert_title">Vrátit poslední sken</string>
+    <string name="undo_alert_description">Stiskněte `OK` pro vrácení posledního skenu.</string>
+
+    <!-- Obrazovka nastavení -->
+    <string name="image_management_settings">Správa obrázků</string>
+    <string name="search_settings">Vyhledávání</string>
+    <string name="advanced_settings">Pokročilé</string>
+    <string name="other_settings">Ostatní</string>
+    <string name="general_settings">Obecné</string>
+
+    <!-- Obecná nastavení -->
+    <string name="setting_theme">Motiv</string>
+    <string name="setting_color">Barva</string>
+
+    <!-- Nastavení vyhledávání -->
+    <string name="setting_index_frequency">Frekvence indexování</string>
+    <string name="setting_index_frequency_description">Plán pro automatické aktualizace indexů videí a obrázků.</string>
+    <string name="setting_similarity_threshold">Práh podobnosti</string>
+    <string name="setting_similarity_threshold_description">Minimální skóre podobnosti pro shodné výsledky</string>
+    <string name="setting_max_search_results">Max. počet výsledků</string>
+    <string name="setting_refresh_image_index">Obnovit index obrázků</string>
+    <string name="setting_refresh_video_index">Obnovit index videí</string>
+    <string name="setting_refresh_index_description_full">Ručně obnovit index. Může to trvat několik minut.</string>
+    <string name="setting_refresh_index_description_partial">Ručně obnovit index. Může to trvat několik minut, ale indexují se pouze vybrané obrázky.</string>
+    <string name="setting_refresh_index_description_denied">Chybí oprávnění k úložišti. Prosím udělte oprávnění k úložišti.</string>
+    <string name="setting_searchable_image_folders">Prohledávané obrázky</string>
+    <string name="setting_searchable_video_folders">Prohledávaná videa</string>
+    <string name="setting_searchable_folders_description">Volitelně vyberte složky, které by měly být indexovány pro vyhledávání. Pokud není vybrána žádná, budou indexovány všechny kromě těch s `.nomedia` soubory.</string>
+
+    <!-- Nastavení auto-organizace -->
+    <string name="scan_frequency_1d">1 den</string>
+    <string name="scan_frequency_1w">1 týden</string>
+    <string name="setting_enable_scan">Povolit auto-organizaci</string>
+    <string name="setting_enable_scan_description">Povolit pravidelné skenování složky, kterou chcete organizovat.</string>
+    <string name="setting_target_folders">Cílové složky</string>
+    <string name="setting_target_folders_description">Vyberte složky, které by měly být monitorovány pro nové obrázky k automatické organizaci.</string>
+    <string name="setting_destination_folders">Cílové složky</string>
+    <string name="setting_destination_folders_description">Vyberte cílové složky pro nové obrázky. Každá složka musí obsahovat alespoň 10 obrázků pro zajištění přesného párování.</string>
+    <string name="setting_scan_frequency">Frekvence skenování</string>
+    <string name="setting_scan_frequency_description">Vyberte jak často má aplikace skenovat nové obrázky a organizovat je.</string>
+    <string name="setting_organisation_organiser_accuracy">Přesnost organizace</string>
+    <string name="setting_organisation_conf_margin_title">Margin důvěry</string>
+    <string name="setting_organisation_conf_margin_description">Minimální rozdíl požadovaný mezi nejlepší a druhou nejlepší shodou. Nižší hodnoty jsou benevolentní; vyšší hodnoty jsou přísnější.</string>
+
+    <!-- Pokročilá nastavení -->
+    <string name="setting_models">Modely</string>
+    <string name="setting_models_description">Stáhnout modely pro doplňkové funkce vyhledávání a organizace.</string>
+    <string name="setting_manage_models">Správa modelů</string>
+
+    <!-- Ostatní nastavení -->
+    <string name="setting_source_code">Zdrojový kód</string>
+    <string name="setting_social_reddit">Reddit</string>
+
+    <!-- Správce modelů -->
+    <string name="delete_model_alert_title">Smazat model</string>
+    <string name="delete_model_alert_description">Stiskněte `OK` pro smazání modelu.</string>
+    <!-- Seznam modelů -->
+    <string name="download_model_alert_title">Stáhnout model</string>
+    <string name="download_model_alert_description">Stiskněte `OK` pro stažení modelu. Otevře se prohlížeč.</string>
+
+    <!-- Obrazovka nápovědy -->
+    <!-- Správa obrázků -->
+    <string name="help_image_management_title">Správa obrázků</string>
+    <string name="help_enable_auto_organisation">Povolte auto-organizaci pro automatický přesun nových obrázků do kategorizovaných složek.</string>
+    <string name="help_select_folders_to_monitor">V nastavení vyberte složky k monitorování pro nové obrázky (Cílové složky).</string>
+    <string name="help_select_destination_folders">Vyberte povolené složky pro přesouvání kategorizovaných obrázků (Cílové složky).</string>
+    <string name="help_test_auto_organisation">Otestujte auto-organizaci pomocí ikony zkumavky a nahráním obrázku.</string>
+    <string name="help_curated_images_requirement">Každá cílová složka by měla obsahovat alespoň 10 dobře vybraných obrázků, které přesně reprezentují typy obrázků, které očekáváte, že tam budou přesunuty.</string>
+
+    <!-- Vrátit poslední sken -->
+    <string name="help_undo_last_scan_title">Vrátit poslední sken</string>
+    <string name="help_undo_last_scan_description">Můžete nyní vrátit poslední sken, pokud si všimnete nežádoucích přesunů.</string>
+    <string name="help_undo_version_requirement">Vrácení je k dispozici pouze pro skeny provedené s verzí 1.1.0 nebo novější.</string>
+
+    <!-- Omezení -->
+    <string name="help_limitations_title">Omezení</string>
+    <string name="help_accuracy_note">Přesnost závisí na konzistenci obrázků v každé cílové složce.</string>
+    <string name="help_incorrect_moves_warning">Nesprávné přesuny se mohou vyskytnout, pokud složky nejsou reprezentativní.</string>
+    <string name="help_reduce_errors_tip">Pro snížení chyb zajistěte, aby cílové složky byly dobře vybrané.</string>
+    <string name="help_disable_and_report">Pokud se vyskytují trvalé problémy, deaktivujte auto-organizaci a otevřete GitHub issue.</string>
+
+    <!-- Vyhledávání -->
+    <string name="help_search_title">Vyhledávání</string>
+    <string name="help_media_search_intro">Vyhledávejte napříč obrázky i videa s následujícím chováním:</string>
+    <string name="help_indexing_first_time">První použití vyžaduje indexování mediálních souborů. Může to trvat několik minut v závislosti na velikosti vaší knihovny.</string>
+    <string name="help_indexing_schedule">Indexování probíhá automaticky podle plánu (denně nebo týdně) na základě vašeho nastavení.</string>
+    <string name="help_manual_refresh_index">Index obrázků nebo videí můžete také ručně obnovit kdykoli přes nastavení.</string>
+
+    <!-- Tipy pro vyhledávání -->
+    <string name="help_search_tips_title">Tipy pro vyhledávání:</string>
+    <string name="help_short_specific_queries">Používejte krátké, specifické dotazy.</string>
+    <string name="help_include_text_from_media">Zahrňte specifický text z médií (např. titulky, překrývající text), pokud je k dispozici.</string>
+    <string name="help_adjust_similar_results">Upravte počet zobrazených podobných výsledků v nastavení.</string>
+
+    <!-- Aktualizace -->
+    <string name="update_image_to_image_search">Přidáno vyhledávání pomocí obrázků</string>
+    <string name="update_select_searchable_folders">Výběr prohledávatelných složek pro obrázky a videa</string>
+    <string name="update_increase_search_limit">Neomezené výsledky vyhledávání</string>
+    <string name="update_theme_settings">Přidáno nastavení motivu</string>
+    <string name="update_new_results_layout">Nový layout výsledků vyhledávání</string>
+    <string name="update_auto_organisation_fix">Opraveny chyby auto-organizace</string>
+    <string name="update_auto_organisation_notice">
+    Auto-organizace může být v příští verzi zastaralá nebo odstraněna. Navštivte subreddit nebo GitHub diskuzi (odkazy v nastavení) pro více informací.
+</string>
+</resources>
