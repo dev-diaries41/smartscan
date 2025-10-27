@@ -1,3 +1,15 @@
+## v1.1.7 – 27/10/2025
+
+### Added
+* Reverse image search by uploading images directly from the search bar
+* Reverse image search by pasting images into the search bar
+* Reverse image search by long-pressing a result or using the Media Viewer
+* Added new menu with “Refresh index” options for images and videos
+* Added backup and restore settings
+
+### Removed
+* Removed auto-organisation feature
+
 ## v1.1.6 – 14/10/2025
 
 ### Added
