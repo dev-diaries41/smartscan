@@ -167,4 +167,58 @@
     <string name="update_auto_organisation_notice">
     Auto-organizace může být v příští verzi zastaralá nebo odstraněna. Navštivte subreddit nebo GitHub diskuzi (odkazy v nastavení) pro více informací.
 </string>
+
+    <!-- Běžné akce -->
+    <string name="action_cancel">Zrušit</string>
+    <string name="action_ok">OK</string>
+    <string name="action_continue">Pokračovat</string>
+    <string name="action_delete">Smazat</string>
+    <string name="action_edit">Upravit</string>
+    <string name="action_run">Spustit</string>
+    <string name="action_classify">Klasifikovat</string>
+
+    <!-- Správce tagů -->
+    <string name="tag_manager_title">Správa tagů</string>
+    <string name="tag_manager_delete_dialog_title">Smazat tag?</string>
+    <string name="tag_manager_delete_dialog_message">Opravdu chcete smazat tag \"%1$s\"? Tato akce také odstraní všechna přiřazení tohoto tagu k obrázkům.</string>
+    <string name="tag_manager_retag_dialog_title">Re-taggovat všechny obrázky?</string>
+    <string name="tag_manager_retag_dialog_message">Tato operace přepočítá tagy pro všechny indexované obrázky podle aktuálních pravidel.</string>
+
+    <!-- Úprava tagu -->
+    <string name="tag_edit_name_label">Název tagu *</string>
+    <string name="tag_edit_name_placeholder">např. Rekonstrukce domu</string>
+    <string name="tag_edit_name_error">Název nesmí být prázdný</string>
+    <string name="tag_edit_description_label">Popis pro AI *</string>
+    <string name="tag_edit_description_placeholder">např. fotografie renovace a rekonstrukce interiéru domu...</string>
+    <string name="tag_edit_description_error">Popis musí mít minimálně 10 znaků</string>
+    <string name="tag_edit_character_count">%1$d znaků</string>
+
+    <!-- Dialogy pro indexování -->
+    <string name="dialog_start_indexing_images_title">Spustit indexování obrázků</string>
+    <string name="dialog_start_indexing_videos_title">Spustit indexování videí</string>
+
+    <!-- Filtr časového rozsahu -->
+    <string name="date_filter_today">Dnes</string>
+    <string name="date_filter_yesterday">Včera</string>
+    <string name="date_filter_this_week">Tento týden</string>
+    <string name="date_filter_this_month">Tento měsíc</string>
+    <string name="date_filter_this_year">Tento rok</string>
+    <string name="date_filter_custom_range">%1$s - %2$s</string>
+    <string name="date_filter_label">Časový rozsah</string>
+    <string name="date_filter_select">Vybrat časový rozsah</string>
+    <string name="date_filter_from">Od</string>
+    <string name="date_filter_to">Do</string>
+    <string name="date_filter_apply">Použít</string>
+    <string name="date_filter_clear">Vymazat</string>
+
+    <!-- Vyhledávání -->
+    <string name="search_results_count">%1$d výsledků</string>
+    <string name="search_load_more">Načíst další</string>
+    <string name="search_selection_count">%1$d vybráno</string>
+
+    <!-- Tagy -->
+    <string name="tags_label">Tagy</string>
+    <string name="tags_select">Vybrat tagy</string>
+    <string name="tags_available">Dostupné tagy (%1$d)</string>
+    <string name="tags_no_tags_available">Žádné tagy k dispozici</string>
 </resources>

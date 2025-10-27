@@ -172,4 +172,58 @@
     <string name="update_auto_organisation_notice">
     Auto-organisation may be deprecated or removed in the next version. Visit the subreddit or GitHub discussion (links in settings) for more info.
 </string>
+
+    <!-- Common actions -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_ok">OK</string>
+    <string name="action_continue">Continue</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_run">Run</string>
+    <string name="action_classify">Classify</string>
+
+    <!-- Tag Manager -->
+    <string name="tag_manager_title">Tag Manager</string>
+    <string name="tag_manager_delete_dialog_title">Delete tag?</string>
+    <string name="tag_manager_delete_dialog_message">Are you sure you want to delete tag \"%1$s\"? This will also remove all assignments of this tag to images.</string>
+    <string name="tag_manager_retag_dialog_title">Re-tag all images?</string>
+    <string name="tag_manager_retag_dialog_message">This operation will recalculate tags for all indexed images based on current rules.</string>
+
+    <!-- Tag Edit -->
+    <string name="tag_edit_name_label">Tag name *</string>
+    <string name="tag_edit_name_placeholder">e.g. House renovation</string>
+    <string name="tag_edit_name_error">Name cannot be empty</string>
+    <string name="tag_edit_description_label">AI description *</string>
+    <string name="tag_edit_description_placeholder">e.g. photos of interior house renovation and reconstruction...</string>
+    <string name="tag_edit_description_error">Description must be at least 10 characters</string>
+    <string name="tag_edit_character_count">%1$d characters</string>
+
+    <!-- Index dialogs -->
+    <string name="dialog_start_indexing_images_title">Start Indexing Images</string>
+    <string name="dialog_start_indexing_videos_title">Start Indexing Videos</string>
+
+    <!-- Date Range Filter -->
+    <string name="date_filter_today">Today</string>
+    <string name="date_filter_yesterday">Yesterday</string>
+    <string name="date_filter_this_week">This week</string>
+    <string name="date_filter_this_month">This month</string>
+    <string name="date_filter_this_year">This year</string>
+    <string name="date_filter_custom_range">%1$s - %2$s</string>
+    <string name="date_filter_label">Date range</string>
+    <string name="date_filter_select">Select date range</string>
+    <string name="date_filter_from">From</string>
+    <string name="date_filter_to">To</string>
+    <string name="date_filter_apply">Apply</string>
+    <string name="date_filter_clear">Clear</string>
+
+    <!-- Search -->
+    <string name="search_results_count">%1$d results</string>
+    <string name="search_load_more">Load more</string>
+    <string name="search_selection_count">%1$d selected</string>
+
+    <!-- Tags -->
+    <string name="tags_label">Tags</string>
+    <string name="tags_select">Select tags</string>
+    <string name="tags_available">Available tags (%1$d)</string>
+    <string name="tags_no_tags_available">No tags available</string>
 </resources>
