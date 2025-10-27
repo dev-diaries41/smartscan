@@ -5,23 +5,10 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 
-/**
- * Manager pro sdílení obrázků a videí pomocí Android Share Sheet.
- * Podporuje sdílení jednoho nebo více souborů.
- *
- * Pro MediaStore content:// URI není potřeba FileProvider.
- */
 object ShareManager {
 
     private const val TAG = "ShareManager"
 
-    /**
-     * Sdílí jeden soubor (obrázek nebo video).
-     *
-     * @param context Android context
-     * @param uri Content URI souboru (z MediaStore)
-     * @param shareTitle Titulek share sheetu
-     */
     fun shareFile(
         context: Context,
         uri: Uri,
@@ -37,17 +24,10 @@ object ShareManager {
             val chooser = Intent.createChooser(shareIntent, shareTitle)
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Log.e(TAG, "Chyba při sdílení souboru: ${uri}", e)
+            Log.e(TAG, "Chyba při sdílení souboru", e)
         }
     }
 
-    /**
-     * Sdílí více souborů (obrázky a/nebo videa).
-     *
-     * @param context Android context
-     * @param uris List content URIs souborů
-     * @param shareTitle Titulek share sheetu
-     */
     fun shareFiles(
         context: Context,
         uris: List<Uri>,
@@ -59,14 +39,13 @@ object ShareManager {
         }
 
         try {
-            // ACTION_SEND pro jeden soubor, ACTION_SEND_MULTIPLE pro více
             if (uris.size == 1) {
                 shareFile(context, uris.first(), shareTitle)
                 return
             }
 
             val shareIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
-                type = "image/*" // Většina souborů jsou obrázky
+                type = "image/*"
                 putParcelableArrayListExtra(
                     Intent.EXTRA_STREAM,
                     ArrayList(uris)
@@ -77,19 +56,15 @@ object ShareManager {
             val chooser = Intent.createChooser(shareIntent, shareTitle)
             context.startActivity(chooser)
         } catch (e: Exception) {
-            Log.e(TAG, "Chyba při sdílení souborů (${uris.size})", e)
+            Log.e(TAG, "Chyba při sdílení souborů", e)
         }
     }
 
-    /**
-     * Detekuje MIME type podle URI.
-     * Fallback na "image/*" pokud nelze určit.
-     */
     private fun getMimeType(uri: Uri): String {
         return when {
             uri.toString().contains("video", ignoreCase = true) -> "video/*"
             uri.toString().contains("image", ignoreCase = true) -> "image/*"
-            else -> "image/*" // Default fallback
+            else -> "image/*"
         }
     }
 }
