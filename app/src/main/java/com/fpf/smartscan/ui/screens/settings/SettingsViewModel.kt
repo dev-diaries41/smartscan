@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,6 +43,14 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
     val importedModels: StateFlow<List<ImportedModel>> = _importedModels
     private val _event = MutableSharedFlow<String>()
     val event = _event.asSharedFlow()
+
+    private val _isBackupLoading = MutableStateFlow(false)
+    val isBackupLoading: StateFlow<Boolean> = _isBackupLoading
+
+    private val _isRestoreLoading = MutableStateFlow(false)
+    val isRestoreLoading: StateFlow<Boolean> = _isRestoreLoading
+
+
 
     companion object {
         private const val SETTINGS_PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
@@ -134,6 +141,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         val imageIndexFile = File(application.filesDir, ImageIndexer.INDEX_FILENAME)
         val videoIndexFile = File(application.filesDir,  VideoIndexer.INDEX_FILENAME)
         val hashFile = File(application.cacheDir, HASH_FILENAME)
+        _isBackupLoading.value = true
 
         viewModelScope.launch(Dispatchers.IO){
             try {
@@ -143,18 +151,21 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
                 zipFiles(indexZipFile, listOf(imageIndexFile, videoIndexFile, hashFile))
                 copyToUri(application, uri, indexZipFile)
-                indexZipFile.delete()
-                hashFile.delete()
                 _event.emit("Backup successful")
             }catch (e: Exception){
                 Log.e(TAG, "Error backing up: ${e.message}")
                 _event.emit("Backup error")
+            }finally {
+                indexZipFile.delete()
+                hashFile.delete()
+                _isBackupLoading.emit(false)
             }
         }
     }
 
     fun restore(uri: Uri){
         val indexZipFile = File(application.cacheDir, BACKUP_FILENAME)
+        _isRestoreLoading.value = true
 
         viewModelScope.launch(Dispatchers.IO){
             try {
@@ -172,6 +183,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 _event.emit("Restore error")
             }finally {
                 indexZipFile.delete()
+                _isRestoreLoading.emit(false)
             }
         }
     }
