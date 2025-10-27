@@ -341,14 +341,17 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             _error.emit(application.getString(R.string.search_error_no_results))
         }
 
+        // Seřazení podle similarity (od nejvyšší po nejnižší)
+        val sortedResults = filteredResults.sortedByDescending { it.third }
+
         // Vytvoření similarity score mapy
-        val similarityMap = filteredResults.associate { (_, uri, similarity) ->
+        val similarityMap = sortedResults.associate { (_, uri, similarity) ->
             uri to similarity
         }
         _similarityScores.emit(similarityMap)
 
-        // Uložení unfiltered výsledků
-        val uris = filteredResults.map { it.second }
+        // Uložení unfiltered výsledků (seřazených podle podobnosti)
+        val uris = sortedResults.map { it.second }
         _unfilteredSearchResults.emit(uris)
 
         // Aplikace tag filtru pokud jsou nějaké vybrané
