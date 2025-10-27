@@ -388,8 +388,8 @@ fun SearchScreen(
                 }
             }
 
-            // Tag filtering chips (pouze pro IMAGE mode a pokud jsou výsledky)
-            if (mediaType == MediaType.IMAGE && availableTagsWithCounts.isNotEmpty() && searchResults.isNotEmpty()) {
+            // Tag filtering chips (pouze pro IMAGE mode a pokud existují tagy)
+            if (mediaType == MediaType.IMAGE && availableTagsWithCounts.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(12.dp))
                 TagFilterChips(
                     availableTags = availableTagsWithCounts,

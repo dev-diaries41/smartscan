@@ -569,6 +569,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     /**
      * Aplikuje všechny filtry (tag + date range) na výsledky vyhledávání
+     *
+     * DŮLEŽITÉ: Pokud jsou vybrané tagy, ale žádné search výsledky,
+     * načte všechny obrázky s těmito tagy přímo z databáze.
      */
     private suspend fun applyAllFilters() {
         val hasTagFilter = _selectedTagFilters.value.isNotEmpty()
@@ -582,21 +585,37 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
 
         try {
-            var filtered = _unfilteredSearchResults.value
+            var filtered: List<Uri>
 
-            // 1. Aplikuj tag filter
-            if (hasTagFilter) {
+            // Pokud jsou vybrané tagy, ale žádné search výsledky, načti obrázky přímo z tagů
+            if (hasTagFilter && _unfilteredSearchResults.value.isEmpty()) {
+                // Načíst všechny image IDs s vybranými tagy
                 val filteredImageIds = tagRepository.getImageIdsForTags(
                     _selectedTagFilters.value.toList()
-                ).toSet()
+                )
 
-                filtered = filtered.filter { uri ->
-                    val imageId = getImageIdFromUri(uri)
-                    imageId != null && filteredImageIds.contains(imageId)
+                // Převést IDs na URIs
+                filtered = filteredImageIds.map { imageId ->
+                    getImageUriFromId(imageId)
+                }
+            } else {
+                // Normální filtrování existujících výsledků
+                filtered = _unfilteredSearchResults.value
+
+                // 1. Aplikuj tag filter
+                if (hasTagFilter) {
+                    val filteredImageIds = tagRepository.getImageIdsForTags(
+                        _selectedTagFilters.value.toList()
+                    ).toSet()
+
+                    filtered = filtered.filter { uri ->
+                        val imageId = getImageIdFromUri(uri)
+                        imageId != null && filteredImageIds.contains(imageId)
+                    }
                 }
             }
 
-            // 2. Aplikuj date range filter
+            // 2. Aplikuj date range filter (platí vždy)
             if (hasDateFilter) {
                 val startDate = _dateRangeStart.value
                 val endDate = _dateRangeEnd.value
