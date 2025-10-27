@@ -72,7 +72,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                 TextButton(onClick = {
                     isUndoAlertVisible = false
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -80,7 +80,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                     isUndoAlertVisible = false
                     viewModel.undoLastScan(items.maxOf { it.id })
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )
@@ -95,7 +95,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                 TextButton(onClick = {
                     isClearLogsAlertVisible = false
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -103,7 +103,7 @@ fun ScanHistoryScreen(viewModel: ScanHistoryViewModel = viewModel()) {
                     isClearLogsAlertVisible = false
                     viewModel.clearScanHistory()
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )
