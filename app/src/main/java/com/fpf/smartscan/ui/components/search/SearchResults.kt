@@ -104,7 +104,11 @@ fun SearchResults(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
                                 onClick = { toggleViewResult(uri) },
-                                onLongClick = {updateSearchImage(uri)}
+                                onLongClick = {
+                                    if(type == MediaType.IMAGE){
+                                        updateSearchImage(uri)
+                                    }
+                                }
                             ),
                         contentScale = ContentScale.Crop,
                         type = type

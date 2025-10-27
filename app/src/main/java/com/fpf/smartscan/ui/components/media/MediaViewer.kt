@@ -125,12 +125,14 @@ fun ActionRow(
                 horizontalArrangement = Arrangement.End,
             )
             {
-                IconButton(onClick = {onUpdateSearchImage(uri)}) {
-                    Icon(
-                        Icons.Filled.ImageSearch,
-                        contentDescription = "Search image",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
+                if(type == MediaType.IMAGE) {
+                    IconButton(onClick = { onUpdateSearchImage(uri) }) {
+                        Icon(
+                            Icons.Filled.ImageSearch,
+                            contentDescription = "Search image",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
 
                 IconButton(onClick = {
