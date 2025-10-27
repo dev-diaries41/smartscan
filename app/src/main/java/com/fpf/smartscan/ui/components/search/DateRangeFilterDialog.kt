@@ -28,6 +28,8 @@ import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -95,7 +97,7 @@ fun DateRangeFilterDialog(
                 OutlinedTextField(
                     value = startDate?.let { formatDate(it) } ?: "",
                     onValueChange = {},
-                    label = { Text("Datum od") },
+                    label = { Text(stringResource(R.string.date_picker_date_from_label)) },
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { showStartPicker = true }) {
@@ -107,14 +109,14 @@ fun DateRangeFilterDialog(
                         .clickable { showStartPicker = true }
                         .padding(bottom = 12.dp),
                     singleLine = true,
-                    placeholder = { Text("Klikněte pro výběr data") }
+                    placeholder = { Text(stringResource(R.string.date_picker_click_to_select)) }
                 )
 
                 // End Date TextField - klikatelné pole
                 OutlinedTextField(
                     value = endDate?.let { formatDate(it) } ?: "",
                     onValueChange = {},
-                    label = { Text("Datum do") },
+                    label = { Text(stringResource(R.string.date_picker_date_to_label)) },
                     readOnly = true,
                     trailingIcon = {
                         IconButton(onClick = { showEndPicker = true }) {
@@ -125,7 +127,7 @@ fun DateRangeFilterDialog(
                         .fillMaxWidth()
                         .clickable { showEndPicker = true },
                     singleLine = true,
-                    placeholder = { Text("Klikněte pro výběr data") }
+                    placeholder = { Text(stringResource(R.string.date_picker_click_to_select)) }
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -143,14 +145,14 @@ fun DateRangeFilterDialog(
                                 endDate = null
                             }
                         ) {
-                            Text("Vymazat")
+                            Text(stringResource(R.string.date_filter_clear))
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                     }
 
                     // Cancel button
                     TextButton(onClick = onDismiss) {
-                        Text("Zrušit")
+                        Text(stringResource(R.string.action_cancel))
                     }
 
                     Spacer(modifier = Modifier.width(8.dp))
@@ -163,7 +165,7 @@ fun DateRangeFilterDialog(
                         },
                         enabled = startDate != null || endDate != null
                     ) {
-                        Text("Použít")
+                        Text(stringResource(R.string.date_filter_apply))
                     }
                 }
             }
@@ -234,12 +236,12 @@ private fun DatePickerModal(
                     onDateSelected(datePickerState.selectedDateMillis)
                 }
             ) {
-                Text("OK")
+                Text(stringResource(R.string.action_ok))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Zrušit")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     ) {
