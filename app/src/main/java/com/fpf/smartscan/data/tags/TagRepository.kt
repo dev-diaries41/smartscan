@@ -42,6 +42,9 @@ class TagRepository(
     suspend fun deleteAllTagsWithName(tagName: String) =
         imageTagDao.deleteAllTagsWithName(tagName)
 
+    suspend fun deleteAutoAssignedTagsForImage(imageId: Long) =
+        imageTagDao.deleteAutoAssignedTagsForImage(imageId)
+
     // Combined operations
     suspend fun getUserTagsWithCounts(): List<Pair<UserTagEntity, Int>> {
         val tags = userTagDao.getAllTags()

@@ -48,4 +48,7 @@ interface ImageTagDao {
 
     @Query("DELETE FROM image_tags WHERE imageId IN (:imageIds)")
     suspend fun deleteTagsForImages(imageIds: List<Long>)
+
+    @Query("DELETE FROM image_tags WHERE imageId = :imageId AND isUserAssigned = 0")
+    suspend fun deleteAutoAssignedTagsForImage(imageId: Long)
 }

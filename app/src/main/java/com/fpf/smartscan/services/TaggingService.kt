@@ -54,9 +54,8 @@ class TaggingService(context: Context) {
 
             // Smazání existujících auto-assigned tagů pro tento obrázek
             // (ponecháme pouze user-assigned)
-            val existingTags = repository.getTagsForImage(imageId)
-            val autoAssignedTags = existingTags.filter { !it.isUserAssigned }
-            autoAssignedTags.forEach { repository.deleteImageTag(it) }
+            // Používáme DELETE query místo entity delete pro spolehlivost
+            repository.deleteAutoAssignedTagsForImage(imageId)
 
             // Přiřazení nových tagů
             val assignedTags = mutableListOf<ImageTagEntity>()
