@@ -27,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import com.fpf.smartscan.data.tags.ImageTagEntity
 import com.fpf.smartscan.data.tags.UserTagEntity
 
@@ -103,7 +105,7 @@ fun TagPickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Zrušit")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     )
