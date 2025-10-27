@@ -274,17 +274,17 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
     private fun loadTagsWithCounts() {
         viewModelScope.launch {
             try {
-                _isLoading.value = true
                 repository.allTags.collect { tags ->
+                    _isLoading.value = true
                     val withCounts = tags.map { tag ->
                         val count = repository.getImageCountForTag(tag.name)
                         tag to count
                     }
                     _tagsWithCounts.value = withCounts
+                    _isLoading.value = false
                 }
             } catch (e: Exception) {
                 _error.value = e.message
-            } finally {
                 _isLoading.value = false
             }
         }
