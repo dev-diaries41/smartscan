@@ -11,8 +11,10 @@ import com.fpf.smartscan.data.tags.UserTagEntity
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipTextEmbedder
 import com.fpf.smartscansdk.core.ml.models.ResourceId
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
@@ -56,7 +58,11 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         // Načtení všech tagů
-        allTags = repository.allTags as StateFlow<List<UserTagEntity>>
+        allTags = repository.allTags.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
 
         // Načtení tagů s počty
         loadTagsWithCounts()
