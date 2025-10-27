@@ -1,5 +1,6 @@
 package com.fpf.smartscan.ui.components.search
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -7,16 +8,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.DateRangePicker
+import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -43,93 +48,86 @@ fun DateRangeFilterDialog(
 ) {
     val dateRangePickerState = rememberDateRangePickerState(
         initialSelectedStartDateMillis = currentStartDate,
-        initialSelectedEndDateMillis = currentEndDate
+        initialSelectedEndDateMillis = currentEndDate,
+        initialDisplayMode = DisplayMode.Picker
     )
 
-    AlertDialog(
+    Dialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = "Filtrovat podle data",
-                style = MaterialTheme.typography.headlineSmall
-            )
-        },
-        text = {
-            Column {
-                // Zobrazení aktuálního výběru
-                if (dateRangePickerState.selectedStartDateMillis != null ||
-                    dateRangePickerState.selectedEndDateMillis != null) {
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(16.dp),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                // Header
+                Text(
+                    text = "Filtrovat podle data",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
 
-                    val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-
-                    Text(
-                        text = "Vybraný rozsah:",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    val startText = dateRangePickerState.selectedStartDateMillis?.let {
-                        dateFormat.format(Date(it))
-                    } ?: "?"
-
-                    val endText = dateRangePickerState.selectedEndDateMillis?.let {
-                        dateFormat.format(Date(it))
-                    } ?: "?"
-
-                    Text(
-                        text = "$startText - $endText",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-
-                // Date range picker
+                // Date range picker - bez title, má vlastní header
                 DateRangePicker(
                     state = dateRangePickerState,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    showModeToggle = false,
+                    title = null,
+                    headline = null
                 )
-            }
-        },
-        confirmButton = {
-            Row {
-                // Clear button (pouze pokud je něco vybrané)
-                if (currentStartDate != null || currentEndDate != null) {
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    // Clear button (pouze pokud je něco vybrané)
+                    if (currentStartDate != null || currentEndDate != null) {
+                        TextButton(
+                            onClick = {
+                                onClear()
+                                onDismiss()
+                            }
+                        ) {
+                            Text("Vymazat")
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+
+                    // Cancel button
+                    TextButton(onClick = onDismiss) {
+                        Text("Zrušit")
+                    }
+
+                    Spacer(modifier = Modifier.width(8.dp))
+
+                    // Apply button
                     TextButton(
                         onClick = {
-                            onClear()
+                            onConfirm(
+                                dateRangePickerState.selectedStartDateMillis,
+                                dateRangePickerState.selectedEndDateMillis
+                            )
                             onDismiss()
-                        }
+                        },
+                        enabled = dateRangePickerState.selectedStartDateMillis != null ||
+                                  dateRangePickerState.selectedEndDateMillis != null
                     ) {
-                        Text("Vymazat")
+                        Text("Použít")
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
-
-                // Apply button
-                TextButton(
-                    onClick = {
-                        onConfirm(
-                            dateRangePickerState.selectedStartDateMillis,
-                            dateRangePickerState.selectedEndDateMillis
-                        )
-                        onDismiss()
-                    },
-                    enabled = dateRangePickerState.selectedStartDateMillis != null ||
-                              dateRangePickerState.selectedEndDateMillis != null
-                ) {
-                    Text("Použít")
-                }
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Zrušit")
             }
         }
-    )
+    }
 }
 
 /**
