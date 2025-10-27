@@ -181,3 +181,17 @@ suspend fun moveFiles(context: Context, sourceUris: List<Uri>, destinationDirUri
     return@withContext Pair(successCount, failureCount)
 }
 
+/**
+ * Extrahuje MediaStore ID z content:// URI
+ * @param uri Content URI (např. content://media/external/images/media/123)
+ * @return MediaStore ID nebo null pokud URI není platné
+ */
+fun getImageIdFromUri(uri: Uri): Long? {
+    return try {
+        android.content.ContentUris.parseId(uri)
+    } catch (e: Exception) {
+        Log.e("getImageIdFromUri", "Failed to parse ID from URI: $uri", e)
+        null
+    }
+}
+
