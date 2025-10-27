@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 
 
 @Composable
@@ -73,7 +75,7 @@ fun UpdatePopUp(
                 shape = MaterialTheme.shapes.extraLarge,
                 modifier = Modifier.align(Alignment.BottomEnd).padding(vertical = 16.dp)
             ) {
-                Text("Continue")
+                Text(stringResource(R.string.action_continue))
             }
         }
     }
