@@ -108,10 +108,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _searchResults = MutableStateFlow<List<Uri>>(emptyList())
     val searchResults: StateFlow<List<Uri>> = _searchResults
 
-    // Similarity scores pro barevné rámečky (Uri -> similarity score 0.0-1.0)
-    private val _similarityScores = MutableStateFlow<Map<Uri, Float>>(emptyMap())
-    val similarityScores: StateFlow<Map<Uri, Float>> = _similarityScores
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
     private val isLoadingMoreSearchResults = AtomicBoolean(false)
@@ -236,7 +232,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun clearResults(){
         _searchResults.value = emptyList()
-        _similarityScores.value = emptyMap()
     }
 
     fun setMediaType(type: MediaType) {
@@ -332,26 +327,19 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             return
         }
 
-        val (filteredResults, idsToPurge) = results.map { embed ->
+        // SDK retriever.query() už vrací výsledky seřazené podle similarity (nejvyšší first)
+        // Uložíme si je v pořadí jako přišly
+        val (filteredUris, idsToPurge) = results.map { embed ->
             val uri = if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
-            Triple(embed.id, uri, embed.similarity)
-        }.partition { (_, uri, _) -> canOpenUri(application, uri) }
+            embed.id to uri
+        }.partition { (_, uri) -> canOpenUri(application, uri) }
 
-        if (filteredResults.isEmpty()) {
+        if (filteredUris.isEmpty()) {
             _error.emit(application.getString(R.string.search_error_no_results))
         }
 
-        // Seřazení podle similarity (od nejvyšší po nejnižší)
-        val sortedResults = filteredResults.sortedByDescending { it.third }
-
-        // Vytvoření similarity score mapy
-        val similarityMap = sortedResults.associate { (_, uri, similarity) ->
-            uri to similarity
-        }
-        _similarityScores.emit(similarityMap)
-
-        // Uložení unfiltered výsledků (seřazených podle podobnosti)
-        val uris = sortedResults.map { it.second }
+        // Uložení unfiltered výsledků (již seřazených podle podobnosti z SDK)
+        val uris = filteredUris.map { it.second }
         _unfilteredSearchResults.emit(uris)
 
         // Aplikace tag filtru pokud jsou nějaké vybrané
