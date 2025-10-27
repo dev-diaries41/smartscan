@@ -28,6 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -297,7 +299,7 @@ fun SelectorItem(
             },
             confirmButton = {
                 TextButton (onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -365,7 +367,7 @@ fun SelectorIconItem(
             },
             confirmButton = {
                 TextButton (onClick = { showDialog = false }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
