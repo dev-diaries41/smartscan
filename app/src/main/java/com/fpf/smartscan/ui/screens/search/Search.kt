@@ -51,6 +51,7 @@ import com.fpf.smartscan.ui.components.search.ImageSearcher
 import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
 import com.fpf.smartscan.ui.components.search.SelectionActionBar
+import com.fpf.smartscan.ui.components.search.TagFilterChips
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -90,6 +91,10 @@ fun SearchScreen(
     val isSelectionMode by searchViewModel.isSelectionMode.collectAsState()
     val selectedUris by searchViewModel.selectedUris.collectAsState()
 
+    // Tag filtering state
+    val availableTagsWithCounts by searchViewModel.availableTagsWithCounts.collectAsState()
+    val selectedTagFilters by searchViewModel.selectedTagFilters.collectAsState()
+
     var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
@@ -98,6 +103,11 @@ fun SearchScreen(
     var showDeleteSuccessMessage by remember { mutableStateOf<String?>(null) }
 
     val scope = rememberCoroutineScope()
+
+    // Načtení tagů při startu
+    LaunchedEffect(Unit) {
+        searchViewModel.loadAvailableTagsWithCounts()
+    }
 
     // Directory picker pro přesun souborů
     val directoryPickerLauncher = rememberLauncherForActivityResult(
@@ -367,6 +377,16 @@ fun SearchScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+            }
+
+            // Tag filtering chips (pouze pro IMAGE mode a pokud jsou výsledky)
+            if (mediaType == MediaType.IMAGE && availableTagsWithCounts.isNotEmpty() && searchResults.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                TagFilterChips(
+                    availableTags = availableTagsWithCounts,
+                    selectedTags = selectedTagFilters,
+                    onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) }
+                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))

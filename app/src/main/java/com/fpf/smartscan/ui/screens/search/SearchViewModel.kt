@@ -13,6 +13,9 @@ import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.data.QueryType
+import com.fpf.smartscan.data.tags.TagDatabase
+import com.fpf.smartscan.data.tags.TagRepository
+import com.fpf.smartscan.data.tags.UserTagEntity
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
@@ -65,6 +68,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     )
     private val videoRepository: VideoEmbeddingRepository = VideoEmbeddingRepository(
         VideoEmbeddingDatabase.getDatabase(application).videoEmbeddingDao()
+    )
+
+    private val tagRepository: TagRepository = TagRepository(
+        userTagDao = TagDatabase.getDatabase(application).userTagDao(),
+        imageTagDao = TagDatabase.getDatabase(application).imageTagDao()
     )
 
     private val _hasRefreshedImageIndex = MutableStateFlow(false)
@@ -138,6 +146,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     // Selection state pro multi-select mode
     private val _selectedUris = MutableStateFlow<Set<Uri>>(emptySet())
     val selectedUris: StateFlow<Set<Uri>> = _selectedUris
+
+    // Tag filtering state
+    private val _selectedTagFilters = MutableStateFlow<Set<String>>(emptySet())
+    val selectedTagFilters: StateFlow<Set<String>> = _selectedTagFilters
+
+    private val _availableTagsWithCounts = MutableStateFlow<List<Pair<UserTagEntity, Int>>>(emptyList())
+    val availableTagsWithCounts: StateFlow<List<Pair<UserTagEntity, Int>>> = _availableTagsWithCounts
+
+    // Všechny výsledky před aplikací tag filtru
+    private val _unfilteredSearchResults = MutableStateFlow<List<Uri>>(emptyList())
 
     private val _isSelectionMode = MutableStateFlow(false)
     val isSelectionMode: StateFlow<Boolean> = _isSelectionMode
@@ -310,7 +328,16 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             _error.emit(application.getString(R.string.search_error_no_results))
         }
 
-        _searchResults.emit(filteredUris.map { it.second })
+        // Uložení unfiltered výsledků
+        val uris = filteredUris.map { it.second }
+        _unfilteredSearchResults.emit(uris)
+
+        // Aplikace tag filtru pokud jsou nějaké vybrané
+        if (_selectedTagFilters.value.isNotEmpty()) {
+            applyTagFilters()
+        } else {
+            _searchResults.emit(uris)
+        }
 
         if(idsToPurge.isNotEmpty()){
             viewModelScope.launch(Dispatchers.IO) {
@@ -448,6 +475,97 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
 
         return result
+    }
+
+    // ============ TAG FILTERING ============
+
+    /**
+     * Načte dostupné tagy s počty obrázků pro filtering
+     */
+    fun loadAvailableTagsWithCounts() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                tagRepository.allTags.collect { tags ->
+                    val withCounts = tags.map { tag ->
+                        val count = tagRepository.getImageCountForTag(tag.name)
+                        tag to count
+                    }.filter { it.second > 0 }  // Pouze tagy s obrázky
+
+                    _availableTagsWithCounts.value = withCounts
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading tags with counts", e)
+            }
+        }
+    }
+
+    /**
+     * Toggle tag filter (přidat/odebrat z vybraných)
+     */
+    fun toggleTagFilter(tagName: String) {
+        val current = _selectedTagFilters.value.toMutableSet()
+        if (current.contains(tagName)) {
+            current.remove(tagName)
+        } else {
+            current.add(tagName)
+        }
+        _selectedTagFilters.value = current
+
+        // Re-apply filter
+        viewModelScope.launch(Dispatchers.IO) {
+            applyTagFilters()
+        }
+    }
+
+    /**
+     * Vyčistí všechny tag filtry
+     */
+    fun clearTagFilters() {
+        _selectedTagFilters.value = emptySet()
+        _searchResults.value = _unfilteredSearchResults.value
+    }
+
+    /**
+     * Aplikuje tag filtry na výsledky vyhledávání
+     *
+     * Logika: AND - zobrazit pouze obrázky, které mají VŠECHNY vybrané tagy
+     */
+    private suspend fun applyTagFilters() {
+        if (_selectedTagFilters.value.isEmpty()) {
+            // Žádné filtry -> zobrazit všechny výsledky
+            _searchResults.value = _unfilteredSearchResults.value
+            return
+        }
+
+        try {
+            // Získat image IDs které mají VŠECHNY vybrané tagy
+            val filteredImageIds = tagRepository.getImageIdsForTags(
+                _selectedTagFilters.value.toList()
+            ).toSet()
+
+            // Filtrovat URIs podle těchto IDs
+            val filtered = _unfilteredSearchResults.value.filter { uri ->
+                val imageId = getImageIdFromUri(uri)
+                imageId != null && filteredImageIds.contains(imageId)
+            }
+
+            _searchResults.value = filtered
+            _totalResults.value = filtered.size
+        } catch (e: Exception) {
+            Log.e(TAG, "Error applying tag filters", e)
+            _searchResults.value = _unfilteredSearchResults.value
+        }
+    }
+
+    /**
+     * Extrahuje image ID z URI
+     */
+    private fun getImageIdFromUri(uri: Uri): Long? {
+        return try {
+            android.content.ContentUris.parseId(uri)
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun onCleared() {
