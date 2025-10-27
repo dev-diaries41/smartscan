@@ -125,6 +125,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _resultToView = MutableStateFlow<Uri?>(null)
     val resultToView: StateFlow<Uri?> = _resultToView
 
+    // Index pro viewer s swipe navigací
+    private val _viewerIndex = MutableStateFlow<Int?>(null)
+    val viewerIndex: StateFlow<Int?> = _viewerIndex
+
     private val _queryType = MutableStateFlow(QueryType.TEXT)
     val queryType: StateFlow<QueryType> = _queryType
 
@@ -317,6 +321,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun toggleViewResult(uri: Uri?){
         _resultToView.value = uri
+    }
+
+    fun openViewer(index: Int) {
+        _viewerIndex.value = index
+    }
+
+    fun closeViewer() {
+        _viewerIndex.value = null
     }
 
     fun toggleAlert(mode: MediaType){

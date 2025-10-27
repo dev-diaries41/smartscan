@@ -54,7 +54,8 @@ fun SearchResults(
     isSelectionMode: Boolean = false,
     selectedUris: Set<Uri> = emptySet(),
     onToggleSelection: (Uri) -> Unit = {},
-    onLongPress: (Uri) -> Unit = {}
+    onLongPress: (Uri) -> Unit = {},
+    onOpenViewer: (Int) -> Unit = {}
 ) {
     if (!isVisible) return
 
@@ -102,7 +103,8 @@ fun SearchResults(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(4.dp)
             ) {
-                items(searchResults) { uri ->
+                items(searchResults.size) { index ->
+                    val uri = searchResults[index]
                     val isSelected = selectedUris.contains(uri)
                     Box(
                         modifier = Modifier
@@ -125,7 +127,7 @@ fun SearchResults(
                                         if (isSelectionMode) {
                                             onToggleSelection(uri)
                                         } else {
-                                            toggleViewResult(uri)
+                                            onOpenViewer(index)
                                         }
                                     },
                                     onLongClick = {

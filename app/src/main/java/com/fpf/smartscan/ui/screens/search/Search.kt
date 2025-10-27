@@ -51,6 +51,7 @@ import com.fpf.smartscan.ui.components.search.ImageSearcher
 import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
 import com.fpf.smartscan.ui.components.search.SelectionActionBar
+import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
@@ -79,6 +80,7 @@ fun SearchScreen(
     val hasIndexed by searchViewModel.hasIndexed.collectAsState(null)
     val searchResults by searchViewModel.searchResults.collectAsState(emptyList())
     val resultToView by searchViewModel.resultToView.collectAsState()
+    val viewerIndex by searchViewModel.viewerIndex.collectAsState()
     val canSearch by searchViewModel.canSearch.collectAsState(false)
     val queryType by searchViewModel.queryType.collectAsState()
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
@@ -398,7 +400,8 @@ fun SearchScreen(
                 onLongPress = { uri ->
                     searchViewModel.toggleSelectionMode()
                     searchViewModel.toggleUriSelection(uri)
-                }
+                },
+                onOpenViewer = { index -> searchViewModel.openViewer(index) }
             )
         }
         }
@@ -445,6 +448,25 @@ fun SearchScreen(
             }
         }
 
+        // Nový swipeable viewer
+        viewerIndex?.let { index ->
+            if (searchResults.isNotEmpty() && index < searchResults.size) {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn(animationSpec = tween(500)) + scaleIn(initialScale = 0.8f, animationSpec = tween(500)),
+                    exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.8f, animationSpec = tween(300))
+                ) {
+                    SwipeableMediaViewer(
+                        uris = searchResults,
+                        initialIndex = index,
+                        type = mediaType,
+                        onClose = { searchViewModel.closeViewer() }
+                    )
+                }
+            }
+        }
+
+        // Fallback na starý viewer (pro zpětnou kompatibilitu)
         resultToView?.let { uri ->
             AnimatedVisibility(
                 visible = true,
