@@ -29,6 +29,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import java.io.File
 
 class MediaIndexForegroundService : Service() {
     companion object {
@@ -93,7 +94,7 @@ class MediaIndexForegroundService : Service() {
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
                     // cache not needed for indexing
-                    val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false)
+                    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH, useCache = false)
                     val imageIndexer = ImageIndexer(embeddingHandler, application, ImageIndexListener, store = imageStore)
                     val ids = queryImageIds(application, appSettings.searchableImageDirectories.map{it.toUri()})
                     val existingIds = if(imageStore.exists) imageStore.get().map{it.id}.toSet() else emptySet()
@@ -102,7 +103,7 @@ class MediaIndexForegroundService : Service() {
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
-                    val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH, useCache = false )
+                    val videoStore = FileEmbeddingStore(File(application.filesDir,  VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH, useCache = false )
                     val videoIndexer = VideoIndexer(embeddingHandler, application=application, listener = VideoIndexListener, store = videoStore)
                     val ids = queryVideoIds(application, appSettings.searchableVideoDirectories.map { it.toUri() })
                     val existingIds = if(videoStore.exists) videoStore.get().map{it.id}.toSet() else emptySet()

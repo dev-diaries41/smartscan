@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
@@ -50,10 +51,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoIndexProgress = VideoIndexListener.progress
     val videoIndexStatus = VideoIndexListener.indexingStatus
 
-    val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
+    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH)
     val imageRetriever = FileEmbeddingRetriever(imageStore)
 
-    val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH )
+    val videoStore = FileEmbeddingStore(File(application.filesDir,  VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH )
     val videoRetriever = FileEmbeddingRetriever(videoStore)
 
     private val textEmbedder = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
