@@ -517,7 +517,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     fun loadAvailableTagsWithCounts() {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                tagRepository.allTags.collect { tags ->
+                tagRepository.activeTags.collect { tags ->
                     val withCounts = tags.map { tag ->
                         val count = tagRepository.getImageCountForTag(tag.name)
                         tag to count
@@ -614,8 +614,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
             // Pokud jsou vybrané tagy, ale žádné search výsledky, načti obrázky přímo z tagů
             if (hasTagFilter && _unfilteredSearchResults.value.isEmpty()) {
-                // Načíst všechny image IDs s vybranými tagy
-                val filteredImageIds = tagRepository.getImageIdsForTags(
+                // Načíst všechny image IDs s vybranými tagy (OR logika)
+                val filteredImageIds = tagRepository.getImageIdsWithAnyTag(
                     _selectedTagFilters.value.toList()
                 )
 
@@ -627,9 +627,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 // Normální filtrování existujících výsledků
                 filtered = _unfilteredSearchResults.value
 
-                // 1. Aplikuj tag filter
+                // 1. Aplikuj tag filter (OR logika)
                 if (hasTagFilter) {
-                    val filteredImageIds = tagRepository.getImageIdsForTags(
+                    val filteredImageIds = tagRepository.getImageIdsWithAnyTag(
                         _selectedTagFilters.value.toList()
                     ).toSet()
 

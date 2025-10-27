@@ -30,6 +30,9 @@ class TagRepository(
     suspend fun getImageIdsForTags(tagNames: List<String>): List<Long> =
         imageTagDao.getImageIdsForTags(tagNames, tagNames.size)
 
+    suspend fun getImageIdsWithAnyTag(tagNames: List<String>): List<Long> =
+        imageTagDao.getImageIdsWithAnyTag(tagNames)
+
     suspend fun getImageCountForTag(tagName: String): Int =
         imageTagDao.getImageCountForTag(tagName)
 

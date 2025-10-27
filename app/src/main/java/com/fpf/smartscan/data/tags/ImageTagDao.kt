@@ -17,6 +17,9 @@ interface ImageTagDao {
     @Query("SELECT DISTINCT imageId FROM image_tags WHERE tagName IN (:tagNames) GROUP BY imageId HAVING COUNT(DISTINCT tagName) = :tagCount")
     suspend fun getImageIdsForTags(tagNames: List<String>, tagCount: Int): List<Long>
 
+    @Query("SELECT DISTINCT imageId FROM image_tags WHERE tagName IN (:tagNames)")
+    suspend fun getImageIdsWithAnyTag(tagNames: List<String>): List<Long>
+
     @Query("SELECT tagName, COUNT(*) as imageCount FROM image_tags GROUP BY tagName")
     suspend fun getTagCounts(): List<TagCount>
 
