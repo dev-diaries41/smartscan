@@ -42,6 +42,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     companion object {
         private const val TAG = "SearchViewModel"
         const val RESULTS_BATCH_SIZE = 30
+        private const val MODEL_SHUTDOWN_DURATION_THRESHOLD = 60_000L
     }
 
     val imageIndexProgress = ImageIndexListener.progress
@@ -128,7 +129,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     var imageEmbedderLastUsage: Long? = null
     var textEmbedderLastUsage: Long? = null
-    val modelShutdownThreshold: Long = 20_000L
 
     init {
         loadImageIndex()
@@ -316,7 +316,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchImageUri.value = uri
     }
 
-    private fun shouldShutdownModel(lastUsage: Long?) = lastUsage != null && System.currentTimeMillis() - lastUsage >= modelShutdownThreshold
+    private fun shouldShutdownModel(lastUsage: Long?) = lastUsage != null && System.currentTimeMillis() - lastUsage >= MODEL_SHUTDOWN_DURATION_THRESHOLD
 
 
     fun onLoadMore() {
