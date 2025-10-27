@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import androidx.core.app.NotificationCompat
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -70,10 +71,17 @@ class RetaggingWorker(
 
             Log.d(TAG, "Re-tagging $totalImages images")
 
-            // Progress callback pro notifikaci
+            // Progress callback pro notifikaci a WorkManager progress
             val onProgress: (Int, Int) -> Unit = { current, total ->
                 try {
+                    // Update foreground notification
                     setForegroundAsync(createForegroundInfo(current, total))
+
+                    // Update WorkManager progress pro UI tracking
+                    setProgressAsync(workDataOf(
+                        "current" to current,
+                        "total" to total
+                    ))
                 } catch (e: Exception) {
                     Log.w(TAG, "Failed to update notification: ${e.message}")
                 }
