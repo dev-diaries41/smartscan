@@ -5,8 +5,11 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -14,6 +17,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -34,7 +38,9 @@ import kotlinx.coroutines.launch
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.alpha
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SearchResults(
     isVisible: Boolean,
@@ -44,7 +50,11 @@ fun SearchResults(
     onLoadMore: () -> Unit,
     totalResults: Int,
     numGridColumns: Int = 3,
-    loadMoreBuffer: Int = 5
+    loadMoreBuffer: Int = 5,
+    isSelectionMode: Boolean = false,
+    selectedUris: Set<Uri> = emptySet(),
+    onToggleSelection: (Uri) -> Unit = {},
+    onLongPress: (Uri) -> Unit = {}
 ) {
     if (!isVisible) return
 
@@ -93,19 +103,62 @@ fun SearchResults(
                 contentPadding = PaddingValues(4.dp)
             ) {
                 items(searchResults) { uri ->
-                    ImageDisplay(
-                        uri = uri,
+                    val isSelected = selectedUris.contains(uri)
+                    Box(
                         modifier = Modifier
                             .aspectRatio(1f)
                             .padding(1.dp)
-                            .border(1.dp, Color.Gray.copy(alpha = 0.2f))
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() }
-                            ) { toggleViewResult(uri) },
-                        contentScale = ContentScale.Crop,
-                        type = type
-                    )
+                    ) {
+                        ImageDisplay(
+                            uri = uri,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .border(
+                                    width = if (isSelected) 3.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary
+                                    else Color.Gray.copy(alpha = 0.2f)
+                                )
+                                .combinedClickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    onClick = {
+                                        if (isSelectionMode) {
+                                            onToggleSelection(uri)
+                                        } else {
+                                            toggleViewResult(uri)
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (!isSelectionMode) {
+                                            onLongPress(uri)
+                                        }
+                                    }
+                                )
+                                .then(
+                                    if (isSelected) Modifier.alpha(0.7f) else Modifier
+                                ),
+                            contentScale = ContentScale.Crop,
+                            type = type
+                        )
+
+                        // Checkbox indikátor pro vybraný soubor
+                        if (isSelected) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Vybráno",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(4.dp)
+                                    .size(24.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                                        shape = MaterialTheme.shapes.small
+                                    )
+                                    .padding(2.dp)
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -131,3 +131,53 @@ fun getFileName(context: Context, uri: Uri): String? {
     }
 }
 
+suspend fun deleteFiles(context: Context, uris: List<Uri>): Pair<Int, Int> = withContext(Dispatchers.IO) {
+    val tag = "DeleteFilesError"
+    var successCount = 0
+    var failureCount = 0
+
+    for (uri in uris) {
+        try {
+            val documentFile = DocumentFile.fromSingleUri(context, uri)
+            if (documentFile != null && documentFile.exists()) {
+                if (documentFile.delete()) {
+                    successCount++
+                } else {
+                    Log.e(tag, "Failed to delete file: $uri")
+                    failureCount++
+                }
+            } else {
+                Log.e(tag, "File doesn't exist: $uri")
+                failureCount++
+            }
+        } catch (e: Exception) {
+            Log.e(tag, "Error deleting file $uri: ${e.message}")
+            failureCount++
+        }
+    }
+
+    return@withContext Pair(successCount, failureCount)
+}
+
+suspend fun moveFiles(context: Context, sourceUris: List<Uri>, destinationDirUri: Uri): Pair<Int, Int> = withContext(Dispatchers.IO) {
+    val tag = "MoveFilesError"
+    var successCount = 0
+    var failureCount = 0
+
+    for (sourceUri in sourceUris) {
+        try {
+            val result = moveFile(context, sourceUri, destinationDirUri)
+            if (result != null) {
+                successCount++
+            } else {
+                failureCount++
+            }
+        } catch (e: Exception) {
+            Log.e(tag, "Error moving file $sourceUri: ${e.message}")
+            failureCount++
+        }
+    }
+
+    return@withContext Pair(successCount, failureCount)
+}
+

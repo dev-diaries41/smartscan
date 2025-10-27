@@ -16,8 +16,10 @@ import com.fpf.smartscan.data.QueryType
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
+import com.fpf.smartscan.lib.deleteFiles
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.ImageIndexListener
+import com.fpf.smartscan.lib.moveFiles
 import com.fpf.smartscan.lib.VideoIndexListener
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
@@ -128,6 +130,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _searchImageUri = MutableStateFlow<Uri?>(null)
     val searchImageUri: StateFlow<Uri?> = _searchImageUri
+
+    // Selection state pro multi-select mode
+    private val _selectedUris = MutableStateFlow<Set<Uri>>(emptySet())
+    val selectedUris: StateFlow<Set<Uri>> = _selectedUris
+
+    private val _isSelectionMode = MutableStateFlow(false)
+    val isSelectionMode: StateFlow<Boolean> = _isSelectionMode
 
     var imageEmbedderLastUsage: Long? = null
     var textEmbedderLastUsage: Long? = null
@@ -363,6 +372,70 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 isLoadingMoreSearchResults.set(false)
             }
         }
+    }
+
+    // Funkce pro selection mode
+    fun toggleSelectionMode() {
+        _isSelectionMode.value = !_isSelectionMode.value
+        if (!_isSelectionMode.value) {
+            _selectedUris.value = emptySet()
+        }
+    }
+
+    fun toggleUriSelection(uri: Uri) {
+        val current = _selectedUris.value.toMutableSet()
+        if (current.contains(uri)) {
+            current.remove(uri)
+        } else {
+            current.add(uri)
+        }
+        _selectedUris.value = current
+    }
+
+    fun selectAllUris() {
+        _selectedUris.value = _searchResults.value.toSet()
+    }
+
+    fun clearSelection() {
+        _selectedUris.value = emptySet()
+    }
+
+    // Funkce pro přesun vybraných souborů
+    suspend fun moveSelectedFiles(destinationDirUri: Uri): Pair<Int, Int> {
+        val urisToMove = _selectedUris.value.toList()
+        if (urisToMove.isEmpty()) return Pair(0, 0)
+
+        val result = moveFiles(application, urisToMove, destinationDirUri)
+
+        // Odstranění úspěšně přesunutých souborů z výsledků vyhledávání
+        if (result.first > 0) {
+            val movedUris = urisToMove.take(result.first).toSet()
+            _searchResults.value = _searchResults.value.filterNot { movedUris.contains(it) }
+            _totalResults.value = _totalResults.value - result.first
+            clearSelection()
+            toggleSelectionMode() // Vypnout selection mode
+        }
+
+        return result
+    }
+
+    // Funkce pro smazání vybraných souborů
+    suspend fun deleteSelectedFiles(): Pair<Int, Int> {
+        val urisToDelete = _selectedUris.value.toList()
+        if (urisToDelete.isEmpty()) return Pair(0, 0)
+
+        val result = deleteFiles(application, urisToDelete)
+
+        // Odstranění úspěšně smazaných souborů z výsledků vyhledávání
+        if (result.first > 0) {
+            val deletedUris = urisToDelete.take(result.first).toSet()
+            _searchResults.value = _searchResults.value.filterNot { deletedUris.contains(it) }
+            _totalResults.value = _totalResults.value - result.first
+            clearSelection()
+            toggleSelectionMode() // Vypnout selection mode
+        }
+
+        return result
     }
 
     override fun onCleared() {

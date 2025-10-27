@@ -1,5 +1,9 @@
 package com.fpf.smartscan.ui.screens.search
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -29,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.fpf.smartscan.R
+import kotlinx.coroutines.launch
 import com.fpf.smartscan.constants.mediaTypeOptions
 import com.fpf.smartscan.constants.queryOptions
 import com.fpf.smartscan.data.MediaType
@@ -44,6 +49,7 @@ import com.fpf.smartscan.ui.components.SelectorItem
 import com.fpf.smartscan.ui.components.search.ImageSearcher
 import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
+import com.fpf.smartscan.ui.components.search.SelectionActionBar
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
@@ -77,9 +83,36 @@ fun SearchScreen(
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
     val totalResults by searchViewModel.totalResults.collectAsState()
 
+    // Selection state
+    val isSelectionMode by searchViewModel.isSelectionMode.collectAsState()
+    val selectedUris by searchViewModel.selectedUris.collectAsState()
+
     var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showMoveSuccessMessage by remember { mutableStateOf<String?>(null) }
+    var showDeleteSuccessMessage by remember { mutableStateOf<String?>(null) }
+
+    val scope = rememberCoroutineScope()
+
+    // Directory picker pro přesun souborů
+    val directoryPickerLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        uri?.let { destinationUri ->
+            context.contentResolver.takePersistableUriPermission(
+                destinationUri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+            )
+            scope.launch {
+                val (success, failed) = searchViewModel.moveSelectedFiles(destinationUri)
+                if (success > 0 || failed > 0) {
+                    showMoveSuccessMessage = "Přesunuto: $success, Selhalo: $failed"
+                }
+            }
+        }
+    }
 
     RequestPermissions { notificationGranted, storageGranted ->
         hasNotificationPermission = notificationGranted
@@ -155,6 +188,49 @@ fun SearchScreen(
         )
     }
 
+    // Dialog pro potvrzení smazání
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            title = { Text("Smazat soubory") },
+            text = { Text("Opravdu chcete smazat ${selectedUris.size} vybraných souborů?") },
+            dismissButton = {
+                TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                    Text("Zrušit")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDeleteConfirmDialog = false
+                    scope.launch {
+                        val (success, failed) = searchViewModel.deleteSelectedFiles()
+                        if (success > 0 || failed > 0) {
+                            showDeleteSuccessMessage = "Smazáno: $success, Selhalo: $failed"
+                        }
+                    }
+                }) {
+                    Text("Smazat", color = MaterialTheme.colorScheme.error)
+                }
+            }
+        )
+    }
+
+    // Snackbar pro úspěšný přesun
+    showMoveSuccessMessage?.let { message ->
+        LaunchedEffect(message) {
+            kotlinx.coroutines.delay(3000)
+            showMoveSuccessMessage = null
+        }
+    }
+
+    // Snackbar pro úspěšné smazání
+    showDeleteSuccessMessage?.let { message ->
+        LaunchedEffect(message) {
+            kotlinx.coroutines.delay(3000)
+            showDeleteSuccessMessage = null
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -162,11 +238,28 @@ fun SearchScreen(
 
         Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+                .fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
+            // Selection action bar
+            if (isSelectionMode) {
+                SelectionActionBar(
+                    selectedCount = selectedUris.size,
+                    onClose = { searchViewModel.toggleSelectionMode() },
+                    onSelectAll = { searchViewModel.selectAllUris() },
+                    onMove = { directoryPickerLauncher.launch(null) },
+                    onDelete = { showDeleteConfirmDialog = true }
+                )
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
 
             ProgressBar(
                 label = "Indexing images ${"%.0f".format(imageIndexProgress * 100)}%",
@@ -297,8 +390,58 @@ fun SearchScreen(
                 toggleViewResult = { uri -> searchViewModel.toggleViewResult(uri) },
                 onLoadMore = searchViewModel::onLoadMore,
                 totalResults=totalResults,
-                loadMoreBuffer = (RESULTS_BATCH_SIZE * 0.2).toInt()
+                loadMoreBuffer = (RESULTS_BATCH_SIZE * 0.2).toInt(),
+                isSelectionMode = isSelectionMode,
+                selectedUris = selectedUris,
+                onToggleSelection = { uri -> searchViewModel.toggleUriSelection(uri) },
+                onLongPress = { uri ->
+                    searchViewModel.toggleSelectionMode()
+                    searchViewModel.toggleUriSelection(uri)
+                }
             )
+
+            // Success messages
+            showMoveSuccessMessage?.let { message ->
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = MaterialTheme.shapes.medium,
+                        shadowElevation = 4.dp
+                    ) {
+                        Text(
+                            text = message,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+
+            showDeleteSuccessMessage?.let { message ->
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                ) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = MaterialTheme.shapes.medium,
+                        shadowElevation = 4.dp
+                    ) {
+                        Text(
+                            text = message,
+                            modifier = Modifier.padding(16.dp),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                    }
+                }
+            }
+        }
         }
         resultToView?.let { uri ->
             AnimatedVisibility(
