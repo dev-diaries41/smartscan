@@ -122,6 +122,106 @@ com.fpf.smartscan/
 - Room DB stále používána pro: movehistory, scans, jobs, prototypes
 - Legacy embeddings automaticky migrovány při prvním načtení
 
+## Internationalization (i18n)
+
+**Aplikace je plně lokalizovaná - VŽDY používej string resources!**
+
+### String Resources struktura:
+```
+app/src/main/res/
+├── values/strings.xml           # Výchozí jazyk (English)
+└── values-cs/strings.xml        # Čeština
+```
+
+### ⚠️ KRITICKÉ PRAVIDLO - Používání textů v kódu:
+
+**❌ NIKDY netvrditě nepsat texty přímo v kódu:**
+```kotlin
+// ❌ ŠPATNĚ - hardcoded text
+Text("Vyhledávání")
+Button(onClick = {}) { Text("Uložit") }
+AlertDialog(title = { Text("Opravdu smazat?") })
+```
+
+**✅ VŽDY používat stringResource():**
+```kotlin
+// ✅ SPRÁVNĚ - použití string resources
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
+
+Text(stringResource(R.string.title_search))
+Button(onClick = {}) { Text(stringResource(R.string.action_save)) }
+AlertDialog(
+    title = { Text(stringResource(R.string.dialog_confirm_delete)) }
+)
+```
+
+### Workflow pro přidávání nových textů:
+
+**1. Přidej string do OBOU souborů:**
+
+`app/src/main/res/values/strings.xml` (English):
+```xml
+<string name="your_new_key">Your English text</string>
+```
+
+`app/src/main/res/values-cs/strings.xml` (Čeština):
+```xml
+<string name="your_new_key">Tvůj český text</string>
+```
+
+**2. Použij v Compose:**
+```kotlin
+Text(stringResource(R.string.your_new_key))
+```
+
+**3. Pro formátované stringy:**
+```xml
+<!-- values/strings.xml -->
+<string name="welcome_message">Welcome, %1$s!</string>
+
+<!-- values-cs/strings.xml -->
+<string name="welcome_message">Vítej, %1$s!</string>
+```
+
+```kotlin
+// Použití v kódu
+Text(stringResource(R.string.welcome_message, userName))
+```
+
+### Kategorie string resources:
+
+Stringy jsou organizovány do kategorií s komentáři:
+- `<!-- Screen titles -->` - Názvy obrazovek
+- `<!-- Actions -->` - Tlačítka a akce (Save, Delete, Cancel, etc.)
+- `<!-- Dialogs -->` - Texty dialogů
+- `<!-- Notifications -->` - Notifikace
+- `<!-- Errors -->` - Chybové hlášky
+- `<!-- Settings -->` - Nastavení
+- `<!-- Tags -->` - Tagging systém
+
+### Při vytváření nových features:
+
+1. **VŽDY přidej všechny texty do obou strings.xml souborů**
+2. **NIKDY nepoužívej hardcoded texty v Kotlin/Compose kódu**
+3. **Při refactoringu zkontroluj, zda všechny texty používají stringResource()**
+4. **Pro dlouhé texty/multi-line použij CDATA:**
+```xml
+<string name="long_description"><![CDATA[
+    Dlouhý text
+    s více řádky
+]]></string>
+```
+
+### Kontrola před commitem:
+
+```bash
+# Zkontroluj, že oba soubory mají stejné klíče:
+grep '<string name=' app/src/main/res/values/strings.xml | wc -l
+grep '<string name=' app/src/main/res/values-cs/strings.xml | wc -l
+# Čísla by měla být stejná!
+```
+
 ## Development Notes
 
 ### Při práci s ML modely:
