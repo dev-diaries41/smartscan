@@ -41,6 +41,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
@@ -53,10 +54,16 @@ fun ActionItem(
     text: String,
     onClick: () -> Unit,
     description: String? = null,
-    enabled: Boolean = true
+    enabled: Boolean = true,
+    buttonContent: @Composable (enabled: Boolean, onClick: () -> Unit) -> Unit = { enabled, onClick ->
+        IconButton(enabled = enabled, onClick = onClick) {
+            Icon(Icons.Default.ChevronRight, contentDescription = "chevron right icon")
+        }
+    }
 ) {
     val textColor = if (enabled) MaterialTheme.colorScheme.onSurface
     else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5F)
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -65,16 +72,14 @@ fun ActionItem(
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(text = text, style = MaterialTheme.typography.labelLarge, color = textColor)
-            IconButton(enabled=enabled, onClick=onClick,) {
-                Icon(Icons.Default.ChevronRight, contentDescription = "Open screen to update setting")
-            }
+            buttonContent(enabled, onClick)
         }
-        if (description != null) {
-            Text(text = description,
+        description?.let {
+            Text(
+                text = it,
                 style = MaterialTheme.typography.bodyMedium,
                 color = textColor,
                 modifier = Modifier.fillMaxWidth(0.7f).alpha(0.8f)
@@ -82,6 +87,7 @@ fun ActionItem(
         }
     }
 }
+
 
 @Composable
 fun SwitchItem(
@@ -312,30 +318,25 @@ fun SelectorIconItem(
     options: List<String>,
     selectedOption: String,
     onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.padding(vertical = 4.dp)
+    Box(
+        modifier.minimumInteractiveComponentSize()
     ) {
-        Row(
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+        IconButton (
+            enabled = enabled,
+            onClick = { showDialog = true }
         ) {
-            IconButton (
-                enabled = enabled,
-                onClick = { showDialog = true }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ArrowDropDown,
-                    contentDescription = "Dropdown",
-                    tint = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-            }
+            Icon(
+                imageVector = Icons.Default.ArrowDropDown,
+                contentDescription = "Dropdown",
+                tint = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
         }
     }
-
     if (showDialog) {
         AlertDialog(
             onDismissRequest = { showDialog = false },

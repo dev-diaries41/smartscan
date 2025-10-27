@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.application
+import com.fpf.smartscan.ui.permissions.StorageAccess
+import com.fpf.smartscan.ui.permissions.getStorageAccess
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -15,6 +17,11 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
         private const val UPDATES_KEY = "UPDATES_KEY"
     }
     private val sharedPrefs = application.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+
+    val refreshMessageFull = application.getString(R.string.setting_refresh_index_description_full)
+    val refreshMessagePartial = application.getString(R.string.setting_refresh_index_description_partial)
+    val refreshMessageDenied = application.getString(R.string.setting_refresh_index_description_denied)
+
 
     val versionName: String? = try {
         val packageInfo = application.packageManager.getPackageInfo(application.packageName, 0)
@@ -36,14 +43,21 @@ class MainViewModel( application: Application) : AndroidViewModel(application) {
 
     fun getUpdates(): List<String>{
         return listOf(
-            application.getString(R.string.update_image_to_image_search),
-            application.getString(R.string.update_select_searchable_folders),
-            application.getString(R.string.update_increase_search_limit),
-            application.getString(R.string.update_theme_settings),
-            application.getString(R.string.update_new_results_layout),
-            application.getString(R.string.update_auto_organisation_fix),
-            application.getString(R.string.update_auto_organisation_notice)
-
+            application.getString(R.string.update_reverse_image_search_upload),
+            application.getString(R.string.update_paste_image_search),
+            application.getString(R.string.update_reverse_search_from_results),
+            application.getString(R.string.update_menu_refresh_index),
+            application.getString(R.string.update_backup_restore_settings),
+            application.getString(R.string.update_remove_auto_organisation),
         )
+    }
+
+    fun getRefreshMessage(): String{
+        val storageAccess = getStorageAccess(application)
+        return  when (storageAccess) {
+            StorageAccess.Full -> refreshMessageFull
+            StorageAccess.Partial -> refreshMessagePartial
+            StorageAccess.Denied -> refreshMessageDenied
+        }
     }
 }

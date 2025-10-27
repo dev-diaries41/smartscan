@@ -28,10 +28,10 @@ abstract class BaseIndexListener(private val notificationId: Int, private val ta
     }
 
     override suspend fun onComplete(context: Context, metrics: Metrics.Success) {
-        if (metrics.totalProcessed == 0) return
         try {
             _indexingStatus.value = ProcessorStatus.COMPLETE
             _progress.value = 0f
+            if (metrics.totalProcessed == 0) return
             val (minutes, seconds) = getTimeInMinutesAndSeconds(metrics.timeElapsed)
             val notificationText = "Total ${itemName.lowercase()}s indexed: ${metrics.totalProcessed}, Time: ${minutes}m ${seconds}s"
             showNotification(context, context.getString(R.string.notif_title_index_complete), notificationText, notificationId)

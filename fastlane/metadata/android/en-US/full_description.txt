@@ -1,4 +1,4 @@
-Search images and videos offline using text or images, and automatically organize your images with on-device AI.
+Search images and videos offline using text or by reverse image search with on-device AI.
 
 <b>Key Features</b>
 
@@ -10,12 +10,5 @@ Search images and videos offline using text or images, and automatically organiz
 <li><b>Weekly Updates:</b> Automatically refresh image and video indexes for new content.</li>
 </ul>
 
-<b>Automated Image Organisation</b>
-<ul>
-<li><b>Auto-Organisation:</b> Schedule regular scans automatically to organise images based on content similarity.</li>
-<li><b>Auto-Organisation Test:</b> Upload a test image to verify categorisation.</li>
-<li><b>Undo Scans:</b> Revert the most recent scan if needed.</li>
-</ul>
-
 <b>Fully On-Device</b>
-All processing including both image organisation and text-based search is handled entirely on-device, ensuring privacy, speed, and offline functionality.
+All processing is handled entirely on-device, ensuring privacy, speed, and offline functionality.

@@ -1,15 +1,14 @@
-# SmartScan - Media organisation & search app
+# SmartScan - Media search engine app``
 
-Search images and videos offline using text or images, and automatically organize your images with on-device AI.
+Search images and videos offline using text or by reverse image search with on-device AI.
 
 <div align="center">
   <img src="fastlane/metadata/android/en-US/images/featureGraphic.png" alt="Banner" style="border-radius: 20px;">
 </div>
 
 
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Screenshot 1" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Screenshot 2" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Screenshot 3" width="200px"> |
-|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
-| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Screenshot 4" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" alt="Screenshot 5" width="200px"> |
+| <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" alt="Screenshot 1" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" alt="Screenshot 2" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" alt="Screenshot 3" width="200px"> | <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" alt="Screenshot 4" width="200px"> |
+|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------|
 
 ---
 
@@ -33,38 +32,12 @@ The app is free, but if you enjoy using it and want to support project developme
 - **Gallery Access:** Open search results directly in the gallery.
 - **Weekly Updates:** Automatically refresh image and video indexes for new content.
 
-### Automated Image Organisation
-- **Auto-Organisation:** Schedule regular scans automatically to organise images based on content similarity.
-- **Auto-Organisation Test:** Upload a test image to verify categorisation.
-- **Undo Scans:** Revert the most recent scan if needed.
-
 ### Fully On-Device
-All processing—including both image organisation and text-based search—is handled entirely on-device, ensuring privacy, speed, and offline functionality.
+All processing is handled entirely on-device, ensuring privacy, speed, and offline functionality.
 
 ---
 
 ## How to use
-
-
-### Image Management
-
-1. **Target Folders**: In settings, select the folders you want to monitor for new images.
-2. **Destination Folders**: In settings, select the allowed destination folders for images to be moved to.
-3. **Test auto-organisation**: Once you have set this up you can test auto-categorisation by clicking the `test tube` icon and uploading an image. 
-
-**Note:** Each destination folder should contain at least 10 well-curated images that accurately represent the types of images you expect to be moved there.
-
-<div style="display: flex; justify-content: space-between; padding-top: 20px;">
-  <img src="fastlane/metadata/android/en-US/images/other/target.png" alt="Target folders" style="border-radius: 15px; margin: 5px; width:200px;">
-  <img src="fastlane/metadata/android/en-US/images/other/destination.png" alt="Destination folders" style="border-radius: 15px; margin: 5px; width:200px;">
-</div>
-
-
-#### Limitations
-
-- The accuracy of auto-categorization depends on the consistency of the sample images in each destination folder.
-- False moves may occur if the images in a destination folder do not accurately represent the intended content.
-- To minimize inaccuracies, ensure your destination folders are well-curated. If issues persist, **disable auto-organisation** and **open a GitHub issue**. Repeated issues might result in the removal of this feature.
 
 ### Media Search
 

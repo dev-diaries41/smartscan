@@ -1,52 +1,52 @@
 package com.fpf.smartscan.ui.theme
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import android.content.res.Configuration
+import android.content.res.Resources
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 enum class ColorSchemeType { DEFAULT, SMARTSCAN }
 enum class ThemeMode { LIGHT, DARK, SYSTEM }
 
-private val LightColorPalette = lightColorScheme(
+val LightColorPalette = lightColorScheme(
     primary = Peach,
     onPrimary = Color.White,
     primaryContainer = Peach.copy(alpha = 0.5f),
     onPrimaryContainer = Color.Black
 )
 
-private val DarkColorPalette = darkColorScheme(
+val DarkColorPalette = darkColorScheme(
     primary = Peach,
     onPrimary = Color.Black,
     primaryContainer = Peach.copy(alpha = 0.5f),
     onPrimaryContainer = Color.White
 )
 
+object ThemeManager {
+    private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+    val themeMode = _themeMode.asStateFlow()
 
-@Composable
-fun MyAppTheme(
-    content: @Composable () -> Unit
-) {
-    val themeMode by ThemeManager.themeMode.collectAsState()
-    val colorSchemeType by ThemeManager.colorScheme.collectAsState()
+    private val _colorScheme = MutableStateFlow(ColorSchemeType.SMARTSCAN)
+    val colorScheme = _colorScheme.asStateFlow()
 
-    val darkTheme = when (themeMode) {
-        ThemeMode.LIGHT -> false
-        ThemeMode.DARK -> true
-        ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    fun updateThemeMode(mode: ThemeMode) {
+        _themeMode.value = mode
     }
 
-    val colors = when (colorSchemeType) {
-        ColorSchemeType.DEFAULT -> if (darkTheme) darkColorScheme() else lightColorScheme()
-        ColorSchemeType.SMARTSCAN -> if (darkTheme) DarkColorPalette else LightColorPalette
+    fun updateColorScheme(scheme: ColorSchemeType) {
+        _colorScheme.value = scheme
     }
 
-    MaterialTheme(
-        colorScheme = colors,
-        typography = MaterialTheme.typography,
-        shapes = MaterialTheme.shapes,
-        content = content
-    )
+    fun isDarkTheme(resources: Resources): Boolean {
+        return when (_themeMode.value) {
+            ThemeMode.DARK -> true
+            ThemeMode.LIGHT -> false
+            ThemeMode.SYSTEM -> resources.configuration.uiMode and
+                    Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+        }
+    }
 }
+
+

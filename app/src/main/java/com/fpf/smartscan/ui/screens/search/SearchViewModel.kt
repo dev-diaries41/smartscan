@@ -36,12 +36,14 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 class SearchViewModel(private val application: Application) : AndroidViewModel(application) {
     companion object {
         private const val TAG = "SearchViewModel"
         const val RESULTS_BATCH_SIZE = 30
+        private const val MODEL_SHUTDOWN_DURATION_THRESHOLD = 60_000L
     }
 
     val imageIndexProgress = ImageIndexListener.progress
@@ -49,10 +51,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoIndexProgress = VideoIndexListener.progress
     val videoIndexStatus = VideoIndexListener.indexingStatus
 
-    val imageStore = FileEmbeddingStore(application.filesDir, ImageIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH)
+    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH)
     val imageRetriever = FileEmbeddingRetriever(imageStore)
 
-    val videoStore = FileEmbeddingStore(application.filesDir,  VideoIndexer.INDEX_FILENAME, CLIP_EMBEDDING_LENGTH )
+    val videoStore = FileEmbeddingStore(File(application.filesDir,  VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH )
     val videoRetriever = FileEmbeddingRetriever(videoStore)
 
     private val textEmbedder = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
@@ -91,9 +93,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             initialValue = null
         )
 
-    private val _query = MutableStateFlow("")
-    val query: StateFlow<String> = _query
-
     private val _searchResults = MutableStateFlow<List<Uri>>(emptyList())
     val searchResults: StateFlow<List<Uri>> = _searchResults
 
@@ -131,7 +130,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     var imageEmbedderLastUsage: Long? = null
     var textEmbedderLastUsage: Long? = null
-    val modelShutdownThreshold: Long = 20_000L
 
     init {
         loadImageIndex()
@@ -184,13 +182,6 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
-    fun setQuery(newQuery: String) {
-        _query.value = newQuery
-        if(newQuery.isEmpty()){
-            _error.value = null
-        }
-    }
-
     fun clearResults(){
         _searchResults.value = emptyList()
     }
@@ -208,14 +199,12 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private fun reset(){
         _error.value = null
-        _query.value = ""
         clearResults()
     }
 
 
-    fun textSearch(threshold: Float = 0.2f) {
-        val currentQuery = _query.value
-        if (currentQuery.isBlank()) {
+    fun textSearch(query: String, threshold: Float = 0.2f) {
+        if (query.isBlank()) {
             _error.value = application.getString(R.string.search_error_empty_query)
             return
         }
@@ -234,7 +223,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     textEmbedder.initialize()
                 }
                 if(shouldShutdownModel(imageEmbedderLastUsage)) imageEmbedder.closeSession() // prevent keeping both models open
-                val embedding = textEmbedder.embed(currentQuery)
+                val embedding = textEmbedder.embed(query)
                 search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
@@ -328,7 +317,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _searchImageUri.value = uri
     }
 
-    private fun shouldShutdownModel(lastUsage: Long?) = lastUsage != null && System.currentTimeMillis() - lastUsage >= modelShutdownThreshold
+    private fun shouldShutdownModel(lastUsage: Long?) = lastUsage != null && System.currentTimeMillis() - lastUsage >= MODEL_SHUTDOWN_DURATION_THRESHOLD
 
 
     fun onLoadMore() {

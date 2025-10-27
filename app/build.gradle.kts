@@ -14,8 +14,8 @@ android {
         applicationId = "com.fpf.smartscan"
         minSdk = 30
         targetSdk = 34
-        versionCode = 14
-        versionName = "1.1.6"
+        versionCode = 15
+        versionName = "1.1.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -76,8 +76,8 @@ android {
 }
 
 dependencies {
-    implementation("io.coil-kt.coil3:coil-compose:3.3.0")
-    implementation("io.coil-kt.coil3:coil-video:3.3.0")
+    implementation(libs.coil.compose)
+    implementation(libs.coil.video)
 
     implementation(libs.smartscan.extensions)
     implementation(libs.androidx.core.ktx)

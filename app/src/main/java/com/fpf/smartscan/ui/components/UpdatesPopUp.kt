@@ -33,11 +33,9 @@ fun UpdatePopUp(
                 .background(MaterialTheme.colorScheme.background)
                 .padding(16.dp)
         ) {
-
-            // Centered content
             Column(
                 modifier = Modifier.align(Alignment.Center),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.Start
             ) {
                 Text(

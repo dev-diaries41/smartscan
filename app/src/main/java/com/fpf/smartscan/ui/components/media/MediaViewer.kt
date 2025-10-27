@@ -35,6 +35,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.window.Popup
@@ -47,6 +48,7 @@ fun MediaViewer(
     uri: Uri,
     type: MediaType,
     onClose: () -> Unit,
+    onUpdateSearchImage: (uri: Uri) -> Unit,
     maxSize: Int = DEFAULT_IMAGE_DISPLAY_SIZE
 ){
     var isActionsVisible by remember { mutableStateOf(true) }
@@ -82,7 +84,7 @@ fun MediaViewer(
                     onTap = { isActionsVisible = !isActionsVisible }
                 )
             }
-            ActionRow(uri=uri, type=type, onClose, isVisible = isActionsVisible)
+            ActionRow(uri=uri, type=type, onClose=onClose, onUpdateSearchImage=onUpdateSearchImage,isVisible = isActionsVisible)
         }
     }
 }
@@ -93,6 +95,7 @@ fun ActionRow(
     uri: Uri,
     type: MediaType,
     onClose: () -> Unit,
+    onUpdateSearchImage: (uri: Uri) -> Unit,
     isVisible: Boolean
 ){
     val context = LocalContext.current
@@ -122,6 +125,16 @@ fun ActionRow(
                 horizontalArrangement = Arrangement.End,
             )
             {
+                if(type == MediaType.IMAGE) {
+                    IconButton(onClick = { onUpdateSearchImage(uri) }) {
+                        Icon(
+                            Icons.Filled.ImageSearch,
+                            contentDescription = "Search image",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
                 IconButton(onClick = {
                     clipboard.nativeClipboard.setPrimaryClip(
                         ClipData.newUri(

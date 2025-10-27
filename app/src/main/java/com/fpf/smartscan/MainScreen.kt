@@ -1,11 +1,5 @@
 package com.fpf.smartscan
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.ui.Modifier
@@ -14,13 +8,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.navArgument
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Science
-import androidx.compose.material.icons.filled.Sync
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.draw.rotate
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -28,22 +22,24 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fpf.smartscan.constants.Routes
 import com.fpf.smartscan.constants.SettingTypes
+import com.fpf.smartscan.services.MediaIndexForegroundService
+import com.fpf.smartscan.services.refreshIndex
+import com.fpf.smartscan.ui.components.OverflowMenu
 import com.fpf.smartscan.ui.components.UpdatePopUp
+import com.fpf.smartscan.ui.permissions.StorageAccess
+import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.screens.donate.DonateScreen
 import com.fpf.smartscan.ui.screens.help.HelpScreen
-import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryViewModel
-import com.fpf.smartscan.ui.screens.scanhistory.ScanHistoryScreen
 import com.fpf.smartscan.ui.screens.search.SearchScreen
 import com.fpf.smartscan.ui.screens.search.SearchViewModel
 import com.fpf.smartscan.ui.screens.settings.SettingsDetailScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsScreen
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
-import com.fpf.smartscan.ui.screens.test.TestScreen
-import com.fpf.smartscan.workers.ClassificationViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
+    val context = LocalContext.current
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -51,32 +47,80 @@ fun MainScreen() {
     val mainViewModel: MainViewModel = viewModel()
     val settingsViewModel: SettingsViewModel = viewModel()
     val searchViewModel: SearchViewModel = viewModel()
-    val classificationViewModel: ClassificationViewModel = viewModel()
-    val isOrganiseActive by classificationViewModel.organisationActive.collectAsState(false)
     val isUpdatePopUpVisible by mainViewModel.isUpdatePopUpVisible.collectAsState()
 
     val headerTitle = when {
         currentRoute == Routes.SEARCH -> stringResource(R.string.title_search)
-        currentRoute == Routes.SCAN_HISTORY -> stringResource(R.string.title_scan_history)
         currentRoute == Routes.SETTINGS -> stringResource(R.string.title_settings)
         currentRoute == Routes.DONATE -> stringResource(R.string.title_donate)
         currentRoute == Routes.HELP -> stringResource(R.string.title_help)
-        currentRoute == Routes.TEST -> stringResource(R.string.title_test_organisation)
         currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true -> when (typeVal) {
-            SettingTypes.TARGETS -> stringResource(R.string.setting_target_folders)
             SettingTypes.THRESHOLD -> stringResource(R.string.setting_similarity_threshold)
-            SettingTypes.DESTINATIONS -> stringResource(R.string.setting_destination_folders)
-            SettingTypes.ORGANISER_ACCURACY -> stringResource(R.string.setting_organisation_organiser_accuracy)
             SettingTypes.MODELS -> stringResource(R.string.setting_models)
             SettingTypes.MANAGE_MODELS -> stringResource(R.string.setting_manage_models)
             SettingTypes.SEARCHABLE_IMG_DIRS -> stringResource(R.string.setting_searchable_image_folders)
             SettingTypes.SEARCHABLE_VID_DIRS -> stringResource(R.string.setting_searchable_video_folders)
+            SettingTypes.BACKUP_RESTORE -> stringResource(R.string.setting_backup_restore)
             else -> ""
         }
         else -> ""
     }
 
-    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP)
+    val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true || currentRoute in listOf( Routes.DONATE, Routes.HELP)
+
+    var showRefreshImageIndexDialog by remember { mutableStateOf(false) }
+    var showRefreshVideoIndexDialog by remember { mutableStateOf(false) }
+
+    if (showRefreshImageIndexDialog || showRefreshVideoIndexDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                if(showRefreshImageIndexDialog) {
+                    showRefreshImageIndexDialog = false
+                }else{
+                    showRefreshVideoIndexDialog = false
+                }
+            },
+            title = { Text(text = if (showRefreshImageIndexDialog) {
+                stringResource(id = R.string.setting_refresh_image_index)
+            } else {
+                stringResource(id = R.string.setting_refresh_video_index)
+            }) },
+            text = { Text(text = mainViewModel.getRefreshMessage()) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val storageAccess = getStorageAccess(context)
+                        if (storageAccess != StorageAccess.Denied) {
+                            if(showRefreshImageIndexDialog){
+                                refreshIndex(context.applicationContext, MediaIndexForegroundService.TYPE_IMAGE)
+                            }else{
+                                refreshIndex(context.applicationContext, MediaIndexForegroundService.TYPE_VIDEO)
+                            }
+                        }
+                        if(showRefreshImageIndexDialog){
+                            showRefreshImageIndexDialog = false
+                        }else{
+                            showRefreshVideoIndexDialog = false
+                        }
+                    }
+                ) {
+                    Text(text = "Confirm")
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        if(showRefreshImageIndexDialog){
+                            showRefreshImageIndexDialog = false
+                        }else{
+                            showRefreshVideoIndexDialog = false
+                        } }
+                ) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
 
     if(isUpdatePopUpVisible) {
         UpdatePopUp(
@@ -100,43 +144,10 @@ fun MainScreen() {
                         }
                     },
                     actions = {
-                        if (currentRoute != Routes.SCAN_HISTORY) {
-                            IconButton(onClick = { navController.navigate(Routes.SCAN_HISTORY) }) {
-                                Icon(
-                                    imageVector = Icons.Filled.History,
-                                    contentDescription = "Scan History"
-                                )
-                            }
-                        }
-                        if (currentRoute != Routes.TEST) {
-                            IconButton(onClick = { navController.navigate(Routes.TEST) }) {
-                                Icon(
-                                    imageVector = Icons.Filled.Science,
-                                    contentDescription = "Test Model"
-                                )
-                            }
-                        }
-
-                        if (isOrganiseActive) {
-                            val infiniteTransition = rememberInfiniteTransition()
-                            val rotation by infiniteTransition.animateFloat(
-                                initialValue = 0f,
-                                targetValue = 360f,
-                                animationSpec = infiniteRepeatable(
-                                    animation = tween(
-                                        durationMillis = 10000,
-                                        easing = LinearEasing
-                                    ),
-                                    repeatMode = RepeatMode.Restart
-                                )
-                            )
-                            Icon(
-                                imageVector = Icons.Filled.Sync,
-                                modifier = Modifier.rotate(rotation),
-                                tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "Organisation is active"
-                            )
-                        }
+                        OverflowMenu(
+                            onRefreshImageIndex = { showRefreshImageIndexDialog = true },
+                            onRefreshVideoIndex = { showRefreshVideoIndexDialog = true }
+                        )
                     }
                 )
             },
@@ -151,12 +162,6 @@ fun MainScreen() {
                     SearchScreen(
                         searchViewModel = searchViewModel,
                         settingsViewModel = settingsViewModel
-                    )
-                }
-                composable(Routes.SCAN_HISTORY) {
-                    val scanHistoryViewModel: ScanHistoryViewModel = viewModel()
-                    ScanHistoryScreen(
-                        viewModel = scanHistoryViewModel,
                     )
                 }
                 composable(Routes.SETTINGS) {
@@ -175,11 +180,6 @@ fun MainScreen() {
                     SettingsDetailScreen(
                         type = type,
                         viewModel = settingsViewModel,
-                    )
-                }
-                composable(Routes.TEST) {
-                    TestScreen(
-                        settingsViewModel = settingsViewModel
                     )
                 }
                 composable(Routes.DONATE) {
