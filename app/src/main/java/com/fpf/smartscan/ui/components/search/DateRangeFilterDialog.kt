@@ -1,6 +1,7 @@
 package com.fpf.smartscan.ui.components.search
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,7 @@ import androidx.compose.material3.DisplayMode
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SelectableDates
@@ -89,58 +91,44 @@ fun DateRangeFilterDialog(
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
 
-                // Start Date TextField
+                // Start Date TextField - klikatelné pole
                 OutlinedTextField(
                     value = startDate?.let { formatDate(it) } ?: "",
                     onValueChange = {},
                     label = { Text("Datum od") },
                     readOnly = true,
                     trailingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = "Vybrat datum od")
+                        IconButton(onClick = { showStartPicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Vybrat datum od")
+                        }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
+                        .clickable { showStartPicker = true }
                         .padding(bottom = 12.dp),
                     singleLine = true,
-                    placeholder = { Text("Vyberte datum") }
+                    placeholder = { Text("Klikněte pro výběr data") }
                 )
 
-                // End Date TextField
+                // End Date TextField - klikatelné pole
                 OutlinedTextField(
                     value = endDate?.let { formatDate(it) } ?: "",
                     onValueChange = {},
                     label = { Text("Datum do") },
                     readOnly = true,
                     trailingIcon = {
-                        Icon(Icons.Default.DateRange, contentDescription = "Vybrat datum do")
+                        IconButton(onClick = { showEndPicker = true }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Vybrat datum do")
+                        }
                     },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    placeholder = { Text("Vyberte datum") }
-                )
-
-                // Buttons pro otevření pickerů
-                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    TextButton(
-                        onClick = { showStartPicker = true },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Vybrat datum od")
-                    }
-                    TextButton(
-                        onClick = { showEndPicker = true },
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Vybrat datum do")
-                    }
-                }
+                        .clickable { showEndPicker = true },
+                    singleLine = true,
+                    placeholder = { Text("Klikněte pro výběr data") }
+                )
 
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Action buttons
                 Row(
