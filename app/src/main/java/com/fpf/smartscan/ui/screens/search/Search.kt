@@ -214,11 +214,11 @@ fun SearchScreen(
     if (showDeleteConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
-            title = { Text("Smazat soubory") },
-            text = { Text("Opravdu chcete smazat ${selectedUris.size} vybraných souborů?") },
+            title = { Text(stringResource(R.string.delete_files_title)) },
+            text = { Text(stringResource(R.string.delete_files_message, selectedUris.size)) },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
-                    Text("Zrušit")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -231,7 +231,7 @@ fun SearchScreen(
                         }
                     }
                 }) {
-                    Text("Smazat", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             }
         )
@@ -358,7 +358,7 @@ fun SearchScreen(
                 horizontalArrangement = Arrangement.SpaceBetween
             ){
                 TextButton(onClick = {isMoreOptionsVisible = !isMoreOptionsVisible }) {
-                    Text("More options")
+                    Text(stringResource(R.string.menu_more_options))
                     if(isMoreOptionsVisible){
                         Icon(Icons.Default.ArrowDropUp, contentDescription = "DropUp icon")
                     }else{
@@ -367,7 +367,7 @@ fun SearchScreen(
                 }
                 if(searchResults.isNotEmpty()){
                     TextButton(onClick = {searchViewModel.clearResults() }) {
-                        Text("Clear results")
+                        Text(stringResource(R.string.menu_clear_results))
                     }
                 }
             }

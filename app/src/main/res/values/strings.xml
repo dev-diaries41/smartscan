@@ -226,4 +226,18 @@
     <string name="tags_select">Select tags</string>
     <string name="tags_available">Available tags (%1$d)</string>
     <string name="tags_no_tags_available">No tags available</string>
+    <string name="tags_add_tag">Add tag</string>
+
+    <!-- Delete dialog -->
+    <string name="delete_files_title">Delete files</string>
+    <string name="delete_files_message">Are you sure you want to delete %1$d selected files?</string>
+
+    <!-- Menu -->
+    <string name="menu_more_options">More options</string>
+    <string name="menu_clear_results">Clear results</string>
+
+    <!-- Date picker -->
+    <string name="date_picker_date_from_label">Date from</string>
+    <string name="date_picker_date_to_label">Date to</string>
+    <string name="date_picker_click_to_select">Click to select date</string>
 </resources>

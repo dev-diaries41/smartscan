@@ -221,4 +221,18 @@
     <string name="tags_select">Vybrat tagy</string>
     <string name="tags_available">Dostupné tagy (%1$d)</string>
     <string name="tags_no_tags_available">Žádné tagy k dispozici</string>
+    <string name="tags_add_tag">Přidat tag</string>
+
+    <!-- Mazání -->
+    <string name="delete_files_title">Smazat soubory</string>
+    <string name="delete_files_message">Opravdu chcete smazat %1$d vybraných souborů?</string>
+
+    <!-- Menu -->
+    <string name="menu_more_options">Další možnosti</string>
+    <string name="menu_clear_results">Vymazat výsledky</string>
+
+    <!-- Výběr data -->
+    <string name="date_picker_date_from_label">Datum od</string>
+    <string name="date_picker_date_to_label">Datum do</string>
+    <string name="date_picker_click_to_select">Klikněte pro výběr data</string>
 </resources>
