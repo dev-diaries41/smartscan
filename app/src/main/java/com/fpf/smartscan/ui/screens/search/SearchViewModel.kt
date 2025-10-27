@@ -640,16 +640,32 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     /**
-     * Získá DATE_ADDED metadata z URI (timestamp v ms)
+     * Získá DATE_TAKEN metadata z URI (timestamp v ms) - datum vytvoření fotografie
+     *
+     * DATE_TAKEN reprezentuje kdy byla fotografie pořízena (z EXIF metadat)
+     * Pokud není k dispozici, fallback na DATE_ADDED
      */
     private fun getDateAddedFromUri(uri: Uri): Long? {
         return try {
-            val projection = arrayOf(android.provider.MediaStore.Images.Media.DATE_ADDED)
+            val projection = arrayOf(
+                android.provider.MediaStore.Images.Media.DATE_TAKEN,
+                android.provider.MediaStore.Images.Media.DATE_ADDED
+            )
             application.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
                 if (cursor.moveToFirst()) {
-                    val dateAddedIndex = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATE_ADDED)
-                    // DATE_ADDED je v sekundách, převést na ms
-                    cursor.getLong(dateAddedIndex) * 1000
+                    // Priorita: DATE_TAKEN (datum vytvoření fotografie)
+                    val dateTakenIndex = cursor.getColumnIndex(android.provider.MediaStore.Images.Media.DATE_TAKEN)
+                    val dateTaken = if (dateTakenIndex != -1) {
+                        cursor.getLong(dateTakenIndex)
+                    } else 0L
+
+                    if (dateTaken > 0) {
+                        dateTaken // DATE_TAKEN je už v ms
+                    } else {
+                        // Fallback na DATE_ADDED pokud DATE_TAKEN není k dispozici
+                        val dateAddedIndex = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATE_ADDED)
+                        cursor.getLong(dateAddedIndex) * 1000 // DATE_ADDED je v sekundách, převést na ms
+                    }
                 } else null
             }
         } catch (e: Exception) {
