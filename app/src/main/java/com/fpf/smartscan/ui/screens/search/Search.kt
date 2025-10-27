@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
@@ -52,6 +54,8 @@ import com.fpf.smartscan.ui.components.search.SearchBar
 import com.fpf.smartscan.ui.components.search.SearchResults
 import com.fpf.smartscan.ui.components.search.SelectionActionBar
 import com.fpf.smartscan.ui.components.search.TagFilterChips
+import com.fpf.smartscan.ui.components.search.DateRangeFilterDialog
+import com.fpf.smartscan.ui.components.search.getDateRangeDescription
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -95,7 +99,12 @@ fun SearchScreen(
     val availableTagsWithCounts by searchViewModel.availableTagsWithCounts.collectAsState()
     val selectedTagFilters by searchViewModel.selectedTagFilters.collectAsState()
 
+    // Date range filtering state
+    val dateRangeStart by searchViewModel.dateRangeStart.collectAsState()
+    val dateRangeEnd by searchViewModel.dateRangeEnd.collectAsState()
+
     var isMoreOptionsVisible by remember { mutableStateOf(false) }
+    var showDateRangeDialog by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
@@ -389,6 +398,17 @@ fun SearchScreen(
                 )
             }
 
+            // Date range filter button (pouze pokud jsou výsledky)
+            if (searchResults.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                DateRangeFilterButton(
+                    currentStartDate = dateRangeStart,
+                    currentEndDate = dateRangeEnd,
+                    onClick = { showDateRangeDialog = true },
+                    onClear = { searchViewModel.clearDateRange() }
+                )
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
             LoadingIndicator(isVisible = isLoading, size = 48.dp, strokeWidth = 4.dp, modifier = Modifier.fillMaxWidth())
 
@@ -502,6 +522,20 @@ fun SearchScreen(
         }
     }
 
+    // Date Range Filter Dialog
+    if (showDateRangeDialog) {
+        DateRangeFilterDialog(
+            currentStartDate = dateRangeStart,
+            currentEndDate = dateRangeEnd,
+            onDismiss = { showDateRangeDialog = false },
+            onConfirm = { start, end ->
+                searchViewModel.setDateRange(start, end)
+            },
+            onClear = {
+                searchViewModel.clearDateRange()
+            }
+        )
+    }
 }
 
 
@@ -531,6 +565,57 @@ fun SearchPlaceholderDisplay(isVisible: Boolean) {
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
         }
+    }
+}
+
+/**
+ * Tlačítko pro otevření date range filtru
+ */
+@Composable
+fun DateRangeFilterButton(
+    currentStartDate: Long?,
+    currentEndDate: Long?,
+    onClick: () -> Unit,
+    onClear: () -> Unit
+) {
+    val hasFilter = currentStartDate != null || currentEndDate != null
+    val description = getDateRangeDescription(currentStartDate, currentEndDate)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        androidx.compose.material3.FilterChip(
+            selected = hasFilter,
+            onClick = onClick,
+            label = {
+                Text(
+                    text = if (hasFilter) description else "Filtrovat podle data"
+                )
+            },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.CalendarMonth,
+                    contentDescription = "Kalendář"
+                )
+            },
+            trailingIcon = if (hasFilter) {
+                {
+                    androidx.compose.material3.IconButton(
+                        onClick = { onClear() },
+                        modifier = Modifier.size(24.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Vymazat filter",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            } else null
+        )
     }
 }
 

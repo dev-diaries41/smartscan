@@ -154,6 +154,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _availableTagsWithCounts = MutableStateFlow<List<Pair<UserTagEntity, Int>>>(emptyList())
     val availableTagsWithCounts: StateFlow<List<Pair<UserTagEntity, Int>>> = _availableTagsWithCounts
 
+    // Date range filtering state
+    private val _dateRangeStart = MutableStateFlow<Long?>(null)
+    val dateRangeStart: StateFlow<Long?> = _dateRangeStart
+
+    private val _dateRangeEnd = MutableStateFlow<Long?>(null)
+    val dateRangeEnd: StateFlow<Long?> = _dateRangeEnd
+
     // Všechny výsledky před aplikací tag filtru
     private val _unfilteredSearchResults = MutableStateFlow<List<Uri>>(emptyList())
 
@@ -526,34 +533,109 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     /**
+     * Nastaví date range filter
+     */
+    fun setDateRange(startDate: Long?, endDate: Long?) {
+        _dateRangeStart.value = startDate
+        _dateRangeEnd.value = endDate
+
+        // Re-apply všechny filtry (tag + date)
+        viewModelScope.launch(Dispatchers.IO) {
+            applyAllFilters()
+        }
+    }
+
+    /**
+     * Vyčistí date range filter
+     */
+    fun clearDateRange() {
+        _dateRangeStart.value = null
+        _dateRangeEnd.value = null
+
+        // Re-apply všechny filtry
+        viewModelScope.launch(Dispatchers.IO) {
+            applyAllFilters()
+        }
+    }
+
+    /**
      * Aplikuje tag filtry na výsledky vyhledávání
      *
      * Logika: AND - zobrazit pouze obrázky, které mají VŠECHNY vybrané tagy
      */
     private suspend fun applyTagFilters() {
-        if (_selectedTagFilters.value.isEmpty()) {
-            // Žádné filtry -> zobrazit všechny výsledky
+        applyAllFilters()
+    }
+
+    /**
+     * Aplikuje všechny filtry (tag + date range) na výsledky vyhledávání
+     */
+    private suspend fun applyAllFilters() {
+        val hasTagFilter = _selectedTagFilters.value.isNotEmpty()
+        val hasDateFilter = _dateRangeStart.value != null || _dateRangeEnd.value != null
+
+        // Pokud nejsou žádné filtry, zobraz všechny výsledky
+        if (!hasTagFilter && !hasDateFilter) {
             _searchResults.value = _unfilteredSearchResults.value
+            _totalResults.value = _unfilteredSearchResults.value.size
             return
         }
 
         try {
-            // Získat image IDs které mají VŠECHNY vybrané tagy
-            val filteredImageIds = tagRepository.getImageIdsForTags(
-                _selectedTagFilters.value.toList()
-            ).toSet()
+            var filtered = _unfilteredSearchResults.value
 
-            // Filtrovat URIs podle těchto IDs
-            val filtered = _unfilteredSearchResults.value.filter { uri ->
-                val imageId = getImageIdFromUri(uri)
-                imageId != null && filteredImageIds.contains(imageId)
+            // 1. Aplikuj tag filter
+            if (hasTagFilter) {
+                val filteredImageIds = tagRepository.getImageIdsForTags(
+                    _selectedTagFilters.value.toList()
+                ).toSet()
+
+                filtered = filtered.filter { uri ->
+                    val imageId = getImageIdFromUri(uri)
+                    imageId != null && filteredImageIds.contains(imageId)
+                }
+            }
+
+            // 2. Aplikuj date range filter
+            if (hasDateFilter) {
+                val startDate = _dateRangeStart.value
+                val endDate = _dateRangeEnd.value
+
+                filtered = filtered.filter { uri ->
+                    val dateAdded = getDateAddedFromUri(uri)
+                    if (dateAdded == null) return@filter false
+
+                    val matchesStart = startDate == null || dateAdded >= startDate
+                    val matchesEnd = endDate == null || dateAdded <= endDate
+
+                    matchesStart && matchesEnd
+                }
             }
 
             _searchResults.value = filtered
             _totalResults.value = filtered.size
         } catch (e: Exception) {
-            Log.e(TAG, "Error applying tag filters", e)
+            Log.e(TAG, "Error applying filters", e)
             _searchResults.value = _unfilteredSearchResults.value
+        }
+    }
+
+    /**
+     * Získá DATE_ADDED metadata z URI (timestamp v ms)
+     */
+    private fun getDateAddedFromUri(uri: Uri): Long? {
+        return try {
+            val projection = arrayOf(android.provider.MediaStore.Images.Media.DATE_ADDED)
+            application.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val dateAddedIndex = cursor.getColumnIndexOrThrow(android.provider.MediaStore.Images.Media.DATE_ADDED)
+                    // DATE_ADDED je v sekundách, převést na ms
+                    cursor.getLong(dateAddedIndex) * 1000
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting date from URI: $uri", e)
+            null
         }
     }
 
