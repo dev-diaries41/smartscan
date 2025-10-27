@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.core.content.edit
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,7 +36,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import java.io.File
 
 class SettingsViewModel(private val application: Application) : AndroidViewModel(application) {
-    private val sharedPrefs = application.getSharedPreferences(SETTINGS_PREF_NAME, Context.MODE_PRIVATE)
+    private val sharedPrefs = application.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val _appSettings = MutableStateFlow(AppSettings())
     val appSettings: StateFlow<AppSettings> = _appSettings
 
@@ -53,7 +54,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
 
 
     companion object {
-        private const val SETTINGS_PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
+        private const val PREF_NAME = "AsyncStorage" // used for backward compatibility with old Storage wrapper which has now been removed (I was original as TypeScript guy)
         private const val TAG = "SettingsViewModel"
         const val BACKUP_FILENAME = "smartscan_backup.zip"
         private const val HASH_FILENAME = "hash.txt"
@@ -178,6 +179,7 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
                 _event.emit("Restore successful")
                 ImageIndexListener.onComplete(application, Metrics.Success()) // call onComplete to trigger refresh in search screen
                 VideoIndexListener.onComplete(application, Metrics.Success())
+                sharedPrefs.edit { putString("lastIndexed", System.currentTimeMillis().toString()) } // so scheduling can be triggered
             }catch (e: Exception){
                 Log.e(TAG, "Error restoring: ${e.message}")
                 _event.emit("Restore error")
