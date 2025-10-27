@@ -167,13 +167,13 @@ fun SearchScreen(
     if ( isImageIndexAlertVisible) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Start Indexing Images") },
+            title = { Text(stringResource(R.string.dialog_start_indexing_images_title)) },
             text = { Text(message) },
             dismissButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.IMAGE)
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -181,7 +181,7 @@ fun SearchScreen(
                     searchViewModel.toggleAlert(MediaType.IMAGE)
                     startIndexing(context, MediaIndexForegroundService.TYPE_IMAGE)
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )
@@ -190,13 +190,13 @@ fun SearchScreen(
     if ( isVideoIndexAlertVisible) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Start Indexing Videos") },
+            title = { Text(stringResource(R.string.dialog_start_indexing_videos_title)) },
             text = { Text(message) },
             dismissButton = {
                 TextButton(onClick = {
                     searchViewModel.toggleAlert(MediaType.VIDEO)
                 }) {
-                    Text("Cancel")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -204,7 +204,7 @@ fun SearchScreen(
                     searchViewModel.toggleAlert(MediaType.VIDEO)
                     startIndexing(context, MediaIndexForegroundService.TYPE_VIDEO)
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )
