@@ -7,6 +7,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
@@ -87,7 +88,8 @@ fun CropImageDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onDismiss) {
                         Icon(
@@ -100,23 +102,11 @@ fun CropImageDialog(
                     Text(
                         text = stringResource(R.string.crop_select_area),
                         style = MaterialTheme.typography.titleMedium,
-                        color = Color.White,
-                        modifier = Modifier.align(Alignment.CenterVertically)
+                        color = Color.White
                     )
 
-                    IconButton(
-                        onClick = {
-                            originalBitmap?.let { bitmap ->
-                                // Crop bude provedeno v CropImageEditor
-                            }
-                        }
-                    ) {
-                        Icon(
-                            Icons.Default.Check,
-                            contentDescription = stringResource(R.string.action_confirm),
-                            tint = Color.White
-                        )
-                    }
+                    // Prázdný prostor pro symetrii (tlačítko Crop je dole)
+                    Spacer(modifier = Modifier.width(48.dp))
                 }
 
                 // Crop editor

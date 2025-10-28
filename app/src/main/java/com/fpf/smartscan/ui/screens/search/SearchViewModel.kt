@@ -344,7 +344,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     }
 
     fun imageSearch(threshold: Float = 0.2f) {
-        if (_searchImageUri.value == null) return
+        if (_searchImageUri.value == null) {
+            Log.w(TAG, "imageSearch: searchImageUri is null")
+            return
+        }
 
         val store = if(_mediaType.value == MediaType.VIDEO) videoStore else imageStore
         if(!store.exists) {
@@ -353,6 +356,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
         _isLoading.value = true
         _error.value = null
+
+        Log.i(TAG, "imageSearch: Starting search. Cropped bitmap exists: ${_croppedBitmap.value != null}")
 
         viewModelScope.launch((Dispatchers.IO)) {
             try {
@@ -363,10 +368,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
                 // Pokud existuje cropped bitmap, použij ten místo celého obrázku
                 val bitmap = _croppedBitmap.value ?: getBitmapFromUri(application, _searchImageUri.value!!, ClipConfig.IMAGE_SIZE_X)
+                Log.i(TAG, "imageSearch: Using ${if(_croppedBitmap.value != null) "CROPPED" else "FULL"} bitmap. Size: ${bitmap.width}x${bitmap.height}")
+
                 val embedding = imageEmbedder.embed(bitmap)
+                Log.i(TAG, "imageSearch: Embedding generated, length: ${embedding.size}")
+
                 search(store, embedding, threshold)
             } catch (e: Exception) {
-                Log.e(TAG, "$e")
+                Log.e(TAG, "imageSearch: Error during search", e)
                 _error.emit(application.getString(R.string.search_error_unknown))
             } finally {
                 _isLoading.emit(false)
@@ -467,6 +476,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
      */
     fun setCroppedBitmap(bitmap: android.graphics.Bitmap?) {
         _croppedBitmap.value = bitmap
+        if (bitmap != null) {
+            Log.i(TAG, "setCroppedBitmap: Cropped bitmap saved. Size: ${bitmap.width}x${bitmap.height}")
+        } else {
+            Log.i(TAG, "setCroppedBitmap: Cropped bitmap cleared")
+        }
     }
 
     /**
