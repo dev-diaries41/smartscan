@@ -533,14 +533,16 @@ fun SearchScreen(
     }
 
     // Crop Image Dialog
-    if (showCropDialog && searchImageUri != null) {
-        com.fpf.smartscan.ui.components.media.CropImageDialog(
-            imageUri = searchImageUri,
-            onCropped = { croppedBitmap ->
-                searchViewModel.setCroppedBitmap(croppedBitmap)
-            },
-            onDismiss = { searchViewModel.hideCropDialog() }
-        )
+    if (showCropDialog) {
+        searchImageUri?.let { uri ->
+            com.fpf.smartscan.ui.components.media.CropImageDialog(
+                imageUri = uri,
+                onCropped = { croppedBitmap ->
+                    searchViewModel.setCroppedBitmap(croppedBitmap)
+                },
+                onDismiss = { searchViewModel.hideCropDialog() }
+            )
+        }
     }
 
     // Date Range Filter Dialog
