@@ -275,6 +275,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         viewModelScope.launch((Dispatchers.IO)) {
             try {
+                // FÁZE 1: Překlad textu a zobrazení v UI
+                // ========================================
+
                 // 1. Inicializace translátoru (lazy - pouze první použití)
                 if (!translationService.isInitialized) {
                     translationService.initialize()
@@ -292,19 +295,27 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 Log.i(TAG, "Původní dotaz: \"$currentQuery\"")
                 Log.i(TAG, "Přeložený dotaz: \"$translatedQuery\"")
 
-                // Nastavit přeložený text pro UI (pouze pokud se překlad provede)
+                // 3. Nastavit přeložený text pro UI (pouze pokud se překlad provede)
                 if (detectedLanguage == "cs" && translatedQuery != currentQuery) {
                     _translatedQuery.emit(translatedQuery)
                 } else {
                     _translatedQuery.emit(null)
                 }
 
-                // 3. Generování embeddings z přeloženého textu
+                // 4. PAUZA - dej UI čas zobrazit překlad (500ms)
+                kotlinx.coroutines.delay(500)
+
+                // FÁZE 2: Vektorové vyhledávání
+                // ========================================
+
+                // 5. Generování embeddings z přeloženého textu
                 if(!textEmbedder.isInitialized()){
                     textEmbedder.initialize()
                 }
                 if(shouldShutdownModel(imageEmbedderLastUsage)) imageEmbedder.closeSession() // prevent keeping both models open
                 val embedding = textEmbedder.embed(translatedQuery)
+
+                // 6. Vyhledávání
                 search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
