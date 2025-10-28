@@ -2,9 +2,7 @@ package com.fpf.smartscan.ui.components.search
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,7 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.data.tags.UserTagEntity
 
 /**
- * Horizontální scrollable řádek s filter chips pro tagy
+ * Vertikální seznam s filter chips pro tagy
  *
  * Zobrazuje dostupné tagy s počtem obrázků a umožňuje jejich výběr/deselect
  * pro filtrování výsledků vyhledávání.
@@ -38,20 +36,18 @@ fun TagFilterChips(
     }
 
     Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
         // Header
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
                 text = "Filtry:",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
@@ -64,20 +60,30 @@ fun TagFilterChips(
             }
         }
 
-        // Scrollable chips row
-        Row(
+        // Vertikální seznam chips - omezen na max 3 řádky
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .heightIn(max = 120.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            availableTags.forEach { (tag, count) ->
+            availableTags.take(5).forEach { (tag, count) ->
                 TagFilterChip(
                     tag = tag,
                     count = count,
                     isSelected = selectedTags.contains(tag.name),
-                    onClick = { onTagToggle(tag.name) }
+                    onClick = { onTagToggle(tag.name) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+
+            // Indikace více tagů pokud je jich víc než 5
+            if (availableTags.size > 5) {
+                Text(
+                    text = "+${availableTags.size - 5} dalších",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp)
                 )
             }
         }
@@ -93,11 +99,13 @@ private fun TagFilterChip(
     tag: UserTagEntity,
     count: Int,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     FilterChip(
         selected = isSelected,
         onClick = onClick,
+        modifier = modifier,
         label = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),

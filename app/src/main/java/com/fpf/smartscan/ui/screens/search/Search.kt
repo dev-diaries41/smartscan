@@ -284,7 +284,7 @@ fun SearchScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -398,18 +398,34 @@ fun SearchScreen(
                 }
             }
 
-            // Tag filtering chips (pouze pro IMAGE mode a pokud existují tagy)
+            // Tag filtering + Date filter v jednom řádku (pouze pro IMAGE mode)
             if (mediaType == MediaType.IMAGE && availableTagsWithCounts.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                TagFilterChips(
-                    availableTags = availableTagsWithCounts,
-                    selectedTags = selectedTagFilters,
-                    onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) }
-                )
-            }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Tag filtering jako vertikální list (vezme dostupný prostor)
+                    TagFilterChips(
+                        availableTags = availableTagsWithCounts,
+                        selectedTags = selectedTagFilters,
+                        onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) },
+                        modifier = Modifier.weight(1f)
+                    )
 
-            // Date range filter button (pouze pokud jsou výsledky)
-            if (searchResults.isNotEmpty()) {
+                    // Date range filter button vedle (fixed width)
+                    if (searchResults.isNotEmpty()) {
+                        DateRangeFilterButton(
+                            currentStartDate = dateRangeStart,
+                            currentEndDate = dateRangeEnd,
+                            onClick = { showDateRangeDialog = true },
+                            onClear = { searchViewModel.clearDateRange() },
+                            modifier = Modifier.align(Alignment.Top)
+                        )
+                    }
+                }
+            } else if (searchResults.isNotEmpty()) {
+                // Date filter samostatně pokud nejsou tagy
                 Spacer(modifier = Modifier.height(8.dp))
                 DateRangeFilterButton(
                     currentStartDate = dateRangeStart,
@@ -599,15 +615,16 @@ fun DateRangeFilterButton(
     currentStartDate: Long?,
     currentEndDate: Long?,
     onClick: () -> Unit,
-    onClear: () -> Unit
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val hasFilter = currentStartDate != null || currentEndDate != null
     val description = getDateRangeDescription(currentStartDate, currentEndDate)
 
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+        modifier = modifier
+            .wrapContentWidth()
+            .padding(horizontal = 0.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         androidx.compose.material3.FilterChip(
