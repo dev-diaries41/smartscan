@@ -29,6 +29,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -379,16 +380,14 @@ fun SearchScreen(
                 }
             }
 
-            // Similarity Threshold slider (zobrazit pokud jsou výsledky nebo během vyhledávání)
-            if (searchResults.isNotEmpty() || isLoading) {
-                Spacer(modifier = Modifier.height(8.dp))
-                SimilarityThresholdSlider(
-                    threshold = currentThreshold,
-                    onThresholdChange = { newThreshold ->
-                        currentThreshold = newThreshold
-                    }
-                )
-            }
+            // Similarity Threshold slider (vždy viditelný)
+            Spacer(modifier = Modifier.height(8.dp))
+            SimilarityThresholdSlider(
+                threshold = currentThreshold,
+                onThresholdChange = { newThreshold ->
+                    currentThreshold = newThreshold
+                }
+            )
 
             // Few-Shot Learning selector
             if (availableFewShotPrototypes.isNotEmpty()) {
@@ -614,12 +613,8 @@ fun MediaTypeToggle(
     Row(
         modifier = Modifier
             .wrapContentWidth()
-            .background(
-                color = if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                shape = MaterialTheme.shapes.small
-            )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Ikona IMAGE (vlevo)
@@ -631,10 +626,10 @@ fun MediaTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
             },
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
 
-        // Switch
+        // Switch (menší)
         Switch(
             checked = currentMediaType == MediaType.VIDEO,
             onCheckedChange = { isVideo ->
@@ -643,11 +638,12 @@ fun MediaTypeToggle(
                 }
             },
             enabled = enabled,
+            modifier = Modifier.scale(0.8f),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                 disabledCheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 disabledUncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
             )
@@ -662,7 +658,7 @@ fun MediaTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
             },
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -677,57 +673,35 @@ fun SimilarityThresholdSlider(
     threshold: Float,
     onThresholdChange: (Float) -> Unit
 ) {
-    Column(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = MaterialTheme.shapes.small
-            )
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = "Similarity Threshold",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "${(threshold * 100).toInt()}%",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Threshold",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
 
         Slider(
             value = threshold,
             onValueChange = onThresholdChange,
             valueRange = 0f..1f,
-            steps = 19, // 5% kroky (0.05 * 20 = 1.0)
-            modifier = Modifier.fillMaxWidth()
+            steps = 19, // 5% kroky
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 12.dp)
         )
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text = "Méně přesné",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
-            Text(
-                text = "Více přesné",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-            )
-        }
+        Text(
+            text = "${(threshold * 100).toInt()}%",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.width(40.dp)
+        )
     }
 }
 
@@ -745,12 +719,8 @@ fun QueryTypeToggle(
     Row(
         modifier = Modifier
             .wrapContentWidth()
-            .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = MaterialTheme.shapes.small
-            )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+            .padding(horizontal = 4.dp, vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Ikona TEXT (vlevo)
@@ -762,33 +732,34 @@ fun QueryTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             },
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
 
-        // Switch
+        // Switch (menší)
         Switch(
             checked = currentQueryType == QueryType.IMAGE,
             onCheckedChange = { isImage ->
                 onQueryTypeChange(if (isImage) QueryType.IMAGE else QueryType.TEXT)
             },
+            modifier = Modifier.scale(0.8f),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
-                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                uncheckedThumbColor = MaterialTheme.colorScheme.primary,
+                uncheckedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
             )
         )
 
         // Ikona IMAGE (vpravo)
         Icon(
-            imageVector = Icons.Default.Image,
+            imageVector = Icons.Default.ImageSearch,
             contentDescription = "Image search",
             tint = if (currentQueryType == QueryType.IMAGE) {
                 MaterialTheme.colorScheme.primary
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             },
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(18.dp)
         )
     }
 }
