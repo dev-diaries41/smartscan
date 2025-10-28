@@ -398,34 +398,19 @@ fun SearchScreen(
                 }
             }
 
-            // Tag filtering + Date filter v jednom řádku (pouze pro IMAGE mode)
+            // Tag filtering (pouze pro IMAGE mode)
             if (mediaType == MediaType.IMAGE && availableTagsWithCounts.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Tag filtering jako vertikální list (vezme dostupný prostor)
-                    TagFilterChips(
-                        availableTags = availableTagsWithCounts,
-                        selectedTags = selectedTagFilters,
-                        onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) },
-                        modifier = Modifier.weight(1f)
-                    )
+                TagFilterChips(
+                    availableTags = availableTagsWithCounts,
+                    selectedTags = selectedTagFilters,
+                    onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
 
-                    // Date range filter button vedle (fixed width)
-                    if (searchResults.isNotEmpty()) {
-                        DateRangeFilterButton(
-                            currentStartDate = dateRangeStart,
-                            currentEndDate = dateRangeEnd,
-                            onClick = { showDateRangeDialog = true },
-                            onClear = { searchViewModel.clearDateRange() },
-                            modifier = Modifier.align(Alignment.Top)
-                        )
-                    }
-                }
-            } else if (searchResults.isNotEmpty()) {
-                // Date filter samostatně pokud nejsou tagy
+            // Date range filter (pokud jsou výsledky)
+            if (searchResults.isNotEmpty()) {
                 Spacer(modifier = Modifier.height(8.dp))
                 DateRangeFilterButton(
                     currentStartDate = dateRangeStart,

@@ -1,9 +1,18 @@
 package com.fpf.smartscan.ui.components.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,10 +23,10 @@ import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.data.tags.UserTagEntity
 
 /**
- * Vertikální seznam s filter chips pro tagy
+ * Rozbalovací seznam s filter chips pro tagy
  *
  * Zobrazuje dostupné tagy s počtem obrázků a umožňuje jejich výběr/deselect
- * pro filtrování výsledků vyhledávání.
+ * pro filtrování výsledků vyhledávání. Seznam je defaultně sbalený.
  *
  * @param availableTags List párů (UserTagEntity, počet obrázků s tímto tagem)
  * @param selectedTags Set názvů vybraných tagů
@@ -35,56 +44,83 @@ fun TagFilterChips(
         return
     }
 
+    var isExpanded by remember { mutableStateOf(false) }
+
     Column(
         modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        // Klikací header pro rozbalení/sbalení
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { isExpanded = !isExpanded },
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = MaterialTheme.shapes.small
         ) {
-            Text(
-                text = "Filtry:",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Filtry:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-            if (selectedTags.isNotEmpty()) {
-                Text(
-                    text = "${selectedTags.size} ${if (selectedTags.size == 1) "vybraný" else if (selectedTags.size < 5) "vybrané" else "vybraných"}",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    if (selectedTags.isNotEmpty()) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = selectedTags.size.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
+
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = if (isExpanded) "Sbalit" else "Rozbalit",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
 
-        // Vertikální seznam chips - omezen na max 3 řádky
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 120.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+        // Rozbalovací seznam tagů s animací
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(),
+            exit = shrinkVertically()
         ) {
-            availableTags.take(5).forEach { (tag, count) ->
-                TagFilterChip(
-                    tag = tag,
-                    count = count,
-                    isSelected = selectedTags.contains(tag.name),
-                    onClick = { onTagToggle(tag.name) },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            // Indikace více tagů pokud je jich víc než 5
-            if (availableTags.size > 5) {
-                Text(
-                    text = "+${availableTags.size - 5} dalších",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(start = 8.dp)
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                availableTags.forEach { (tag, count) ->
+                    TagFilterChip(
+                        tag = tag,
+                        count = count,
+                        isSelected = selectedTags.contains(tag.name),
+                        onClick = { onTagToggle(tag.name) },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
