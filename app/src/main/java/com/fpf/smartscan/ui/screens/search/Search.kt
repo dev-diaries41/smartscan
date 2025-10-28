@@ -79,6 +79,7 @@ fun SearchScreen(
 
     // Search state
     val searchQuery by searchViewModel.query.collectAsState("")
+    val translatedQuery by searchViewModel.translatedQuery.collectAsState(null)
     val isLoading by searchViewModel.isLoading.collectAsState(false)
     val error by searchViewModel.error.collectAsState(null)
     val mediaType by searchViewModel.mediaType.collectAsState(MediaType.IMAGE)
@@ -321,6 +322,7 @@ fun SearchScreen(
                         MediaType.VIDEO -> "Search videos..."
                     },
                     threshold = appSettings.similarityThreshold,
+                    translatedQuery = translatedQuery,
                     trailingIcon = {
                         val alpha =
                             if (canSearch && hasStoragePermission && !isLoading) 0.6f else 0.1f

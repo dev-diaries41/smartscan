@@ -107,6 +107,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
 
+    // Přeložený dotaz (pro zobrazení v UI)
+    private val _translatedQuery = MutableStateFlow<String?>(null)
+    val translatedQuery: StateFlow<String?> = _translatedQuery
+
     private val _searchResults = MutableStateFlow<List<Uri>>(emptyList())
     val searchResults: StateFlow<List<Uri>> = _searchResults
 
@@ -277,14 +281,23 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
 
                 // 2. Automatická detekce jazyka a překlad CS→EN
+                var detectedLanguage = "en"
                 val translatedQuery = translationService.translateToEnglish(currentQuery,
                     onLanguageDetected = { language: String, confidence: Float ->
+                        detectedLanguage = language
                         Log.d(TAG, "Detekován jazyk: $language (${confidence * 100}% confidence)")
                     }
                 )
 
                 Log.i(TAG, "Původní dotaz: \"$currentQuery\"")
                 Log.i(TAG, "Přeložený dotaz: \"$translatedQuery\"")
+
+                // Nastavit přeložený text pro UI (pouze pokud se překlad provede)
+                if (detectedLanguage == "cs" && translatedQuery != currentQuery) {
+                    _translatedQuery.emit(translatedQuery)
+                } else {
+                    _translatedQuery.emit(null)
+                }
 
                 // 3. Generování embeddings z přeloženého textu
                 if(!textEmbedder.isInitialized()){

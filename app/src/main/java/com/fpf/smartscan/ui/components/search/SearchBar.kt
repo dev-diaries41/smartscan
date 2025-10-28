@@ -34,7 +34,8 @@ fun SearchBar(
     onSearch: (threshold: Float) -> Unit,
     onClearQuery: () -> Unit,
     label: String,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
+    translatedQuery: String? = null
 ) {
     OutlinedTextField(
         singleLine = true,
@@ -42,6 +43,15 @@ fun SearchBar(
         value = query,
         onValueChange = onQueryChange,
         label = { Text(label) },
+        supportingText = if (translatedQuery != null) {
+            {
+                Text(
+                    text = "→ $translatedQuery",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+        } else null,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         keyboardActions = KeyboardActions(
