@@ -44,6 +44,8 @@
     <string name="search_error_no_results">Nenalezeny žádné výsledky.</string>
     <string name="search_error_missing_permissions_for_results">Chybí oprávnění k úložišti pro 1 nebo více obrázků.</string>
     <string name="search_error_empty_query">Dotaz nemůže být prázdný.</string>
+    <string name="upload_image">Nahrát obrázek</string>
+    <string name="crop_select_area">Vyberte oblast k vyhledání</string>
     <string name="search_error_unknown">Došlo k neznámé chybě.</string>
     <string name="search_error_index_loading">Chyba při načítání indexu.</string>
 
@@ -175,6 +177,11 @@
     <string name="action_delete">Smazat</string>
     <string name="action_edit">Upravit</string>
     <string name="action_run">Spustit</string>
+    <string name="action_crop">Oříznout</string>
+    <string name="action_recrop">Znovu oříznout</string>
+    <string name="action_clear_crop">Zrušit ořez</string>
+    <string name="action_confirm">Potvrdit</string>
+    <string name="action_crop_and_search">Oříznout a vyhledat</string>
     <string name="action_classify">Klasifikovat</string>
 
     <!-- Správce tagů -->

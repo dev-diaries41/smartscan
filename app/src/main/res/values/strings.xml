@@ -48,6 +48,8 @@
     <string name="search_error_no_results">No matching results found.</string>
     <string name="search_error_missing_permissions_for_results">Missing storage permissions for 1 or more images.</string>
     <string name="search_error_empty_query">Query cannot be empty.</string>
+    <string name="upload_image">Upload image</string>
+    <string name="crop_select_area">Select area to search</string>
     <string name="search_error_unknown">An unknown error occurred.</string>
     <string name="search_error_index_loading">Error loading index.</string>
 
@@ -181,6 +183,11 @@
     <string name="action_edit">Edit</string>
     <string name="action_run">Run</string>
     <string name="action_classify">Classify</string>
+    <string name="action_crop">Crop</string>
+    <string name="action_recrop">Re-crop</string>
+    <string name="action_clear_crop">Clear crop</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_crop_and_search">Crop &amp; Search</string>
 
     <!-- Tag Manager -->
     <string name="tag_manager_title">Tag Manager</string>

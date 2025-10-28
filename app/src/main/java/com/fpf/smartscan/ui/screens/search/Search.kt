@@ -92,6 +92,10 @@ fun SearchScreen(
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
     val totalResults by searchViewModel.totalResults.collectAsState()
 
+    // Crop state
+    val showCropDialog by searchViewModel.showCropDialog.collectAsState()
+    val croppedBitmap by searchViewModel.croppedBitmap.collectAsState()
+
     // Selection state
     val isSelectionMode by searchViewModel.isSelectionMode.collectAsState()
     val selectedUris by searchViewModel.selectedUris.collectAsState()
@@ -304,9 +308,12 @@ fun SearchScreen(
                     mediaType = mediaType,
                     searchEnabled = canSearch && searchImageUri != null,
                     mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
+                    hasCroppedImage = croppedBitmap != null,
                     onSearch = searchViewModel::imageSearch,
                     onMediaTypeChange = searchViewModel::setMediaType,
                     onImageSelected = searchViewModel::updateSearchImageUri,
+                    onCropClick = { searchViewModel.showCropDialog() },
+                    onClearCrop = { searchViewModel.clearCrop() }
                 )
             }else{
                 SearchBar(
@@ -523,6 +530,17 @@ fun SearchScreen(
                 )
             }
         }
+    }
+
+    // Crop Image Dialog
+    if (showCropDialog && searchImageUri != null) {
+        com.fpf.smartscan.ui.components.media.CropImageDialog(
+            imageUri = searchImageUri,
+            onCropped = { croppedBitmap ->
+                searchViewModel.setCroppedBitmap(croppedBitmap)
+            },
+            onDismiss = { searchViewModel.hideCropDialog() }
+        )
     }
 
     // Date Range Filter Dialog

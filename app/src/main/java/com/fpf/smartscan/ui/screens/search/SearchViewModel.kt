@@ -150,6 +150,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _searchImageUri = MutableStateFlow<Uri?>(null)
     val searchImageUri: StateFlow<Uri?> = _searchImageUri
 
+    // Crop functionality - uložený oříznutý bitmap pro vyhledávání
+    private val _croppedBitmap = MutableStateFlow<android.graphics.Bitmap?>(null)
+    val croppedBitmap: StateFlow<android.graphics.Bitmap?> = _croppedBitmap
+
+    // Flag zda zobrazit crop dialog
+    private val _showCropDialog = MutableStateFlow(false)
+    val showCropDialog: StateFlow<Boolean> = _showCropDialog
+
     // Selection state pro multi-select mode
     private val _selectedUris = MutableStateFlow<Set<Uri>>(emptySet())
     val selectedUris: StateFlow<Set<Uri>> = _selectedUris
@@ -352,7 +360,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     imageEmbedder.initialize()
                 }
                 if(shouldShutdownModel(textEmbedderLastUsage)) textEmbedder.closeSession() // prevent keeping both models open
-                val bitmap = getBitmapFromUri(application, _searchImageUri.value!!, ClipConfig.IMAGE_SIZE_X)
+
+                // Pokud existuje cropped bitmap, použij ten místo celého obrázku
+                val bitmap = _croppedBitmap.value ?: getBitmapFromUri(application, _searchImageUri.value!!, ClipConfig.IMAGE_SIZE_X)
                 val embedding = imageEmbedder.embed(bitmap)
                 search(store, embedding, threshold)
             } catch (e: Exception) {
@@ -434,6 +444,36 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun updateSearchImageUri(uri: Uri?){
         _searchImageUri.value = uri
+        // Reset cropped bitmap při změně obrázku
+        _croppedBitmap.value = null
+    }
+
+    /**
+     * Zobrazí crop dialog
+     */
+    fun showCropDialog() {
+        _showCropDialog.value = true
+    }
+
+    /**
+     * Skryje crop dialog
+     */
+    fun hideCropDialog() {
+        _showCropDialog.value = false
+    }
+
+    /**
+     * Uloží cropped bitmap pro vyhledávání
+     */
+    fun setCroppedBitmap(bitmap: android.graphics.Bitmap?) {
+        _croppedBitmap.value = bitmap
+    }
+
+    /**
+     * Vymaže cropped bitmap (použije se celý obrázek)
+     */
+    fun clearCrop() {
+        _croppedBitmap.value = null
     }
 
     private fun shouldShutdownModel(lastUsage: Long?) = lastUsage != null && System.currentTimeMillis() - lastUsage >= modelShutdownThreshold
