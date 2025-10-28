@@ -18,9 +18,13 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ImageSearch
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -108,7 +112,6 @@ fun SearchScreen(
     val dateRangeStart by searchViewModel.dateRangeStart.collectAsState()
     val dateRangeEnd by searchViewModel.dateRangeEnd.collectAsState()
 
-    var isMoreOptionsVisible by remember { mutableStateOf(false) }
     var showDateRangeDialog by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
@@ -365,36 +368,19 @@ fun SearchScreen(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ){
-                TextButton(onClick = {isMoreOptionsVisible = !isMoreOptionsVisible }) {
-                    Text(stringResource(R.string.menu_more_options))
-                    if(isMoreOptionsVisible){
-                        Icon(Icons.Default.ArrowDropUp, contentDescription = "DropUp icon")
-                    }else{
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "DropDown icon")
-                    }
-                }
+                // Query Type Toggle Switch (TEXT ↔ IMAGE)
+                QueryTypeToggle(
+                    currentQueryType = queryType,
+                    onQueryTypeChange = { newType -> searchViewModel.updateQueryType(newType) }
+                )
+
                 if(searchResults.isNotEmpty()){
                     TextButton(onClick = {searchViewModel.clearResults() }) {
                         Text(stringResource(R.string.menu_clear_results))
                     }
-                }
-            }
-
-            if(isMoreOptionsVisible) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                    SelectorItem(
-                        label = "Query type",
-                        options = queryOptions.values.toList(),
-                        selectedOption = queryOptions[queryType]!!,
-                        onOptionSelected = { selected ->
-                            val type = queryOptions.entries.find { it.value == selected }?.key ?: QueryType.TEXT
-                            isMoreOptionsVisible = false
-                            searchViewModel.updateQueryType(type)
-                        },
-                        modifier = Modifier.fillMaxWidth()
-                    )
                 }
             }
 
@@ -595,6 +581,68 @@ fun SearchPlaceholderDisplay(isVisible: Boolean) {
 /**
  * Tlačítko pro otevření date range filtru
  */
+/**
+ * Přepínač pro Query Type (TEXT ↔ IMAGE search)
+ *
+ * Zobrazuje switch s ikonkami textu a obrázku na stranách.
+ * Default je IMAGE (obrázky).
+ */
+@Composable
+fun QueryTypeToggle(
+    currentQueryType: QueryType,
+    onQueryTypeChange: (QueryType) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .wrapContentWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Ikona TEXT (vlevo)
+        Icon(
+            imageVector = Icons.Default.TextFields,
+            contentDescription = "Text search",
+            tint = if (currentQueryType == QueryType.TEXT) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            },
+            modifier = Modifier.size(20.dp)
+        )
+
+        // Switch
+        Switch(
+            checked = currentQueryType == QueryType.IMAGE,
+            onCheckedChange = { isImage ->
+                onQueryTypeChange(if (isImage) QueryType.IMAGE else QueryType.TEXT)
+            },
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        )
+
+        // Ikona IMAGE (vpravo)
+        Icon(
+            imageVector = Icons.Default.Image,
+            contentDescription = "Image search",
+            tint = if (currentQueryType == QueryType.IMAGE) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+            },
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
 @Composable
 fun DateRangeFilterButton(
     currentStartDate: Long?,
