@@ -120,30 +120,33 @@ class TranslationService {
 
         try {
             // 1. Detekce jazyka
-            Log.d(TAG, "Detekuji jazyk pro: \"$text\"")
+            Log.i(TAG, "🔍 Detekuji jazyk pro: \"$text\" (délka: ${text.length} znaků)")
             val languageIdentification = languageIdentifier.identifyLanguage(text).await()
+
+            Log.i(TAG, "🏷️ Detekovaný jazyk: [$languageIdentification]")
 
             // Check if language detection failed
             if (languageIdentification == "und") {
-                Log.w(TAG, "Jazyk nerozpoznán, používám původní text")
+                Log.w(TAG, "⚠️ Jazyk nerozpoznán (und) - zkouším přeložit i přesto...")
                 onLanguageDetected?.invoke("und", 0.0f)
-                return text
+                // Pro krátká slova zkusíme překlad i když jazyk není rozpoznán
+                // ML Kit má problém s detekcí jazyka u krátkých slov
             }
 
             // Get confidence (ML Kit doesn't provide it directly, so we use threshold heuristic)
-            val confidence = if (languageIdentification == TranslateLanguage.CZECH) 0.9f else 0.5f
+            val confidence = if (languageIdentification == TranslateLanguage.CZECH) 0.9f else 0.3f
 
-            Log.d(TAG, "Detekován jazyk: $languageIdentification (confidence: ${confidence * 100}%)")
+            Log.i(TAG, "📊 Confidence: ${confidence * 100}% | Czech code: [${TranslateLanguage.CZECH}]")
             onLanguageDetected?.invoke(languageIdentification, confidence)
 
-            // 2. Pokud není čeština, vrátíme původní text
-            if (languageIdentification != TranslateLanguage.CZECH) {
-                Log.d(TAG, "Není čeština ($languageIdentification), přeskakuji překlad")
+            // 2. Pokud je anglický text, přeskočíme překlad
+            if (languageIdentification == TranslateLanguage.ENGLISH) {
+                Log.i(TAG, "🇬🇧 Detekována angličtina, přeskakuji překlad")
                 return text
             }
 
-            // 3. Překlad CS→EN
-            Log.d(TAG, "Překládám CS→EN: \"$text\"")
+            // 3. Pro češtinu NEBO nerozpoznaný jazyk zkusíme překlad
+            Log.i(TAG, "🔄 Překládám CS→EN: \"$text\"")
 
             val translator = czechToEnglishTranslator
                 ?: throw IllegalStateException("Translator není inicializován")

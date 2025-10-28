@@ -231,6 +231,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun setQuery(newQuery: String) {
         _query.value = newQuery
+        // Vymazat přeložený dotaz při změně textu
+        _translatedQuery.value = null
         if(newQuery.isEmpty()){
             _error.value = null
         }
@@ -295,15 +297,21 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 Log.i(TAG, "Původní dotaz: \"$currentQuery\"")
                 Log.i(TAG, "Přeložený dotaz: \"$translatedQuery\"")
 
-                // 3. Nastavit přeložený text pro UI (pouze pokud se překlad provede)
-                if (detectedLanguage == "cs" && translatedQuery != currentQuery) {
+                // 3. Nastavit přeložený text pro UI (pokud se text změnil)
+                // Zobrazíme překlad i když jazyk není rozpoznán (und), protože ML Kit
+                // má problémy s detekcí krátkých slov
+                if (translatedQuery != currentQuery) {
+                    Log.i(TAG, "✅ Zobrazuji překlad v UI: \"$currentQuery\" → \"$translatedQuery\" (jazyk: $detectedLanguage)")
                     _translatedQuery.emit(translatedQuery)
                 } else {
+                    Log.i(TAG, "ℹ️ Překlad se nezobrazuje - text je stejný (jazyk: $detectedLanguage)")
                     _translatedQuery.emit(null)
                 }
 
                 // 4. PAUZA - dej UI čas zobrazit překlad (500ms)
+                Log.d(TAG, "⏸️ Pauza 500ms pro zobrazení překladu...")
                 kotlinx.coroutines.delay(500)
+                Log.d(TAG, "▶️ Pokračuji s embedding generation...")
 
                 // FÁZE 2: Vektorové vyhledávání
                 // ========================================
