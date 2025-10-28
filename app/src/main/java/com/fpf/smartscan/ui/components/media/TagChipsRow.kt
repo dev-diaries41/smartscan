@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.res.stringResource
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.tags.ImageTagEntity
+import com.fpf.smartscan.data.tags.MediaTagEntity
 import com.fpf.smartscan.ui.screens.tags.TagViewModel
 
 /**
@@ -46,7 +46,7 @@ fun TagChipsRow(
     onAddTag: (Long) -> Unit,
     onRemoveTag: (Long, String) -> Unit
 ) {
-    val imageTags by tagViewModel.getTagsForImage(imageId).collectAsState(initial = emptyList())
+    val imageTags by tagViewModel.getTagsForMedia(imageId).collectAsState(initial = emptyList())
 
     Row(
         modifier = Modifier
@@ -86,7 +86,7 @@ fun TagChipsRow(
  */
 @Composable
 private fun TagChip(
-    imageTag: ImageTagEntity,
+    imageTag: MediaTagEntity,
     onRemove: () -> Unit
 ) {
     val confidencePercent = (imageTag.confidence * 100).toInt()

@@ -243,7 +243,7 @@ class RetaggingWorker(
 
             var totalAssigned = 0
             activeTags.forEach { tag ->
-                val count = database.imageTagDao().getImageCountForTag(tag.name)
+                val count = database.mediaTagDao().getMediaCountForTag(tag.name)
                 if (count > 0) {
                     tagCountMap[tag.name] = mutableMapOf(
                         "count" to count,

@@ -48,6 +48,7 @@ import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.lib.DEFAULT_IMAGE_DISPLAY_SIZE
 import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.getImageIdFromUri
+import com.fpf.smartscan.lib.getMediaIdFromUri
 import com.fpf.smartscan.lib.openImageInGallery
 import com.fpf.smartscan.lib.openVideoInGallery
 import com.fpf.smartscan.ui.screens.tags.TagViewModel
@@ -114,7 +115,7 @@ fun SwipeableMediaViewer(
 
             // UI overlay (action bar + tags)
             val currentUri = uris[pagerState.currentPage]
-            val currentImageId = getImageIdFromUri(currentUri)
+            val currentMediaId = getMediaIdFromUri(currentUri)
 
             Column(
                 modifier = Modifier.fillMaxSize(),
@@ -131,16 +132,16 @@ fun SwipeableMediaViewer(
                 )
 
                 // Bottom tags (pouze pro obrázky)
-                if (type == MediaType.IMAGE && currentImageId != null && isActionsVisible) {
-                    val currentTags by tagViewModel.getTagsForImage(currentImageId).collectAsState(initial = emptyList())
+                if (currentMediaId != null && isActionsVisible) {
+                    val currentTags by tagViewModel.getTagsForMedia(currentMediaId).collectAsState(initial = emptyList())
 
                     TagChipsRow(
-                        imageId = currentImageId,
+                        imageId = currentMediaId,
                         tagViewModel = tagViewModel,
                         onAddTag = { showTagPicker = true },
-                        onRemoveTag = { imageId, tagName ->
+                        onRemoveTag = { mediaId, tagName ->
                             scope.launch {
-                                tagViewModel.removeTagFromImage(imageId, tagName)
+                                tagViewModel.removeTagFromMedia(mediaId, tagName)
                             }
                         }
                     )
@@ -148,13 +149,13 @@ fun SwipeableMediaViewer(
                     // Tag picker dialog
                     if (showTagPicker) {
                         TagPickerDialog(
-                            imageId = currentImageId,
+                            imageId = currentMediaId,
                             availableTags = allTags,
                             currentTags = currentTags,
                             onDismiss = { showTagPicker = false },
                             onTagSelected = { tag ->
                                 scope.launch {
-                                    tagViewModel.addTagToImage(currentImageId, tag.name)
+                                    tagViewModel.addTagToMedia(currentMediaId, tag.name)
                                 }
                             }
                         )

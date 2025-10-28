@@ -66,7 +66,7 @@ class TagInitializer(
         val database = TagDatabase.getDatabase(context)
         repository = TagRepository(
             userTagDao = database.userTagDao(),
-            imageTagDao = database.imageTagDao()
+            mediaTagDao = database.mediaTagDao()
         )
 
         textEmbedder = ClipTextEmbedder(

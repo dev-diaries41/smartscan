@@ -29,7 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.stringResource
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.tags.ImageTagEntity
+import com.fpf.smartscan.data.tags.MediaTagEntity
 import com.fpf.smartscan.data.tags.UserTagEntity
 
 /**
@@ -48,7 +48,7 @@ import com.fpf.smartscan.data.tags.UserTagEntity
 fun TagPickerDialog(
     imageId: Long,
     availableTags: List<UserTagEntity>,
-    currentTags: List<ImageTagEntity>,
+    currentTags: List<MediaTagEntity>,
     onDismiss: () -> Unit,
     onTagSelected: (UserTagEntity) -> Unit
 ) {

@@ -73,7 +73,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val tagRepository: TagRepository = TagRepository(
         userTagDao = TagDatabase.getDatabase(application).userTagDao(),
-        imageTagDao = TagDatabase.getDatabase(application).imageTagDao()
+        mediaTagDao = TagDatabase.getDatabase(application).mediaTagDao()
     )
 
     private val _hasRefreshedImageIndex = MutableStateFlow(false)
@@ -519,7 +519,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             try {
                 tagRepository.activeTags.collect { tags ->
                     val withCounts = tags.map { tag ->
-                        val count = tagRepository.getImageCountForTag(tag.name)
+                        val count = tagRepository.getMediaCountForTag(tag.name)
                         tag to count
                     }.filter { it.second > 0 }  // Pouze tagy s obrázky
 
@@ -615,7 +615,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             // Pokud jsou vybrané tagy, ale žádné search výsledky, načti obrázky přímo z tagů
             if (hasTagFilter && _unfilteredSearchResults.value.isEmpty()) {
                 // Načíst všechny image IDs s vybranými tagy (OR logika)
-                val filteredImageIds = tagRepository.getImageIdsWithAnyTag(
+                val filteredImageIds = tagRepository.getMediaIdsWithAnyTag(
                     _selectedTagFilters.value.toList()
                 )
 
@@ -629,7 +629,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
                 // 1. Aplikuj tag filter (OR logika)
                 if (hasTagFilter) {
-                    val filteredImageIds = tagRepository.getImageIdsWithAnyTag(
+                    val filteredImageIds = tagRepository.getMediaIdsWithAnyTag(
                         _selectedTagFilters.value.toList()
                     ).toSet()
 

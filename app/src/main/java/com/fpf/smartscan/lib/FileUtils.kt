@@ -195,3 +195,17 @@ fun getImageIdFromUri(uri: Uri): Long? {
     }
 }
 
+
+/**
+ * Extrahuje MediaStore ID z content:// URI pro libovolné médium (obrázek nebo video)
+ * @param uri Content URI (např. content://media/external/images/media/123 nebo .../video/...)
+ * @return MediaStore ID nebo null pokud URI není platné
+ */
+fun getMediaIdFromUri(uri: Uri): Long? {
+    return try {
+        android.content.ContentUris.parseId(uri)
+    } catch (e: Exception) {
+        Log.e("getMediaIdFromUri", "Failed to parse ID from URI: $uri", e)
+        null
+    }
+}

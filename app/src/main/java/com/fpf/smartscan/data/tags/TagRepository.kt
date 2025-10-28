@@ -4,7 +4,7 @@ import kotlinx.coroutines.flow.Flow
 
 class TagRepository(
     private val userTagDao: UserTagDao,
-    private val imageTagDao: ImageTagDao
+    private val mediaTagDao: MediaTagDao
 ) {
     // User Tags
     val allTags: Flow<List<UserTagEntity>> = userTagDao.getAllTags()
@@ -17,36 +17,55 @@ class TagRepository(
     suspend fun deleteTag(tag: UserTagEntity) = userTagDao.deleteTag(tag)
     suspend fun getTagCount(): Int = userTagDao.getTagCount()
 
-    // Image Tags
-    suspend fun getTagsForImage(imageId: Long): List<ImageTagEntity> =
-        imageTagDao.getTagsForImage(imageId)
+    // Media Tags (pro obrázky i videa)
+    suspend fun getTagsForMedia(mediaId: Long): List<MediaTagEntity> =
+        mediaTagDao.getTagsForMedia(mediaId)
 
-    fun getTagsForImageFlow(imageId: Long): Flow<List<ImageTagEntity>> =
-        imageTagDao.getTagsForImageFlow(imageId)
+    fun getTagsForMediaFlow(mediaId: Long): Flow<List<MediaTagEntity>> =
+        mediaTagDao.getTagsForMediaFlow(mediaId)
 
-    suspend fun getImageIdsForTag(tagName: String): List<Long> =
-        imageTagDao.getImageIdsForTag(tagName)
+    suspend fun getMediaIdsForTag(tagName: String): List<Long> =
+        mediaTagDao.getMediaIdsForTag(tagName)
 
-    suspend fun getImageIdsForTags(tagNames: List<String>): List<Long> =
-        imageTagDao.getImageIdsForTags(tagNames, tagNames.size)
+    suspend fun getMediaIdsForTags(tagNames: List<String>): List<Long> =
+        mediaTagDao.getMediaIdsForTags(tagNames, tagNames.size)
 
-    suspend fun getImageIdsWithAnyTag(tagNames: List<String>): List<Long> =
-        imageTagDao.getImageIdsWithAnyTag(tagNames)
+    suspend fun getMediaIdsWithAnyTag(tagNames: List<String>): List<Long> =
+        mediaTagDao.getMediaIdsWithAnyTag(tagNames)
 
-    suspend fun getImageCountForTag(tagName: String): Int =
-        imageTagDao.getImageCountForTag(tagName)
+    suspend fun getMediaCountForTag(tagName: String): Int =
+        mediaTagDao.getMediaCountForTag(tagName)
 
-    suspend fun insertImageTag(tag: ImageTagEntity) = imageTagDao.insertTag(tag)
-    suspend fun insertImageTags(tags: List<ImageTagEntity>) = imageTagDao.insertTags(tags)
-    suspend fun deleteImageTag(tag: ImageTagEntity) = imageTagDao.deleteTag(tag)
-    suspend fun deleteTagsForImage(imageId: Long) = imageTagDao.deleteTagsForImage(imageId)
-    suspend fun deleteSpecificTag(imageId: Long, tagName: String) =
-        imageTagDao.deleteSpecificTag(imageId, tagName)
+    suspend fun insertMediaTag(tag: MediaTagEntity) = mediaTagDao.insertTag(tag)
+    suspend fun insertMediaTags(tags: List<MediaTagEntity>) = mediaTagDao.insertTags(tags)
+    suspend fun deleteMediaTag(tag: MediaTagEntity) = mediaTagDao.deleteTag(tag)
+    suspend fun deleteTagsForMedia(mediaId: Long) = mediaTagDao.deleteTagsForMedia(mediaId)
+    suspend fun deleteSpecificTag(mediaId: Long, tagName: String) =
+        mediaTagDao.deleteSpecificTag(mediaId, tagName)
     suspend fun deleteAllTagsWithName(tagName: String) =
-        imageTagDao.deleteAllTagsWithName(tagName)
+        mediaTagDao.deleteAllTagsWithName(tagName)
 
-    suspend fun deleteAutoAssignedTagsForImage(imageId: Long) =
-        imageTagDao.deleteAutoAssignedTagsForImage(imageId)
+    suspend fun deleteAutoAssignedTagsForMedia(mediaId: Long) =
+        mediaTagDao.deleteAutoAssignedTagsForMedia(mediaId)
+
+    // Backward compatibility aliases (pro postupnou migraci kódu)
+    @Deprecated("Use getTagsForMedia instead", ReplaceWith("getTagsForMedia(mediaId)"))
+    suspend fun getTagsForImage(imageId: Long): List<MediaTagEntity> = getTagsForMedia(imageId)
+    
+    @Deprecated("Use getTagsForMediaFlow instead", ReplaceWith("getTagsForMediaFlow(mediaId)"))
+    fun getTagsForImageFlow(imageId: Long): Flow<List<MediaTagEntity>> = getTagsForMediaFlow(imageId)
+    
+    @Deprecated("Use getMediaIdsForTag instead", ReplaceWith("getMediaIdsForTag(tagName)"))
+    suspend fun getImageIdsForTag(tagName: String): List<Long> = getMediaIdsForTag(tagName)
+    
+    @Deprecated("Use getMediaIdsForTags instead", ReplaceWith("getMediaIdsForTags(tagNames)"))
+    suspend fun getImageIdsForTags(tagNames: List<String>): List<Long> = getMediaIdsForTags(tagNames)
+    
+    @Deprecated("Use getMediaIdsWithAnyTag instead", ReplaceWith("getMediaIdsWithAnyTag(tagNames)"))
+    suspend fun getImageIdsWithAnyTag(tagNames: List<String>): List<Long> = getMediaIdsWithAnyTag(tagNames)
+    
+    @Deprecated("Use getMediaCountForTag instead", ReplaceWith("getMediaCountForTag(tagName)"))
+    suspend fun getImageCountForTag(tagName: String): Int = getMediaCountForTag(tagName)
 
     // Combined operations
     suspend fun getUserTagsWithCounts(): List<Pair<UserTagEntity, Int>> {

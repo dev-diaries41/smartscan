@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.tags.ImageTagEntity
+import com.fpf.smartscan.data.tags.MediaTagEntity
 import com.fpf.smartscan.data.tags.TagDatabase
 import com.fpf.smartscan.data.tags.TagRepository
 import com.fpf.smartscan.data.tags.UserTagEntity
@@ -48,7 +48,7 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
         val database = TagDatabase.getDatabase(application)
         repository = TagRepository(
             userTagDao = database.userTagDao(),
-            imageTagDao = database.imageTagDao()
+            mediaTagDao = database.mediaTagDao()
         )
 
         // Inicializace CLIP text embedder
@@ -299,10 +299,10 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Získá tagy pro konkrétní obrázek
      */
-    fun getTagsForImage(imageId: Long): StateFlow<List<ImageTagEntity>> {
-        val flow = MutableStateFlow<List<ImageTagEntity>>(emptyList())
+    fun getTagsForMedia(imageId: Long): StateFlow<List<MediaTagEntity>> {
+        val flow = MutableStateFlow<List<MediaTagEntity>>(emptyList())
         viewModelScope.launch {
-            repository.getTagsForImageFlow(imageId).collect { tags ->
+            repository.getTagsForMediaFlow(imageId).collect { tags ->
                 flow.value = tags
             }
         }
@@ -312,21 +312,21 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Ručně přidá tag k obrázku
      */
-    suspend fun addTagToImage(imageId: Long, tagName: String): Result<Unit> {
+    suspend fun addTagToMedia(imageId: Long, tagName: String): Result<Unit> {
         return try {
             _error.value = null
 
             val tag = repository.getTagByName(tagName)
                 ?: throw IllegalArgumentException("Tag '$tagName' nebyl nalezen")
 
-            val imageTag = ImageTagEntity(
-                imageId = imageId,
+            val imageTag = MediaTagEntity(
+                mediaId = imageId,
                 tagName = tagName,
                 confidence = 1.0f, // Manual assignment = 100% confidence
                 isUserAssigned = true
             )
 
-            repository.insertImageTag(imageTag)
+            repository.insertMediaTag(imageTag)
 
             Result.success(Unit)
         } catch (e: Exception) {
@@ -338,7 +338,7 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Odebere tag z obrázku
      */
-    suspend fun removeTagFromImage(imageId: Long, tagName: String): Result<Unit> {
+    suspend fun removeTagFromMedia(imageId: Long, tagName: String): Result<Unit> {
         return try {
             _error.value = null
 

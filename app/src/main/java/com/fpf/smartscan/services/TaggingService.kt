@@ -2,7 +2,7 @@ package com.fpf.smartscan.services
 
 import android.content.Context
 import android.util.Log
-import com.fpf.smartscan.data.tags.ImageTagEntity
+import com.fpf.smartscan.data.tags.MediaTagEntity
 import com.fpf.smartscan.data.tags.TagDatabase
 import com.fpf.smartscan.data.tags.TagRepository
 import com.fpf.smartscan.data.tags.UserTagEntity
@@ -24,7 +24,7 @@ class TaggingService(context: Context) {
         val database = TagDatabase.getDatabase(context)
         repository = TagRepository(
             userTagDao = database.userTagDao(),
-            imageTagDao = database.imageTagDao()
+            mediaTagDao = database.mediaTagDao()
         )
     }
 
@@ -42,7 +42,7 @@ class TaggingService(context: Context) {
     suspend fun assignTags(
         imageId: Long,
         imageEmbedding: FloatArray
-    ): List<ImageTagEntity> = withContext(Dispatchers.IO) {
+    ): List<MediaTagEntity> = withContext(Dispatchers.IO) {
         try {
             // Načtení aktivních tagů
             val activeTags = repository.getActiveTagsSync()
@@ -55,17 +55,17 @@ class TaggingService(context: Context) {
             // Smazání existujících auto-assigned tagů pro tento obrázek
             // (ponecháme pouze user-assigned)
             // Používáme DELETE query místo entity delete pro spolehlivost
-            repository.deleteAutoAssignedTagsForImage(imageId)
+            repository.deleteAutoAssignedTagsForMedia(imageId)
 
             // Přiřazení nových tagů
-            val assignedTags = mutableListOf<ImageTagEntity>()
+            val assignedTags = mutableListOf<MediaTagEntity>()
 
             activeTags.forEach { userTag ->
                 val similarity = cosineSimilarity(imageEmbedding, userTag.embedding)
 
                 if (similarity >= userTag.threshold) {
-                    val imageTag = ImageTagEntity(
-                        imageId = imageId,
+                    val imageTag = MediaTagEntity(
+                        mediaId = imageId,
                         tagName = userTag.name,
                         confidence = similarity,
                         isUserAssigned = false
@@ -76,7 +76,7 @@ class TaggingService(context: Context) {
 
             // Batch insert do databáze
             if (assignedTags.isNotEmpty()) {
-                repository.insertImageTags(assignedTags)
+                repository.insertMediaTags(assignedTags)
                 Log.d(TAG, "Assigned ${assignedTags.size} tags to image $imageId")
             }
 
@@ -188,7 +188,7 @@ class TaggingService(context: Context) {
             var totalAssignments = 0
 
             allTags.forEach { tag ->
-                val count = repository.getImageCountForTag(tag.name)
+                val count = repository.getMediaCountForTag(tag.name)
                 if (count > 0) {
                     totalImages += count
                     totalAssignments += count
