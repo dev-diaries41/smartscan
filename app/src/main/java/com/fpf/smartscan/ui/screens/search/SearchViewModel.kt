@@ -25,6 +25,7 @@ import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.moveFiles
 import com.fpf.smartscan.lib.VideoIndexListener
+import com.fpf.smartscan.services.TranslationService
 import com.fpf.smartscansdk.core.ml.embeddings.Embedding
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
 import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
@@ -63,6 +64,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val textEmbedder = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
     private val imageEmbedder = ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
+    private val translationService = TranslationService()
 
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
@@ -269,11 +271,27 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         viewModelScope.launch((Dispatchers.IO)) {
             try {
+                // 1. Inicializace translátoru (lazy - pouze první použití)
+                if (!translationService.isInitialized) {
+                    translationService.initialize()
+                }
+
+                // 2. Automatická detekce jazyka a překlad CS→EN
+                val translatedQuery = translationService.translateToEnglish(currentQuery,
+                    onLanguageDetected = { language: String, confidence: Float ->
+                        Log.d(TAG, "Detekován jazyk: $language (${confidence * 100}% confidence)")
+                    }
+                )
+
+                Log.i(TAG, "Původní dotaz: \"$currentQuery\"")
+                Log.i(TAG, "Přeložený dotaz: \"$translatedQuery\"")
+
+                // 3. Generování embeddings z přeloženého textu
                 if(!textEmbedder.isInitialized()){
                     textEmbedder.initialize()
                 }
                 if(shouldShutdownModel(imageEmbedderLastUsage)) imageEmbedder.closeSession() // prevent keeping both models open
-                val embedding = textEmbedder.embed(currentQuery)
+                val embedding = textEmbedder.embed(translatedQuery)
                 search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
@@ -729,6 +747,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     override fun onCleared() {
         textEmbedder.closeSession()
         imageEmbedder.closeSession()
+        translationService.dispose()
         super.onCleared()
     }
 }

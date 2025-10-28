@@ -11,6 +11,12 @@
     native <methods>;
 }
 
+# Keep ML Kit Translation API classes
+-keep class com.google.mlkit.** { *; }
+-keep class com.google.android.gms.** { *; }
+-dontwarn com.google.mlkit.**
+-dontwarn com.google.android.gms.**
+
 # Optionally, keep any class that contains native methods
 -keepclasseswithmembernames class * {
     native <methods>;

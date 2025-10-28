@@ -111,6 +111,11 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.ui)
 
+    // ML Kit Translation (offline CS→EN translation)
+    implementation("com.google.mlkit:translate:17.0.3")
+    implementation("com.google.mlkit:language-id:17.0.6")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+
     debugImplementation(libs.androidx.ui.tooling)
 
     // JVM unit tests
