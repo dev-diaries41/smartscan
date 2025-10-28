@@ -29,6 +29,13 @@ android {
     }
 
 
+    signingConfigs {
+        // Debug signing config (automaticky používá debug keystore)
+        getByName("debug") {
+            // Používá defaultní Android debug keystore
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -36,6 +43,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Pro testování použijeme debug signing
+            // Pro produkci vytvořte vlastní keystore a nahraďte toto
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 
