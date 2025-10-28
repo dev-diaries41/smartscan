@@ -21,7 +21,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.TextFields
+import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -118,6 +120,9 @@ fun SearchScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showMoveSuccessMessage by remember { mutableStateOf<String?>(null) }
     var showDeleteSuccessMessage by remember { mutableStateOf<String?>(null) }
+
+    // Local threshold state (pro slider)
+    var currentThreshold by remember { mutableStateOf(appSettings.similarityThreshold) }
 
     val scope = rememberCoroutineScope()
 
@@ -307,13 +312,13 @@ fun SearchScreen(
             if(queryType == QueryType.IMAGE){
                 ImageSearcher(
                     uri = searchImageUri,
-                    threshold = appSettings.similarityThreshold,
+                    threshold = currentThreshold,
                     mediaType = mediaType,
                     searchEnabled = canSearch && searchImageUri != null,
-                    mediaTypeSelectorEnabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
+                    mediaTypeSelectorEnabled = false, // Media Type selector odstraněn - je viditelný nahoře
                     hasCroppedImage = croppedBitmap != null,
-                    onSearch = searchViewModel::imageSearch,
-                    onMediaTypeChange = searchViewModel::setMediaType,
+                    onSearch = { threshold -> searchViewModel.imageSearch(threshold) },
+                    onMediaTypeChange = { /* Handled by MediaTypeToggle */ },
                     onImageSelected = searchViewModel::updateSearchImageUri,
                     onCropClick = { searchViewModel.showCropDialog() },
                     onClearCrop = { searchViewModel.clearCrop() }
@@ -322,7 +327,7 @@ fun SearchScreen(
                 SearchBar(
                     query = searchQuery,
                     enabled = canSearch && hasStoragePermission && !isLoading,
-                    onSearch = searchViewModel::textSearch,
+                    onSearch = { threshold -> searchViewModel.textSearch(threshold) },
                     onQueryChange = { newQuery ->
                         searchViewModel.setQuery(newQuery)
                     },
@@ -331,57 +336,52 @@ fun SearchScreen(
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
                     },
-                    threshold = appSettings.similarityThreshold,
+                    threshold = currentThreshold,
                     translatedQuery = translatedQuery,
-                    trailingIcon = {
-                        val alpha =
-                            if (canSearch && hasStoragePermission && !isLoading) 0.6f else 0.1f
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .height(IntrinsicSize.Min)
-                                .padding(vertical = 1.dp)
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .width(1.5.dp)
-                                    .fillMaxHeight()
-                                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = alpha))
-                            )
-                            SelectorIconItem(
-                                enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE), // prevent switching modes when indexing in progress
-                                label = "Media type",
-                                options = mediaTypeOptions.values.toList(),
-                                selectedOption = mediaTypeOptions[mediaType]!!,
-                                onOptionSelected = { selected ->
-                                    val newMode = mediaTypeOptions.entries
-                                        .find { it.value == selected }
-                                        ?.key ?: MediaType.IMAGE
-                                    searchViewModel.setMediaType(newMode)
-                                }
-                            )
-                        }
-                    }
+                    trailingIcon = null // Media Type selector odstraněn - je viditelný nahoře
                 )
             }
 
+            // Řádek s přepínači a Clear Results
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                // Query Type Toggle Switch (TEXT ↔ IMAGE)
-                QueryTypeToggle(
-                    currentQueryType = queryType,
-                    onQueryTypeChange = { newType -> searchViewModel.updateQueryType(newType) }
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Query Type Toggle Switch (TEXT ↔ IMAGE)
+                    QueryTypeToggle(
+                        currentQueryType = queryType,
+                        onQueryTypeChange = { newType -> searchViewModel.updateQueryType(newType) }
+                    )
+
+                    // Media Type Toggle Switch (IMAGE ↔ VIDEO)
+                    MediaTypeToggle(
+                        currentMediaType = mediaType,
+                        onMediaTypeChange = { newType -> searchViewModel.setMediaType(newType) },
+                        enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE)
+                    )
+                }
 
                 if(searchResults.isNotEmpty()){
                     TextButton(onClick = {searchViewModel.clearResults() }) {
                         Text(stringResource(R.string.menu_clear_results))
                     }
                 }
+            }
+
+            // Similarity Threshold slider (zobrazit pokud jsou výsledky nebo během vyhledávání)
+            if (searchResults.isNotEmpty() || isLoading) {
+                Spacer(modifier = Modifier.height(8.dp))
+                SimilarityThresholdSlider(
+                    threshold = currentThreshold,
+                    onThresholdChange = { newThreshold ->
+                        currentThreshold = newThreshold
+                    }
+                )
             }
 
             // Tag filtering (pouze pro IMAGE mode)
@@ -395,8 +395,8 @@ fun SearchScreen(
                 )
             }
 
-            // Date range filter (pokud jsou výsledky)
-            if (searchResults.isNotEmpty()) {
+            // Date range filter (vždy viditelný pokud jsou dostupné tagy nebo výsledky)
+            if (mediaType == MediaType.IMAGE && (availableTagsWithCounts.isNotEmpty() || searchResults.isNotEmpty())) {
                 Spacer(modifier = Modifier.height(8.dp))
                 DateRangeFilterButton(
                     currentStartDate = dateRangeStart,
@@ -581,6 +581,137 @@ fun SearchPlaceholderDisplay(isVisible: Boolean) {
 /**
  * Tlačítko pro otevření date range filtru
  */
+/**
+ * Přepínač pro Media Type (IMAGE ↔ VIDEO)
+ *
+ * Zobrazuje switch s ikonkami obrázku a videa na stranách.
+ */
+@Composable
+fun MediaTypeToggle(
+    currentMediaType: MediaType,
+    onMediaTypeChange: (MediaType) -> Unit,
+    enabled: Boolean = true
+) {
+    Row(
+        modifier = Modifier
+            .wrapContentWidth()
+            .background(
+                color = if (enabled) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        // Ikona IMAGE (vlevo)
+        Icon(
+            imageVector = Icons.Default.Image,
+            contentDescription = "Image media",
+            tint = if (currentMediaType == MediaType.IMAGE && enabled) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
+            },
+            modifier = Modifier.size(20.dp)
+        )
+
+        // Switch
+        Switch(
+            checked = currentMediaType == MediaType.VIDEO,
+            onCheckedChange = { isVideo ->
+                if (enabled) {
+                    onMediaTypeChange(if (isVideo) MediaType.VIDEO else MediaType.IMAGE)
+                }
+            },
+            enabled = enabled,
+            colors = SwitchDefaults.colors(
+                checkedThumbColor = MaterialTheme.colorScheme.primary,
+                checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
+                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                disabledCheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
+                disabledUncheckedThumbColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+            )
+        )
+
+        // Ikona VIDEO (vpravo)
+        Icon(
+            imageVector = Icons.Default.VideoLibrary,
+            contentDescription = "Video media",
+            tint = if (currentMediaType == MediaType.VIDEO && enabled) {
+                MaterialTheme.colorScheme.primary
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
+            },
+            modifier = Modifier.size(20.dp)
+        )
+    }
+}
+
+/**
+ * Slider pro nastavení similarity threshold
+ *
+ * Umožňuje uživateli rychle upravit práh podobnosti pro vyhledávání.
+ */
+@Composable
+fun SimilarityThresholdSlider(
+    threshold: Float,
+    onThresholdChange: (Float) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = MaterialTheme.shapes.small
+            )
+            .padding(horizontal = 16.dp, vertical = 12.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Similarity Threshold",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "${(threshold * 100).toInt()}%",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Slider(
+            value = threshold,
+            onValueChange = onThresholdChange,
+            valueRange = 0f..1f,
+            steps = 19, // 5% kroky (0.05 * 20 = 1.0)
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = "Méně přesné",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+            Text(
+                text = "Více přesné",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+            )
+        }
+    }
+}
+
 /**
  * Přepínač pro Query Type (TEXT ↔ IMAGE search)
  *
