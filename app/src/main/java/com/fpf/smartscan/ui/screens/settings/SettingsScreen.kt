@@ -351,6 +351,28 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
+                // Few-Shot Learning section
+                Text(
+                    text = "Advanced Features",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                ActionItem(
+                    text = "Few-Shot Learning",
+                    onClick = { onNavigate(Routes.FEW_SHOT_TAGS) }
+                )
+
+                Text(
+                    text = "Vytvořte si vlastní tagy pro personalizované vyhledávání pomocí několika ukázkových fotek.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 8.dp)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
                 Text(
                     text = stringResource(id = R.string.other_settings),
                     style = MaterialTheme.typography.titleMedium,

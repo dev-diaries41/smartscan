@@ -42,6 +42,7 @@ import com.fpf.smartscan.ui.screens.tags.TagEditScreen
 import com.fpf.smartscan.ui.screens.tags.TagManagerScreen
 import com.fpf.smartscan.ui.screens.retagging.RetaggingScreen
 import com.fpf.smartscan.ui.screens.test.TestScreen
+import com.fpf.smartscan.ui.screens.fewshot.FewShotTagsScreen
 import com.fpf.smartscan.workers.ClassificationViewModel
 import java.util.UUID
 
@@ -69,6 +70,8 @@ fun MainScreen() {
         currentRoute == Routes.TAG_MANAGER -> "Správa tagů"
         currentRoute == Routes.TAG_ADD -> "Přidat tag"
         currentRoute?.startsWith("tag_edit") == true -> "Upravit tag"
+        currentRoute == Routes.FEW_SHOT_TAGS -> "Few-Shot Learning"
+        currentRoute?.startsWith("few_shot_detail") == true -> "Detail Few-Shot Tagu"
         currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true -> when (typeVal) {
             SettingTypes.TARGETS -> stringResource(R.string.setting_target_folders)
             SettingTypes.THRESHOLD -> stringResource(R.string.setting_similarity_threshold)
@@ -84,8 +87,9 @@ fun MainScreen() {
     }
 
     val showBackButton = currentRoute?.startsWith(Routes.SETTINGS.split("/")[0]) == true ||
-            currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP, Routes.TAG_MANAGER, Routes.TAG_ADD, Routes.RETAGGING) ||
-            currentRoute?.startsWith("tag_edit") == true
+            currentRoute in listOf(Routes.TEST, Routes.DONATE, Routes.SCAN_HISTORY, Routes.HELP, Routes.TAG_MANAGER, Routes.TAG_ADD, Routes.RETAGGING, Routes.FEW_SHOT_TAGS) ||
+            currentRoute?.startsWith("tag_edit") == true ||
+            currentRoute?.startsWith("few_shot_detail") == true
 
     if(isUpdatePopUpVisible) {
         UpdatePopUp(
@@ -253,6 +257,31 @@ fun MainScreen() {
                         )
                     } else {
                         // Fallback - invalid work ID
+                        navController.popBackStack()
+                    }
+                }
+
+                // Few-Shot Learning routes
+                composable(Routes.FEW_SHOT_TAGS) {
+                    FewShotTagsScreen(
+                        onNavigateBack = { navController.popBackStack() },
+                        onNavigateToDetail = { prototypeId ->
+                            navController.navigate(Routes.fewShotDetail(prototypeId))
+                        }
+                    )
+                }
+
+                composable(
+                    route = Routes.FEW_SHOT_DETAIL,
+                    arguments = listOf(navArgument("prototypeId") { type = NavType.LongType })
+                ) { backStackEntry ->
+                    val prototypeId = backStackEntry.arguments?.getLong("prototypeId") ?: -1L
+                    if (prototypeId != -1L) {
+                        com.fpf.smartscan.ui.screens.fewshot.FewShotDetailScreen(
+                            prototypeId = prototypeId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
+                    } else {
                         navController.popBackStack()
                     }
                 }

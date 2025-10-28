@@ -44,7 +44,8 @@ import java.util.*
 @Composable
 fun FewShotTagsScreen(
     viewModel: FewShotViewModel = viewModel(),
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    onNavigateToDetail: (Long) -> Unit = {}
 ) {
     val allPrototypes by viewModel.allPrototypes.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -53,6 +54,20 @@ fun FewShotTagsScreen(
     // State pro delete dialog
     var prototypeToDelete by remember { mutableStateOf<FewShotPrototypeEntity?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // State pro create dialog flow
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
+    var showCropDialog by remember { mutableStateOf(false) }
+
+    // Temporary data pro vytváření prototypu
+    var pendingPrototypeName by remember { mutableStateOf("") }
+    var pendingPrototypeColor by remember { mutableStateOf(0) }
+    var pendingPrototypeDescription by remember { mutableStateOf<String?>(null) }
+    var pendingPrototypeCategory by remember { mutableStateOf<String?>(null) }
+    var selectedImages by remember { mutableStateOf<List<android.net.Uri>>(emptyList()) }
+    var croppedSamples by remember { mutableStateOf<List<Pair<String, String>>>(emptyList()) }
+    var currentCropIndex by remember { mutableStateOf(0) }
 
     Scaffold(
         topBar = {
@@ -85,7 +100,7 @@ fun FewShotTagsScreen(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
-                    // TODO Fáze 3: Navigace na create dialog
+                    showCreateDialog = true
                 },
                 containerColor = MaterialTheme.colorScheme.primary
             ) {
@@ -135,7 +150,7 @@ fun FewShotTagsScreen(
                             FewShotPrototypeCard(
                                 prototype = prototype,
                                 onViewClick = {
-                                    // TODO Fáze 3: Navigace na detail
+                                    onNavigateToDetail(prototype.id)
                                 },
                                 onDeleteClick = {
                                     prototypeToDelete = prototype
@@ -181,6 +196,130 @@ fun FewShotTagsScreen(
                     }
                 ) {
                     Text("Smazat", color = MaterialTheme.colorScheme.error)
+                }
+            }
+        )
+    }
+
+    // Create dialog flow
+    if (showCreateDialog) {
+        CreateFewShotTagDialog(
+            onDismiss = {
+                showCreateDialog = false
+                // Reset pending data
+                pendingPrototypeName = ""
+                pendingPrototypeColor = 0
+                pendingPrototypeDescription = null
+                pendingPrototypeCategory = null
+            },
+            onConfirm = { name, color, description, category ->
+                // Uložit metadata a otevřít image picker
+                pendingPrototypeName = name
+                pendingPrototypeColor = color
+                pendingPrototypeDescription = description
+                pendingPrototypeCategory = category
+                showCreateDialog = false
+                showImagePicker = true
+            }
+        )
+    }
+
+    if (showImagePicker) {
+        ImagePickerDialog(
+            onDismiss = {
+                showImagePicker = false
+                // Reset all pending data
+                pendingPrototypeName = ""
+                pendingPrototypeColor = 0
+                pendingPrototypeDescription = null
+                pendingPrototypeCategory = null
+                selectedImages = emptyList()
+            },
+            onImagesSelected = { images ->
+                selectedImages = images
+                croppedSamples = emptyList()
+                currentCropIndex = 0
+                showImagePicker = false
+                showCropDialog = true
+            }
+        )
+    }
+
+    if (showCropDialog && selectedImages.isNotEmpty()) {
+        ImageCropDialog(
+            imageUri = selectedImages[currentCropIndex],
+            currentIndex = currentCropIndex,
+            totalImages = selectedImages.size,
+            onDismiss = {
+                showCropDialog = false
+                // Reset all
+                selectedImages = emptyList()
+                croppedSamples = emptyList()
+                currentCropIndex = 0
+                pendingPrototypeName = ""
+                pendingPrototypeColor = 0
+                pendingPrototypeDescription = null
+                pendingPrototypeCategory = null
+            },
+            onCropConfirmed = { cropRect ->
+                // Přidat crop do seznamu
+                val newSample = Pair(
+                    selectedImages[currentCropIndex].toString(),
+                    cropRect.toJson()
+                )
+                croppedSamples = croppedSamples + newSample
+
+                // Pokud jsou všechny obrázky oříznuté, vytvořit prototype
+                if (currentCropIndex == selectedImages.size - 1) {
+                    // Všechny obrázky jsou oříznuté - vytvoř prototype
+                    viewModel.createPrototype(
+                        name = pendingPrototypeName,
+                        color = pendingPrototypeColor,
+                        samples = croppedSamples,
+                        description = pendingPrototypeDescription,
+                        category = pendingPrototypeCategory
+                    )
+
+                    // Reset state
+                    showCropDialog = false
+                    selectedImages = emptyList()
+                    croppedSamples = emptyList()
+                    currentCropIndex = 0
+                    pendingPrototypeName = ""
+                    pendingPrototypeColor = 0
+                    pendingPrototypeDescription = null
+                    pendingPrototypeCategory = null
+                } else {
+                    // Pokračovat na další obrázek
+                    currentCropIndex++
+                }
+            },
+            onSkip = {
+                // Skip tento obrázek a pokračovat na další
+                if (currentCropIndex == selectedImages.size - 1) {
+                    // Poslední obrázek - vytvoř prototype s tím co máme
+                    if (croppedSamples.isNotEmpty()) {
+                        viewModel.createPrototype(
+                            name = pendingPrototypeName,
+                            color = pendingPrototypeColor,
+                            samples = croppedSamples,
+                            description = pendingPrototypeDescription,
+                            category = pendingPrototypeCategory
+                        )
+                    }
+
+                    // Reset state
+                    showCropDialog = false
+                    selectedImages = emptyList()
+                    croppedSamples = emptyList()
+                    currentCropIndex = 0
+                    pendingPrototypeName = ""
+                    pendingPrototypeColor = 0
+                    pendingPrototypeDescription = null
+                    pendingPrototypeCategory = null
+                } else {
+                    // Pokračovat na další obrázek
+                    currentCropIndex++
                 }
             }
         )

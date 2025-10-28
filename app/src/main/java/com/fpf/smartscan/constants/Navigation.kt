@@ -12,9 +12,12 @@ object Routes {
     const val TAG_EDIT = "tag_edit/{tagName}"
     const val TAG_ADD = "tag_add"
     const val RETAGGING = "retagging"
+    const val FEW_SHOT_TAGS = "few_shot_tags"
+    const val FEW_SHOT_DETAIL = "few_shot_detail/{prototypeId}"
 
     fun settingsDetail(type: String) = "settings_detail/$type"
     fun tagEdit(tagName: String) = "tag_edit/$tagName"
+    fun fewShotDetail(prototypeId: Long) = "few_shot_detail/$prototypeId"
 }
 
 object SettingTypes {
