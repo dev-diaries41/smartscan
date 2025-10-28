@@ -3,6 +3,7 @@ package com.fpf.smartscan.ui.components.media
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -119,10 +120,13 @@ fun CropImageDialog(
                     }
                 } else {
                     originalBitmap?.let { bitmap ->
+                        Log.i("CropImageDialog", "Initializing CropImageEditor with bitmap size: ${bitmap.width}x${bitmap.height}")
                         CropImageEditor(
                             bitmap = bitmap,
                             onCropConfirmed = { croppedBitmap ->
+                                Log.i("CropImageDialog", "CropImageEditor confirmed. Calling parent onCropped callback")
                                 onCropped(croppedBitmap)
+                                Log.i("CropImageDialog", "Parent onCropped called. Dismissing dialog")
                                 onDismiss()
                             }
                         )
@@ -194,6 +198,7 @@ private fun CropImageEditor(
                                     isDragging = true
                                     dragStart = offset
                                     cropRect = Rect(offset, Size.Zero)
+                                    Log.i("CropImageDialog", "Drag started at: $offset")
                                 },
                                 onDrag = { change, _ ->
                                     val currentPos = change.position
@@ -212,6 +217,7 @@ private fun CropImageEditor(
                                 },
                                 onDragEnd = {
                                     isDragging = false
+                                    Log.i("CropImageDialog", "Drag ended. Final cropRect: $cropRect")
                                 }
                             )
                         }
@@ -253,14 +259,18 @@ private fun CropImageEditor(
             // Tlačítko pro potvrzení crop
             Button(
                 onClick = {
+                    Log.i("CropImageDialog", "Crop button clicked. cropRect: $cropRect, imageSize: $imageSize")
                     cropRect?.let { rect ->
+                        Log.i("CropImageDialog", "Cropping bitmap. Original size: ${bitmap.width}x${bitmap.height}, cropRect: $rect")
                         val croppedBitmap = cropBitmap(
                             bitmap = bitmap,
                             cropRect = rect,
                             displaySize = imageSize
                         )
+                        Log.i("CropImageDialog", "Cropped bitmap created. Size: ${croppedBitmap.width}x${croppedBitmap.height}")
                         onCropConfirmed(croppedBitmap)
-                    }
+                        Log.i("CropImageDialog", "onCropConfirmed callback called")
+                    } ?: Log.w("CropImageDialog", "cropRect is null, cannot crop")
                 },
                 modifier = Modifier
                     .fillMaxWidth()
