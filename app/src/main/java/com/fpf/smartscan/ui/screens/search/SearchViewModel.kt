@@ -601,6 +601,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private suspend fun applyAllFilters() {
         val hasTagFilter = _selectedTagFilters.value.isNotEmpty()
         val hasDateFilter = _dateRangeStart.value != null || _dateRangeEnd.value != null
+        val hasActiveSearch = _query.value.isNotEmpty() || _searchImageUri.value != null
 
         // Pokud nejsou žádné filtry, zobraz všechny výsledky
         if (!hasTagFilter && !hasDateFilter) {
@@ -612,8 +613,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         try {
             var filtered: List<Uri>
 
-            // Pokud jsou vybrané tagy, ale žádné search výsledky, načti obrázky přímo z tagů
-            if (hasTagFilter && _unfilteredSearchResults.value.isEmpty()) {
+            // KLÍČOVÁ LOGIKA: Pokud nejsou aktivní search (text/image),
+            // načti všechny obrázky z tagů přímo z databáze
+            if (hasTagFilter && !hasActiveSearch) {
                 // Načíst všechny image IDs s vybranými tagy (OR logika)
                 val filteredImageIds = tagRepository.getMediaIdsWithAnyTag(
                     _selectedTagFilters.value.toList()
@@ -624,7 +626,7 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     getImageUriFromId(imageId)
                 }
             } else {
-                // Normální filtrování existujících výsledků
+                // Aktivní search - filtruj pouze existující výsledky vyhledávání
                 filtered = _unfilteredSearchResults.value
 
                 // 1. Aplikuj tag filter (OR logika)
