@@ -45,6 +45,7 @@ fun TagEditScreen(
     var threshold by remember { mutableFloatStateOf(0.30f) }
     var selectedColor by remember { mutableIntStateOf(0xFF2196F3.toInt()) }
     var isActive by remember { mutableStateOf(true) }
+    var isExcluded by remember { mutableStateOf(false) }
 
     // Loading a error state
     val isLoading by tagViewModel.isLoading.collectAsState()
@@ -65,6 +66,7 @@ fun TagEditScreen(
                 threshold = tag.threshold
                 selectedColor = tag.color
                 isActive = tag.isActive
+                isExcluded = tag.isExcluded
             }
         }
     }
@@ -272,6 +274,35 @@ fun TagEditScreen(
                     )
                 }
 
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                // Excluded switch
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = !isLoading) { isExcluded = !isExcluded }
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Negativní filtr (skrýt)",
+                            style = MaterialTheme.typography.titleSmall
+                        )
+                        Text(
+                            text = "Skryje obrázky s tímto tagem ve výsledcích vyhledávání",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = isExcluded,
+                        onCheckedChange = { isExcluded = it },
+                        enabled = !isLoading
+                    )
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Error message
@@ -313,7 +344,8 @@ fun TagEditScreen(
                                         description = description,
                                         threshold = threshold,
                                         color = selectedColor,
-                                        isActive = isActive
+                                        isActive = isActive,
+                                        isExcluded = isExcluded
                                     )
                                 } else {
                                     tagViewModel.createTag(
@@ -321,7 +353,8 @@ fun TagEditScreen(
                                         description = description,
                                         threshold = threshold,
                                         color = selectedColor,
-                                        isActive = isActive
+                                        isActive = isActive,
+                                        isExcluded = isExcluded
                                     )
                                 }
 

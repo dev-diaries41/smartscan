@@ -81,7 +81,8 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
         description: String,
         threshold: Float = 0.30f,
         color: Int = 0xFF2196F3.toInt(),
-        isActive: Boolean = true
+        isActive: Boolean = true,
+        isExcluded: Boolean = false
     ): Result<Unit> {
         return try {
             _isLoading.value = true
@@ -111,7 +112,8 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
                 embedding = embedding,
                 threshold = threshold,
                 color = color,
-                isActive = isActive
+                isActive = isActive,
+                isExcluded = isExcluded,
             )
 
             // Uložení do databáze
@@ -165,7 +167,8 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
         description: String,
         threshold: Float,
         color: Int,
-        isActive: Boolean
+        isActive: Boolean,
+        isExcluded: Boolean
     ): Result<Unit> {
         return try {
             _isLoading.value = true
@@ -205,6 +208,7 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
                     threshold = threshold,
                     color = color,
                     isActive = isActive,
+                    isExcluded = isExcluded,
                     createdAt = originalTag.createdAt,
                     updatedAt = System.currentTimeMillis()
                 )
@@ -216,6 +220,7 @@ class TagViewModel(application: Application) : AndroidViewModel(application) {
                     embedding = embedding,
                     threshold = threshold,
                     color = color,
+                    isExcluded = isExcluded,
                     isActive = isActive,
                     updatedAt = System.currentTimeMillis()
                 )

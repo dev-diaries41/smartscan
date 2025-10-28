@@ -12,6 +12,7 @@ data class UserTagEntity(
     val threshold: Float = 0.30f,  // Práh pro automatické přiřazení (0.0-1.0)
     val color: Int = 0xFF2196F3.toInt(), // Barva tagu pro UI (Material Blue default)
     val isActive: Boolean = true,  // Zapnuto/vypnuto pro auto-tagging
+    val isExcluded: Boolean = false, // Skrýt obrázky s tímto tagem ve výsledcích (negativní filtr)
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis()
 ) {
@@ -27,6 +28,7 @@ data class UserTagEntity(
         if (threshold != other.threshold) return false
         if (color != other.color) return false
         if (isActive != other.isActive) return false
+        if (isExcluded != other.isExcluded) return false
 
         return true
     }
@@ -38,6 +40,7 @@ data class UserTagEntity(
         result = 31 * result + threshold.hashCode()
         result = 31 * result + color
         result = 31 * result + isActive.hashCode()
+        result = 31 * result + isExcluded.hashCode()
         return result
     }
 }

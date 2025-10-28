@@ -658,6 +658,20 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 }
             }
 
+
+            // 3. Odfiltruj obrázky s excluded tagy
+            // Načíst všechny excluded tagy
+            val excludedTags = tagRepository.getActiveTagsSync().filter { it.isExcluded }
+            if (excludedTags.isNotEmpty()) {
+                val excludedTagNames = excludedTags.map { it.name }
+                val excludedImageIds = tagRepository.getMediaIdsWithAnyTag(excludedTagNames).toSet()
+                
+                // Odebrat obrázky které mají jakýkoliv excluded tag
+                filtered = filtered.filter { uri ->
+                    val imageId = getImageIdFromUri(uri)
+                    imageId != null && !excludedImageIds.contains(imageId)
+                }
+            }
             _searchResults.value = filtered
             _totalResults.value = filtered.size
         } catch (e: Exception) {

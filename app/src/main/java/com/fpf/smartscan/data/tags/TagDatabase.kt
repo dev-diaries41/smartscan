@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [UserTagEntity::class, MediaTagEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(TagConverters::class)
@@ -55,6 +55,14 @@ abstract class TagDatabase : RoomDatabase() {
             }
         }
 
+        // Migrace z verze 2 na 3: Přidání isExcluded sloupce do user_tags
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Přidat nový sloupec isExcluded s defaultní hodnotou false (0)
+                db.execSQL("ALTER TABLE user_tags ADD COLUMN isExcluded INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun getDatabase(context: Context): TagDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
@@ -62,7 +70,7 @@ abstract class TagDatabase : RoomDatabase() {
                     TagDatabase::class.java,
                     "tag_database"
                 )
-                .addMigrations(MIGRATION_1_2)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                 .build()
                 INSTANCE = instance
                 instance
