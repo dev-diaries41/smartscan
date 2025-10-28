@@ -313,10 +313,7 @@ private fun SampleCard(
             // Thumbnail
             Image(
                 painter = rememberAsyncImagePainter(
-                    ImageRequest.Builder(LocalContext.current)
-                        .data(Uri.parse(sample.imageUri))
-                        .crossfade(true)
-                        .build()
+                    model = Uri.parse(sample.imageUri)
                 ),
                 contentDescription = null,
                 modifier = Modifier

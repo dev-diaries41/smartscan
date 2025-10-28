@@ -130,10 +130,7 @@ fun ImageCropDialog(
                     // Background image
                     Image(
                         painter = rememberAsyncImagePainter(
-                            ImageRequest.Builder(context)
-                                .data(imageUri)
-                                .crossfade(true)
-                                .build()
+                            model = imageUri
                         ),
                         contentDescription = null,
                         modifier = Modifier
@@ -300,14 +297,14 @@ private suspend fun calculateActualCropRect(
         // Image is wider - fit to width
         val scale = actualWidth.toFloat() / displaySize.width.toFloat()
         val scaledHeight = actualHeight / scale
-        val offset = (displaySize.height - scaledHeight) / 2f
-        Triple(scale, scale, 0f to offset)
+        val offsetY = (displaySize.height - scaledHeight) / 2f
+        ScaleAndOffset(scale, scale, 0f, offsetY)
     } else {
         // Image is taller - fit to height
         val scale = actualHeight.toFloat() / displaySize.height.toFloat()
         val scaledWidth = actualWidth / scale
-        val offset = (displaySize.width - scaledWidth) / 2f
-        Triple(scale, scale, offset to 0f)
+        val offsetX = (displaySize.width - scaledWidth) / 2f
+        ScaleAndOffset(scale, scale, offsetX, 0f)
     }
 
     // Convert display coordinates to actual image coordinates
@@ -325,7 +322,11 @@ private suspend fun calculateActualCropRect(
 }
 
 /**
- * Helper function pro Triple destructuring
+ * Data class pro scale a offset hodnoty
  */
-private operator fun <A, B, C, D> Pair<Pair<A, B>, Pair<C, D>>.component3(): C = second.first
-private operator fun <A, B, C, D> Pair<Pair<A, B>, Pair<C, D>>.component4(): D = second.second
+private data class ScaleAndOffset(
+    val scaleX: Float,
+    val scaleY: Float,
+    val offsetX: Float,
+    val offsetY: Float
+)

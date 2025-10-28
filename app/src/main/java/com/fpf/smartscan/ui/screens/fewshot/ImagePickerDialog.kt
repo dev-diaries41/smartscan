@@ -210,10 +210,7 @@ private fun ImageGridItem(
     ) {
         Image(
             painter = rememberAsyncImagePainter(
-                ImageRequest.Builder(LocalContext.current)
-                    .data(image.uri)
-                    .crossfade(true)
-                    .build()
+                model = image.uri
             ),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
