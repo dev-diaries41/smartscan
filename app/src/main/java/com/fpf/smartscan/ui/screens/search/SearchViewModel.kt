@@ -18,6 +18,8 @@ import com.fpf.smartscan.data.tags.TagDatabase
 import com.fpf.smartscan.data.tags.TagRepository
 import com.fpf.smartscan.data.tags.UserTagEntity
 import com.fpf.smartscan.data.videos.VideoEmbeddingDatabase
+import com.fpf.smartscan.data.fewshot.FewShotDatabase
+import com.fpf.smartscan.data.fewshot.FewShotPrototypeEntity
 import com.fpf.smartscan.data.videos.VideoEmbeddingRepository
 import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.deleteFiles
@@ -77,6 +79,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         userTagDao = TagDatabase.getDatabase(application).userTagDao(),
         mediaTagDao = TagDatabase.getDatabase(application).mediaTagDao()
     )
+
+    private val fewShotDatabase = FewShotDatabase.getDatabase(application)
+    private val fewShotPrototypeDao = fewShotDatabase.prototypeDao()
 
     private val _hasRefreshedImageIndex = MutableStateFlow(false)
     private val _hasRefreshedVideoIndex = MutableStateFlow(false)
@@ -181,6 +186,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _isSelectionMode = MutableStateFlow(false)
     val isSelectionMode: StateFlow<Boolean> = _isSelectionMode
+
+    // Few-Shot Learning state
+    private val _selectedFewShotPrototype = MutableStateFlow<FewShotPrototypeEntity?>(null)
+    val selectedFewShotPrototype: StateFlow<FewShotPrototypeEntity?> = _selectedFewShotPrototype
+
+    private val _availableFewShotPrototypes = MutableStateFlow<List<FewShotPrototypeEntity>>(emptyList())
+    val availableFewShotPrototypes: StateFlow<List<FewShotPrototypeEntity>> = _availableFewShotPrototypes
 
     var imageEmbedderLastUsage: Long? = null
     var textEmbedderLastUsage: Long? = null
@@ -332,9 +344,21 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     textEmbedder.initialize()
                 }
                 if(shouldShutdownModel(imageEmbedderLastUsage)) imageEmbedder.closeSession() // prevent keeping both models open
-                val embedding = textEmbedder.embed(translatedQuery)
+                var embedding = textEmbedder.embed(translatedQuery)
 
-                // 6. Vyhledávání
+                // 6. Few-Shot kombinace (pokud je vybraný prototype)
+                val fewShotPrototype = _selectedFewShotPrototype.value
+                if (fewShotPrototype != null) {
+                    Log.i(TAG, "Combining text embedding with few-shot prototype: ${fewShotPrototype.name}")
+                    embedding = combineEmbeddings(
+                        baseEmbedding = embedding,
+                        fewShotEmbedding = fewShotPrototype.embedding,
+                        fewShotWeight = 0.5f // 50% text, 50% few-shot
+                    )
+                    Log.i(TAG, "Combined embedding created")
+                }
+
+                // 7. Vyhledávání
                 search(store, embedding, threshold)
             } catch (e: Exception) {
                 Log.e(TAG, "$e")
@@ -373,8 +397,20 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                 val bitmap = _croppedBitmap.value ?: getBitmapFromUri(application, _searchImageUri.value!!, ClipConfig.IMAGE_SIZE_X)
                 Log.i(TAG, "imageSearch: Using ${if(_croppedBitmap.value != null) "CROPPED" else "FULL"} bitmap. Size: ${bitmap.width}x${bitmap.height}")
 
-                val embedding = imageEmbedder.embed(bitmap)
+                var embedding = imageEmbedder.embed(bitmap)
                 Log.i(TAG, "imageSearch: Embedding generated, length: ${embedding.size}")
+
+                // Few-Shot kombinace (pokud je vybraný prototype)
+                val fewShotPrototype = _selectedFewShotPrototype.value
+                if (fewShotPrototype != null) {
+                    Log.i(TAG, "Combining image embedding with few-shot prototype: ${fewShotPrototype.name}")
+                    embedding = combineEmbeddings(
+                        baseEmbedding = embedding,
+                        fewShotEmbedding = fewShotPrototype.embedding,
+                        fewShotWeight = 0.5f // 50% image, 50% few-shot
+                    )
+                    Log.i(TAG, "Combined embedding created")
+                }
 
                 search(store, embedding, threshold)
             } catch (e: Exception) {
@@ -831,6 +867,65 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             android.content.ContentUris.parseId(uri)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    // ============ FEW-SHOT LEARNING ============
+
+    /**
+     * Načte dostupné few-shot prototypes
+     */
+    fun loadAvailableFewShotPrototypes() {
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                fewShotPrototypeDao.getAllPrototypes().collect { prototypes ->
+                    _availableFewShotPrototypes.value = prototypes
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error loading few-shot prototypes", e)
+            }
+        }
+    }
+
+    /**
+     * Vybere few-shot prototype pro vyhledávání
+     */
+    fun selectFewShotPrototype(prototype: FewShotPrototypeEntity?) {
+        _selectedFewShotPrototype.value = prototype
+        Log.i(TAG, "Few-shot prototype ${if (prototype != null) "selected: ${prototype.name}" else "deselected"}")
+    }
+
+    /**
+     * Kombinuje embeddingy - průměrování s váhami
+     *
+     * @param baseEmbedding Hlavní embedding (text nebo image query)
+     * @param fewShotEmbedding Few-shot prototype embedding
+     * @param fewShotWeight Váha few-shot embeddingu (0.0 - 1.0), výchozí 0.5
+     * @return Kombinovaný embedding
+     */
+    private fun combineEmbeddings(
+        baseEmbedding: FloatArray,
+        fewShotEmbedding: FloatArray,
+        fewShotWeight: Float = 0.5f
+    ): FloatArray {
+        require(baseEmbedding.size == fewShotEmbedding.size) {
+            "Embeddings must have same dimension"
+        }
+        require(fewShotWeight in 0f..1f) {
+            "fewShotWeight must be between 0.0 and 1.0"
+        }
+
+        val baseWeight = 1f - fewShotWeight
+        val combined = FloatArray(baseEmbedding.size) { i ->
+            baseEmbedding[i] * baseWeight + fewShotEmbedding[i] * fewShotWeight
+        }
+
+        // Normalizace (L2 norm)
+        val norm = kotlin.math.sqrt(combined.sumOf { (it * it).toDouble() }.toFloat())
+        return if (norm > 0) {
+            combined.map { it / norm }.toFloatArray()
+        } else {
+            combined
         }
     }
 

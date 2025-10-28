@@ -62,6 +62,7 @@ import com.fpf.smartscan.ui.components.search.SelectionActionBar
 import com.fpf.smartscan.ui.components.search.TagFilterChips
 import com.fpf.smartscan.ui.components.search.DateRangeFilterDialog
 import com.fpf.smartscan.ui.components.search.getDateRangeDescription
+import com.fpf.smartscan.ui.components.search.FewShotSelector
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -114,6 +115,10 @@ fun SearchScreen(
     val dateRangeStart by searchViewModel.dateRangeStart.collectAsState()
     val dateRangeEnd by searchViewModel.dateRangeEnd.collectAsState()
 
+    // Few-Shot Learning state
+    val availableFewShotPrototypes by searchViewModel.availableFewShotPrototypes.collectAsState()
+    val selectedFewShotPrototype by searchViewModel.selectedFewShotPrototype.collectAsState()
+
     var showDateRangeDialog by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
@@ -126,9 +131,10 @@ fun SearchScreen(
 
     val scope = rememberCoroutineScope()
 
-    // Načtení tagů při startu
+    // Načtení tagů a few-shot prototypes při startu
     LaunchedEffect(Unit) {
         searchViewModel.loadAvailableTagsWithCounts()
+        searchViewModel.loadAvailableFewShotPrototypes()
     }
 
     // Directory picker pro přesun souborů
@@ -381,6 +387,19 @@ fun SearchScreen(
                     onThresholdChange = { newThreshold ->
                         currentThreshold = newThreshold
                     }
+                )
+            }
+
+            // Few-Shot Learning selector
+            if (availableFewShotPrototypes.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                FewShotSelector(
+                    prototypes = availableFewShotPrototypes,
+                    selectedPrototype = selectedFewShotPrototype,
+                    onPrototypeSelected = { prototype ->
+                        searchViewModel.selectFewShotPrototype(prototype)
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
