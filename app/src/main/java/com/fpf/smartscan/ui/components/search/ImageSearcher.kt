@@ -44,17 +44,17 @@ fun ImageSearcher(
     onCropClick: () -> Unit = {},
     onClearCrop: () -> Unit = {},
 ){
-    Row(
+    Column(
         modifier = Modifier.fillMaxWidth().background(
             color = MaterialTheme.colorScheme.surfaceVariant,
             shape = MaterialTheme.shapes.medium
         ).padding(12.dp),
-
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Levý sloupec - obrázek + crop tlačítko
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        // Horní řádek - obrázek a ovládací prvky
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             ImageUploader(
                 uri = uri,
@@ -68,69 +68,75 @@ fun ImageSearcher(
                 }
             )
 
-            // Crop tlačítka - zobrazí se pouze pokud je vybraný obrázek
-            if (uri != null) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                horizontalAlignment = Alignment.End,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            ) {
+                SelectorItem(
+                    enabled = mediaTypeSelectorEnabled,
+                    label = "Media type",
+                    showLabel = false,
+                    options = mediaTypeOptions.values.toList(),
+                    selectedOption = mediaTypeOptions[mediaType]!!,
+                    onOptionSelected = { selected ->
+                        val newMode = mediaTypeOptions.entries
+                            .find { it.value == selected }
+                            ?.key ?: MediaType.IMAGE
+                        onMediaTypeChange(newMode)
+                    }
+                )
+                Button(
+                    modifier = Modifier.width(140.dp),
+                    enabled = searchEnabled,
+                    onClick = { onSearch(threshold) }
                 ) {
-                    Button(
-                        onClick = onCropClick,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Icon(
-                            Icons.Default.Crop,
-                            contentDescription = stringResource(R.string.action_crop),
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                        Text(
-                            text = if (hasCroppedImage)
-                                stringResource(R.string.action_recrop)
-                            else
-                                stringResource(R.string.action_crop)
-                        )
-                    }
-
-                    // Tlačítko pro vymazání crop, pokud existuje cropped obrázek
-                    if (hasCroppedImage) {
-                        IconButton(
-                            onClick = onClearCrop,
-                            modifier = Modifier.align(Alignment.CenterVertically)
-                        ) {
-                            Icon(
-                                Icons.Default.Close,
-                                contentDescription = stringResource(R.string.action_clear_crop),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
+                    Icon(Icons.Default.ImageSearch, contentDescription = "Image search icon", modifier = Modifier.padding(end = 4.dp))
+                    Text(text = "Search")
                 }
             }
         }
 
-        Column(
-            horizontalAlignment = Alignment.End,
-            modifier = Modifier.padding(horizontal = 12.dp))
-        {
-            SelectorItem(
-                enabled = mediaTypeSelectorEnabled, // prevent switching modes when indexing in progress
-                label = "Media type",
-                showLabel = false,
-                options = mediaTypeOptions.values.toList(),
-                selectedOption = mediaTypeOptions[mediaType]!!,
-                onOptionSelected = { selected ->
-                    val newMode = mediaTypeOptions.entries
-                        .find { it.value == selected }
-                        ?.key ?: MediaType.IMAGE
-                    onMediaTypeChange(newMode)
-                }
-            )
-            Button(
-                modifier = Modifier.width(140.dp),
-                enabled = searchEnabled ,
-                onClick = {onSearch(threshold) }
+        // Dolní řádek - crop tlačítka (zobrazí se pouze pokud je vybraný obrázek)
+        if (uri != null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(Icons.Default.ImageSearch, contentDescription = "Image search icon", modifier = Modifier.padding(end = 4.dp))
-                Text(text = "Search")
+                Button(
+                    onClick = onCropClick,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Crop,
+                        contentDescription = stringResource(R.string.action_crop),
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Text(
+                        text = if (hasCroppedImage)
+                            stringResource(R.string.action_recrop)
+                        else
+                            stringResource(R.string.action_crop)
+                    )
+                }
+
+                // Tlačítko pro vymazání crop, pokud existuje cropped obrázek
+                if (hasCroppedImage) {
+                    Button(
+                        onClick = onClearCrop,
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        ),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            Icons.Default.Close,
+                            contentDescription = stringResource(R.string.action_clear_crop),
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                        Text(stringResource(R.string.action_clear_crop))
+                    }
+                }
             }
         }
     }
