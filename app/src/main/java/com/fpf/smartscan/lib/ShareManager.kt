@@ -21,7 +21,10 @@ object ShareManager {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            val chooser = Intent.createChooser(shareIntent, shareTitle)
+            val chooser = Intent.createChooser(shareIntent, shareTitle).apply {
+                // Potřebné pro Application context - umožňuje spustit aktivitu mimo Activity kontext
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             context.startActivity(chooser)
         } catch (e: Exception) {
             Log.e(TAG, "Chyba při sdílení souboru", e)
@@ -53,7 +56,10 @@ object ShareManager {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-            val chooser = Intent.createChooser(shareIntent, shareTitle)
+            val chooser = Intent.createChooser(shareIntent, shareTitle).apply {
+                // Potřebné pro Application context - umožňuje spustit aktivitu mimo Activity kontext
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
             context.startActivity(chooser)
         } catch (e: Exception) {
             Log.e(TAG, "Chyba při sdílení souborů", e)
