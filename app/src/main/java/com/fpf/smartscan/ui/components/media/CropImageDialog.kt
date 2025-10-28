@@ -145,12 +145,44 @@ private fun CropImageEditor(
     bitmap: Bitmap,
     onCropConfirmed: (Bitmap) -> Unit
 ) {
-    var imageSize by remember { mutableStateOf(IntSize.Zero) }
+    var containerSize by remember { mutableStateOf(IntSize.Zero) }
+    var actualImageSize by remember { mutableStateOf(IntSize.Zero) }
+    var imageOffset by remember { mutableStateOf(Offset.Zero) }
     var cropRect by remember { mutableStateOf<Rect?>(null) }
     var isDragging by remember { mutableStateOf(false) }
     var dragStart by remember { mutableStateOf(Offset.Zero) }
 
     val density = LocalDensity.current
+
+    // Vypočítat skutečnou velikost a pozici obrázku po ContentScale.Fit
+    LaunchedEffect(containerSize, bitmap) {
+        if (containerSize != IntSize.Zero) {
+            val containerAspect = containerSize.width.toFloat() / containerSize.height
+            val imageAspect = bitmap.width.toFloat() / bitmap.height
+
+            if (imageAspect > containerAspect) {
+                // Obrázek je širší - fituje se podle šířky
+                val scaledWidth = containerSize.width
+                val scaledHeight = (containerSize.width / imageAspect).toInt()
+                actualImageSize = IntSize(scaledWidth, scaledHeight)
+                imageOffset = Offset(0f, (containerSize.height - scaledHeight) / 2f)
+            } else {
+                // Obrázek je vyšší - fituje se podle výšky
+                val scaledHeight = containerSize.height
+                val scaledWidth = (containerSize.height * imageAspect).toInt()
+                actualImageSize = IntSize(scaledWidth, scaledHeight)
+                imageOffset = Offset((containerSize.width - scaledWidth) / 2f, 0f)
+            }
+
+            // Inicializace crop rect na celý SKUTEČNÝ obrázek
+            if (cropRect == null) {
+                cropRect = Rect(
+                    offset = imageOffset,
+                    size = Size(actualImageSize.width.toFloat(), actualImageSize.height.toFloat())
+                )
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -175,14 +207,7 @@ private fun CropImageEditor(
                     modifier = Modifier
                         .fillMaxSize()
                         .onSizeChanged { size ->
-                            imageSize = size
-                            // Inicializace crop rect na celý obrázek
-                            if (cropRect == null) {
-                                cropRect = Rect(
-                                    offset = Offset.Zero,
-                                    size = Size(size.width.toFloat(), size.height.toFloat())
-                                )
-                            }
+                            containerSize = size
                         },
                     contentScale = ContentScale.Fit,
                     type = MediaType.IMAGE
@@ -195,25 +220,40 @@ private fun CropImageEditor(
                         .pointerInput(Unit) {
                             detectDragGestures(
                                 onDragStart = { offset ->
-                                    isDragging = true
-                                    dragStart = offset
-                                    cropRect = Rect(offset, Size.Zero)
-                                    Log.i("CropImageDialog", "Drag started at: $offset")
+                                    // Omezit drag start na skutečnou oblast obrázku
+                                    if (actualImageSize != IntSize.Zero) {
+                                        val imageRight = imageOffset.x + actualImageSize.width
+                                        val imageBottom = imageOffset.y + actualImageSize.height
+
+                                        if (offset.x >= imageOffset.x && offset.x <= imageRight &&
+                                            offset.y >= imageOffset.y && offset.y <= imageBottom) {
+                                            isDragging = true
+                                            dragStart = offset
+                                            cropRect = Rect(offset, Size.Zero)
+                                            Log.i("CropImageDialog", "Drag started at: $offset (within image bounds)")
+                                        }
+                                    }
                                 },
                                 onDrag = { change, _ ->
-                                    val currentPos = change.position
-                                    val topLeft = Offset(
-                                        x = min(dragStart.x, currentPos.x).coerceIn(0f, imageSize.width.toFloat()),
-                                        y = min(dragStart.y, currentPos.y).coerceIn(0f, imageSize.height.toFloat())
-                                    )
-                                    val bottomRight = Offset(
-                                        x = max(dragStart.x, currentPos.x).coerceIn(0f, imageSize.width.toFloat()),
-                                        y = max(dragStart.y, currentPos.y).coerceIn(0f, imageSize.height.toFloat())
-                                    )
-                                    cropRect = Rect(
-                                        topLeft,
-                                        bottomRight
-                                    )
+                                    if (isDragging && actualImageSize != IntSize.Zero) {
+                                        val currentPos = change.position
+                                        // Omezit na skutečnou oblast obrázku
+                                        val imageRight = imageOffset.x + actualImageSize.width
+                                        val imageBottom = imageOffset.y + actualImageSize.height
+
+                                        val topLeft = Offset(
+                                            x = min(dragStart.x, currentPos.x).coerceIn(imageOffset.x, imageRight),
+                                            y = min(dragStart.y, currentPos.y).coerceIn(imageOffset.y, imageBottom)
+                                        )
+                                        val bottomRight = Offset(
+                                            x = max(dragStart.x, currentPos.x).coerceIn(imageOffset.x, imageRight),
+                                            y = max(dragStart.y, currentPos.y).coerceIn(imageOffset.y, imageBottom)
+                                        )
+                                        cropRect = Rect(
+                                            topLeft,
+                                            bottomRight
+                                        )
+                                    }
                                 },
                                 onDragEnd = {
                                     isDragging = false
@@ -259,13 +299,20 @@ private fun CropImageEditor(
             // Tlačítko pro potvrzení crop
             Button(
                 onClick = {
-                    Log.i("CropImageDialog", "Crop button clicked. cropRect: $cropRect, imageSize: $imageSize")
+                    Log.i("CropImageDialog", "Crop button clicked. cropRect: $cropRect, actualImageSize: $actualImageSize, imageOffset: $imageOffset")
                     cropRect?.let { rect ->
-                        Log.i("CropImageDialog", "Cropping bitmap. Original size: ${bitmap.width}x${bitmap.height}, cropRect: $rect")
+                        // Převést cropRect (display coordinates) na relativní koordináty v rámci obrázku
+                        val relativeRect = Rect(
+                            left = rect.left - imageOffset.x,
+                            top = rect.top - imageOffset.y,
+                            right = rect.right - imageOffset.x,
+                            bottom = rect.bottom - imageOffset.y
+                        )
+                        Log.i("CropImageDialog", "Cropping bitmap. Original size: ${bitmap.width}x${bitmap.height}, relativeRect: $relativeRect")
                         val croppedBitmap = cropBitmap(
                             bitmap = bitmap,
-                            cropRect = rect,
-                            displaySize = imageSize
+                            cropRect = relativeRect,
+                            displaySize = actualImageSize
                         )
                         Log.i("CropImageDialog", "Cropped bitmap created. Size: ${croppedBitmap.width}x${croppedBitmap.height}")
                         onCropConfirmed(croppedBitmap)
