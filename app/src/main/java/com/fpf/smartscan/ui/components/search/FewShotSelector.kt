@@ -26,12 +26,18 @@ import com.fpf.smartscan.data.fewshot.FewShotPrototypeEntity
  *
  * Zobrazuje horizontální scroll list prototypů s možností výběru.
  * Vybraný prototype se kombinuje s text/image query.
+ *
+ * @param prototypes List dostupných few-shot prototypes
+ * @param selectedPrototype Aktuálně vybraný prototype
+ * @param onPrototypeSelected Callback při výběru prototypu (nebo null pro deselect)
+ * @param onSearchTriggered Callback pro spuštění vyhledávání s vybraným prototypem
  */
 @Composable
 fun FewShotSelector(
     prototypes: List<FewShotPrototypeEntity>,
     selectedPrototype: FewShotPrototypeEntity?,
     onPrototypeSelected: (FewShotPrototypeEntity?) -> Unit,
+    onSearchTriggered: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     if (prototypes.isEmpty()) return
@@ -80,9 +86,15 @@ fun FewShotSelector(
                     prototype = prototype,
                     isSelected = prototype.id == selectedPrototype?.id,
                     onClick = {
-                        onPrototypeSelected(
-                            if (prototype.id == selectedPrototype?.id) null else prototype
-                        )
+                        // Logika výběru:
+                        // 1. Pokud kliknu na již vybraný tag → deselect
+                        // 2. Pokud kliknu na nový tag → select + trigger search
+                        if (prototype.id == selectedPrototype?.id) {
+                            onPrototypeSelected(null)
+                        } else {
+                            onPrototypeSelected(prototype)
+                            onSearchTriggered() // Automaticky spustit vyhledávání
+                        }
                     }
                 )
             }

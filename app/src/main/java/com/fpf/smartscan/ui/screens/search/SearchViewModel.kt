@@ -423,6 +423,50 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         }
     }
 
+    /**
+     * Vyhledávání pouze pomocí few-shot prototype (bez text/image query)
+     *
+     * Použití: Kliknutí na few-shot tag → zobrazí všechny podobné obrázky
+     * Např.: Tag "Barunka" → najde všechny fotky Barunky
+     *
+     * @param threshold Minimální similarity threshold (0.0 - 1.0), výchozí 0.2
+     */
+    fun fewShotSearch(threshold: Float = 0.2f) {
+        val prototype = _selectedFewShotPrototype.value
+        if (prototype == null) {
+            Log.w(TAG, "fewShotSearch: No prototype selected")
+            _error.value = "Není vybraný few-shot tag"
+            return
+        }
+
+        val store = if(_mediaType.value == MediaType.VIDEO) videoStore else imageStore
+        if(!store.exists) {
+            _error.value = application.getString(R.string.search_error_not_indexed)
+            return
+        }
+
+        _isLoading.value = true
+        _error.value = null
+        _queryType.value = QueryType.TEXT // Nastavíme jako text query type (pro konzistentní UI)
+
+        Log.i(TAG, "fewShotSearch: Searching with prototype '${prototype.name}'")
+
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                // Použít přímo few-shot prototype embedding
+                val embedding = prototype.embedding
+                Log.i(TAG, "fewShotSearch: Using prototype embedding, length: ${embedding.size}")
+
+                search(store, embedding, threshold)
+            } catch (e: Exception) {
+                Log.e(TAG, "fewShotSearch: Error during search", e)
+                _error.emit(application.getString(R.string.search_error_unknown))
+            } finally {
+                _isLoading.emit(false)
+            }
+        }
+    }
+
     private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, threshold: Float = 0.2f) {
         val retriever = if(_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
         var results = retriever.query(embedding, Int.MAX_VALUE, threshold)

@@ -398,6 +398,10 @@ fun SearchScreen(
                     onPrototypeSelected = { prototype ->
                         searchViewModel.selectFewShotPrototype(prototype)
                     },
+                    onSearchTriggered = {
+                        // Spustit vyhledávání s vybraným few-shot prototypem
+                        searchViewModel.fewShotSearch(currentThreshold)
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
             }
