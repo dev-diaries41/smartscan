@@ -171,6 +171,10 @@ class TranslationService {
      * Vrací true pokud jsou modely už offline dostupné.
      */
     suspend fun areModelsDownloaded(): Boolean {
+        if (!_isInitialized) {
+            initialize()
+        }
+
         val translator = czechToEnglishTranslator ?: return false
 
         return try {
@@ -180,6 +184,41 @@ class TranslationService {
         } catch (e: Exception) {
             Log.w(TAG, "Modely nejsou stažené: ${e.message}")
             false
+        }
+    }
+
+    /**
+     * Explicitní stažení translation modelů
+     *
+     * Pro použití v Settings UI - tlačítko "Download Models"
+     *
+     * @param onProgress Callback s progress reporting (0.0-1.0)
+     * @return Result success/failure
+     */
+    suspend fun downloadModels(
+        onProgress: ((Float) -> Unit)? = null
+    ): Result<Unit> {
+        return try {
+            if (!_isInitialized) {
+                initialize()
+            }
+
+            val translator = czechToEnglishTranslator
+                ?: throw IllegalStateException("Translator není inicializován")
+
+            Log.i(TAG, "Stahuji translation modely (~30 MB)...")
+            onProgress?.invoke(0.5f)
+
+            withTimeout(DOWNLOAD_TIMEOUT_MS) {
+                translator.downloadModelIfNeeded().await()
+            }
+
+            onProgress?.invoke(1.0f)
+            Log.i(TAG, "✅ Modely úspěšně staženy")
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Chyba při stahování modelů: ${e.message}", e)
+            Result.failure(e)
         }
     }
 

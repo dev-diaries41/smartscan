@@ -38,6 +38,11 @@ import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.theme.ColorSchemeType
 import com.fpf.smartscan.ui.theme.ThemeMode
+import com.fpf.smartscan.services.TranslationService
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(
@@ -64,6 +69,18 @@ fun SettingsScreen(
     var showRefreshVideoIndexDialog by remember { mutableStateOf(false) }
     var refreshDialogMessage by remember { mutableStateOf("") }
     var currentStorageAccess by remember { mutableStateOf(StorageAccess.Full) }
+
+    // Translation service state
+    val translationService = remember { TranslationService() }
+    val scope = rememberCoroutineScope()
+    var areModelsDownloaded by remember { mutableStateOf(false) }
+    var isDownloadingModels by remember { mutableStateOf(false) }
+    var translationEnabled by remember { mutableStateOf(true) } // TODO: persist to SharedPreferences
+
+    // Check if translation models are downloaded
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        areModelsDownloaded = translationService.areModelsDownloaded()
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (showRefreshImageIndexDialog || showRefreshVideoIndexDialog) {
@@ -264,22 +281,75 @@ fun SettingsScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-//                Text(
-//                    text = stringResource(id = R.string.advanced_settings),
-//                    style = MaterialTheme.typography.titleMedium,
-//                    modifier = Modifier.padding(vertical = 8.dp),
-//                    color = MaterialTheme.colorScheme.primary
-//                )
-//                ActionItem(
-//                    text = stringResource(id = R.string.setting_models),
-//                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.MODELS)) },
-//                )
-//                ActionItem(
-//                    text = stringResource(id = R.string.setting_manage_models),
-//                    onClick = { onNavigate(Routes.settingsDetail(SettingTypes.MANAGE_MODELS)) }
-//                )
-//
-//                Spacer(modifier = Modifier.height(24.dp))
+                // Translation Settings section
+                Text(
+                    text = "Translation Settings",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+
+                SwitchItem(
+                    text = "Enable Czech → English translation",
+                    checked = translationEnabled,
+                    onCheckedChange = { translationEnabled = it }
+                )
+
+                // Model status
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Translation models",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Text(
+                            text = if (areModelsDownloaded) {
+                                "✓ Downloaded (~30 MB)"
+                            } else {
+                                "Not downloaded (~30 MB required)"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = if (areModelsDownloaded) {
+                                MaterialTheme.colorScheme.primary
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
+                        )
+                    }
+
+                    if (!areModelsDownloaded) {
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    isDownloadingModels = true
+                                    val result = translationService.downloadModels()
+                                    if (result.isSuccess) {
+                                        areModelsDownloaded = true
+                                    }
+                                    isDownloadingModels = false
+                                }
+                            },
+                            enabled = !isDownloadingModels
+                        ) {
+                            if (isDownloadingModels) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                            } else {
+                                Text("Download")
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(24.dp))
 
                 Text(
                     text = stringResource(id = R.string.other_settings),
