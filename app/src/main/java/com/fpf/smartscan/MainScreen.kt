@@ -100,9 +100,11 @@ fun MainScreen() {
     }else{
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text(text = headerTitle) },
-                    navigationIcon = {
+                // Skrýt TopAppBar pro SEARCH route - získáme maximální prostor pro výsledky
+                if (currentRoute != Routes.SEARCH) {
+                    TopAppBar(
+                        title = { Text(text = headerTitle) },
+                        navigationIcon = {
                         if (showBackButton) {
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(
@@ -152,6 +154,7 @@ fun MainScreen() {
                         }
                     }
                 )
+                }
             },
             bottomBar = { BottomNavigationBar(navController) }
         ) { paddingValues ->

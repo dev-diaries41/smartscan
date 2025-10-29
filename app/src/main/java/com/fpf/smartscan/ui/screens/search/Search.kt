@@ -295,7 +295,7 @@ fun SearchScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -312,13 +312,44 @@ fun SearchScreen(
                 progress = videoIndexProgress
             )
 
+            // Řádek s toggles a Clear Results (přesunut nahoru nad search)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Query Type Toggle Switch (TEXT ↔ IMAGE)
+                    QueryTypeToggle(
+                        currentQueryType = queryType,
+                        onQueryTypeChange = { newType -> searchViewModel.updateQueryType(newType) }
+                    )
+
+                    // Media Type Toggle Switch (IMAGE ↔ VIDEO)
+                    MediaTypeToggle(
+                        currentMediaType = mediaType,
+                        onMediaTypeChange = { newType -> searchViewModel.setMediaType(newType) },
+                        enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE)
+                    )
+                }
+
+                if(searchResults.isNotEmpty()){
+                    TextButton(onClick = {searchViewModel.clearResults() }) {
+                        Text(stringResource(R.string.menu_clear_results))
+                    }
+                }
+            }
+
             if(queryType == QueryType.IMAGE){
                 ImageSearcher(
                     uri = searchImageUri,
                     threshold = appSettings.similarityThreshold,
                     mediaType = mediaType,
                     searchEnabled = canSearch && searchImageUri != null,
-                    mediaTypeSelectorEnabled = false, // Media Type selector odstraněn - je viditelný nahoře
+                    mediaTypeSelectorEnabled = false,
                     hasCroppedImage = croppedBitmap != null,
                     onSearch = { threshold -> searchViewModel.imageSearch(threshold) },
                     onMediaTypeChange = { /* Handled by MediaTypeToggle */ },
@@ -341,39 +372,8 @@ fun SearchScreen(
                     },
                     threshold = appSettings.similarityThreshold,
                     translatedQuery = translatedQuery,
-                    trailingIcon = null // Media Type selector odstraněn - je viditelný nahoře
+                    trailingIcon = null
                 )
-            }
-
-            // Řádek s přepínači a Clear Results
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Query Type Toggle Switch (TEXT ↔ IMAGE)
-                    QueryTypeToggle(
-                        currentQueryType = queryType,
-                        onQueryTypeChange = { newType -> searchViewModel.updateQueryType(newType) }
-                    )
-
-                    // Media Type Toggle Switch (IMAGE ↔ VIDEO)
-                    MediaTypeToggle(
-                        currentMediaType = mediaType,
-                        onMediaTypeChange = { newType -> searchViewModel.setMediaType(newType) },
-                        enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE)
-                    )
-                }
-
-                if(searchResults.isNotEmpty()){
-                    TextButton(onClick = {searchViewModel.clearResults() }) {
-                        Text(stringResource(R.string.menu_clear_results))
-                    }
-                }
             }
 
 
@@ -609,7 +609,7 @@ fun MediaTypeToggle(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Ikona IMAGE (vlevo)
+        // Ikona IMAGE (vlevo) - menší pro kompaktnost
         Icon(
             imageVector = Icons.Default.Image,
             contentDescription = "Image media",
@@ -618,7 +618,7 @@ fun MediaTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
             },
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(14.dp)
         )
 
         // Switch (menší)
@@ -630,7 +630,7 @@ fun MediaTypeToggle(
                 }
             },
             enabled = enabled,
-            modifier = Modifier.scale(0.8f),
+            modifier = Modifier.scale(0.7f),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
                 checkedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
@@ -641,7 +641,7 @@ fun MediaTypeToggle(
             )
         )
 
-        // Ikona VIDEO (vpravo)
+        // Ikona VIDEO (vpravo) - menší pro kompaktnost
         Icon(
             imageVector = Icons.Default.VideoLibrary,
             contentDescription = "Video media",
@@ -650,7 +650,7 @@ fun MediaTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
             },
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(14.dp)
         )
     }
 }
@@ -673,7 +673,7 @@ fun QueryTypeToggle(
         horizontalArrangement = Arrangement.spacedBy(4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Ikona TEXT (vlevo)
+        // Ikona TEXT (vlevo) - menší pro kompaktnost
         Icon(
             imageVector = Icons.Default.TextFields,
             contentDescription = "Text search",
@@ -682,7 +682,7 @@ fun QueryTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             },
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(14.dp)
         )
 
         // Switch (menší)
@@ -691,7 +691,7 @@ fun QueryTypeToggle(
             onCheckedChange = { isImage ->
                 onQueryTypeChange(if (isImage) QueryType.IMAGE else QueryType.TEXT)
             },
-            modifier = Modifier.scale(0.8f),
+            modifier = Modifier.scale(0.7f),
             colors = SwitchDefaults.colors(
                 checkedThumbColor = MaterialTheme.colorScheme.primary,
                 checkedTrackColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
@@ -700,7 +700,7 @@ fun QueryTypeToggle(
             )
         )
 
-        // Ikona IMAGE (vpravo)
+        // Ikona IMAGE (vpravo) - menší pro kompaktnost
         Icon(
             imageVector = Icons.Default.ImageSearch,
             contentDescription = "Image search",
@@ -709,7 +709,7 @@ fun QueryTypeToggle(
             } else {
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
             },
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(14.dp)
         )
     }
 }
