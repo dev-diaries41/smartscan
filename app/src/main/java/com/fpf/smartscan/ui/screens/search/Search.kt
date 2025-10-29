@@ -23,7 +23,6 @@ import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
@@ -126,9 +125,6 @@ fun SearchScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showMoveSuccessMessage by remember { mutableStateOf<String?>(null) }
     var showDeleteSuccessMessage by remember { mutableStateOf<String?>(null) }
-
-    // Local threshold state (pro slider)
-    var currentThreshold by remember { mutableStateOf(appSettings.similarityThreshold) }
 
     val scope = rememberCoroutineScope()
 
@@ -319,7 +315,7 @@ fun SearchScreen(
             if(queryType == QueryType.IMAGE){
                 ImageSearcher(
                     uri = searchImageUri,
-                    threshold = currentThreshold,
+                    threshold = appSettings.similarityThreshold,
                     mediaType = mediaType,
                     searchEnabled = canSearch && searchImageUri != null,
                     mediaTypeSelectorEnabled = false, // Media Type selector odstraněn - je viditelný nahoře
@@ -343,7 +339,7 @@ fun SearchScreen(
                         MediaType.IMAGE -> "Search images..."
                         MediaType.VIDEO -> "Search videos..."
                     },
-                    threshold = currentThreshold,
+                    threshold = appSettings.similarityThreshold,
                     translatedQuery = translatedQuery,
                     trailingIcon = null // Media Type selector odstraněn - je viditelný nahoře
                 )
@@ -380,14 +376,6 @@ fun SearchScreen(
                 }
             }
 
-            // Similarity Threshold slider (vždy viditelný)
-            Spacer(modifier = Modifier.height(8.dp))
-            SimilarityThresholdSlider(
-                threshold = currentThreshold,
-                onThresholdChange = { newThreshold ->
-                    currentThreshold = newThreshold
-                }
-            )
 
             // Few-Shot Learning selector
             if (availableFewShotPrototypes.isNotEmpty()) {
@@ -400,7 +388,7 @@ fun SearchScreen(
                     },
                     onSearchTriggered = {
                         // Spustit vyhledávání s vybraným few-shot prototypem
-                        searchViewModel.fewShotSearch(currentThreshold)
+                        searchViewModel.fewShotSearch(appSettings.similarityThreshold)
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -663,48 +651,6 @@ fun MediaTypeToggle(
                 MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = if (enabled) 0.5f else 0.3f)
             },
             modifier = Modifier.size(18.dp)
-        )
-    }
-}
-
-/**
- * Slider pro nastavení similarity threshold
- *
- * Umožňuje uživateli rychle upravit práh podobnosti pro vyhledávání.
- */
-@Composable
-fun SimilarityThresholdSlider(
-    threshold: Float,
-    onThresholdChange: (Float) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = "Threshold",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Slider(
-            value = threshold,
-            onValueChange = onThresholdChange,
-            valueRange = 0f..1f,
-            steps = 19, // 5% kroky
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 12.dp)
-        )
-
-        Text(
-            text = "${(threshold * 100).toInt()}%",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.width(40.dp)
         )
     }
 }
