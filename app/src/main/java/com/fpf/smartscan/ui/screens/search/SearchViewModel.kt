@@ -495,12 +495,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         val uris = filteredUris.map { it.second }
         _unfilteredSearchResults.emit(uris)
 
-        // Aplikace tag filtru pokud jsou nějaké vybrané
-        if (_selectedTagFilters.value.isNotEmpty()) {
-            applyTagFilters()
-        } else {
-            _searchResults.emit(uris)
-        }
+        // Aplikace všech filtrů (tagy, date range, NSFW)
+        // Vždy voláme applyAllFilters() protože NSFW filtr může být aktivní i bez vybraných tagů
+        applyAllFilters()
 
         if(idsToPurge.isNotEmpty()){
             viewModelScope.launch(Dispatchers.IO) {
