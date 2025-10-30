@@ -1,18 +1,24 @@
 package com.fpf.smartscan.ui.components.search
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +31,7 @@ import com.fpf.smartscan.data.fewshot.FewShotPrototypeEntity
 /**
  * Komponenta pro výběr Few-Shot prototype pro vyhledávání
  *
- * Zobrazuje horizontální scroll list prototypů s možností výběru.
+ * Rozbalovací seznam prototypů (podobně jako TagFilterChips).
  * Vybraný prototype se kombinuje s text/image query.
  *
  * @param prototypes List dostupných few-shot prototypes
@@ -33,6 +39,7 @@ import com.fpf.smartscan.data.fewshot.FewShotPrototypeEntity
  * @param onPrototypeSelected Callback při výběru prototypu (nebo null pro deselect)
  * @param onSearchTriggered Callback pro spuštění vyhledávání s vybraným prototypem
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FewShotSelector(
     prototypes: List<FewShotPrototypeEntity>,
@@ -43,61 +50,92 @@ fun FewShotSelector(
 ) {
     if (prototypes.isEmpty()) return
 
+    var isExpanded by remember { mutableStateOf(false) }
+
     Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Header
-        Row(
+        // Klikací header pro rozbalení/sbalení
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 4.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+                .clickable { isExpanded = !isExpanded },
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shape = MaterialTheme.shapes.small
         ) {
-            Text(
-                text = "Few-Shot Filter",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            if (selectedPrototype != null) {
-                TextButton(
-                    onClick = { onPrototypeSelected(null) },
-                    contentPadding = PaddingValues(horizontal = 8.dp, vertical = 0.dp)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Clear",
-                        style = MaterialTheme.typography.labelSmall
+                        text = "Few-Shot:",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    if (selectedPrototype != null) {
+                        Surface(
+                            shape = CircleShape,
+                            color = MaterialTheme.colorScheme.primary
+                        ) {
+                            Text(
+                                text = "1",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
                 }
+
+                Icon(
+                    imageVector = if (isExpanded) Icons.Default.ArrowDropUp else Icons.Default.ArrowDropDown,
+                    contentDescription = if (isExpanded) "Sbalit" else "Rozbalit",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
 
-        // Prototype chips
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            contentPadding = PaddingValues(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        // Rozbalovací seznam prototypů s animací
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = expandVertically(),
+            exit = shrinkVertically()
         ) {
-            items(prototypes) { prototype ->
-                FewShotPrototypeChip(
-                    prototype = prototype,
-                    isSelected = prototype.id == selectedPrototype?.id,
-                    onClick = {
-                        // Logika výběru:
-                        // 1. Pokud kliknu na již vybraný tag → deselect
-                        // 2. Pokud kliknu na nový tag → select + trigger search
-                        if (prototype.id == selectedPrototype?.id) {
-                            onPrototypeSelected(null)
-                        } else {
-                            onPrototypeSelected(prototype)
-                            onSearchTriggered() // Automaticky spustit vyhledávání
-                        }
-                    }
-                )
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 200.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(vertical = 4.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                prototypes.forEach { prototype ->
+                    FewShotPrototypeChip(
+                        prototype = prototype,
+                        isSelected = prototype.id == selectedPrototype?.id,
+                        onClick = {
+                            // Logika výběru:
+                            // 1. Pokud kliknu na již vybraný tag → deselect
+                            // 2. Pokud kliknu na nový tag → select + trigger search
+                            if (prototype.id == selectedPrototype?.id) {
+                                onPrototypeSelected(null)
+                            } else {
+                                onPrototypeSelected(prototype)
+                                onSearchTriggered() // Automaticky spustit vyhledávání
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
@@ -113,11 +151,13 @@ fun FewShotSelector(
 private fun FewShotPrototypeChip(
     prototype: FewShotPrototypeEntity,
     isSelected: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     FilterChip(
         selected = isSelected,
         onClick = onClick,
+        modifier = modifier,
         label = {
             Row(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),

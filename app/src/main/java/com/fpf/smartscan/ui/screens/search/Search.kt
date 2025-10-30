@@ -63,6 +63,7 @@ import com.fpf.smartscan.ui.components.search.TagFilterChips
 import com.fpf.smartscan.ui.components.search.DateRangeFilterDialog
 import com.fpf.smartscan.ui.components.search.getDateRangeDescription
 import com.fpf.smartscan.ui.components.search.FewShotSelector
+import com.fpf.smartscan.ui.components.search.FilterSection
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -376,43 +377,26 @@ fun SearchScreen(
                 )
             }
 
-
-            // Few-Shot Learning selector
-            if (availableFewShotPrototypes.isNotEmpty()) {
+            // Společná sekce pro všechny filtry (pouze pro IMAGE mode)
+            if (mediaType == MediaType.IMAGE) {
                 Spacer(modifier = Modifier.height(8.dp))
-                FewShotSelector(
-                    prototypes = availableFewShotPrototypes,
-                    selectedPrototype = selectedFewShotPrototype,
-                    onPrototypeSelected = { prototype ->
-                        searchViewModel.selectFewShotPrototype(prototype)
-                    },
-                    onSearchTriggered = {
-                        // Spustit vyhledávání s vybraným few-shot prototypem
-                        searchViewModel.fewShotSearch(appSettings.similarityThreshold)
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            // Tag filtering (pouze pro IMAGE mode)
-            if (mediaType == MediaType.IMAGE && availableTagsWithCounts.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                TagFilterChips(
+                FilterSection(
                     availableTags = availableTagsWithCounts,
                     selectedTags = selectedTagFilters,
                     onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) },
+                    availableFewShotPrototypes = availableFewShotPrototypes,
+                    selectedFewShotPrototype = selectedFewShotPrototype,
+                    onPrototypeSelected = { prototype ->
+                        searchViewModel.selectFewShotPrototype(prototype)
+                    },
+                    onFewShotSearchTriggered = {
+                        searchViewModel.fewShotSearch(appSettings.similarityThreshold)
+                    },
+                    dateRangeStart = dateRangeStart,
+                    dateRangeEnd = dateRangeEnd,
+                    onDateRangeClick = { showDateRangeDialog = true },
+                    onDateRangeClear = { searchViewModel.clearDateRange() },
                     modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            // Date range filter (vždy viditelný pokud jsou dostupné tagy nebo výsledky)
-            if (mediaType == MediaType.IMAGE && (availableTagsWithCounts.isNotEmpty() || searchResults.isNotEmpty())) {
-                Spacer(modifier = Modifier.height(8.dp))
-                DateRangeFilterButton(
-                    currentStartDate = dateRangeStart,
-                    currentEndDate = dateRangeEnd,
-                    onClick = { showDateRangeDialog = true },
-                    onClear = { searchViewModel.clearDateRange() }
                 )
             }
 

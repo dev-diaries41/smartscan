@@ -70,7 +70,7 @@ fun TagFilterChips(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Filtry:",
+                        text = "Tagy:",
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
