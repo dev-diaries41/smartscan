@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.fpf.smartscan.data.images.ImageEmbeddingDatabase
 import com.fpf.smartscan.data.images.ImageEmbeddingRepository
 import com.fpf.smartscan.lib.getImageUriFromId
+import com.fpf.smartscan.lib.loadSettings
 import com.fpf.smartscan.lib.ShareManager
 import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
@@ -850,10 +851,24 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             // 3. Odfiltruj obrázky s excluded tagy
             // Načíst všechny excluded tagy
             val excludedTags = tagRepository.getActiveTagsSync().filter { it.isExcluded }
-            if (excludedTags.isNotEmpty()) {
-                val excludedTagNames = excludedTags.map { it.name }
-                val excludedImageIds = tagRepository.getMediaIdsWithAnyTag(excludedTagNames).toSet()
-                
+
+            // 4. NSFW filtr - pokud je hideNsfwContent = true, přidat "explicit" tag do excluded
+            val allExcludedTagNames = mutableListOf<String>()
+            allExcludedTagNames.addAll(excludedTags.map { it.name })
+
+            // Pokud je NSFW filtr zapnutý, automaticky vyloučit "explicit" tag
+            val appSettings = loadSettings(application.getSharedPreferences("AsyncStorage", android.content.Context.MODE_PRIVATE))
+            if (appSettings.hideNsfwContent) {
+                // Přidat "explicit" tag do excluded, pokud existuje
+                val explicitTag = tagRepository.getTagByNameSync("explicit")
+                if (explicitTag != null && !allExcludedTagNames.contains("explicit")) {
+                    allExcludedTagNames.add("explicit")
+                }
+            }
+
+            if (allExcludedTagNames.isNotEmpty()) {
+                val excludedImageIds = tagRepository.getMediaIdsWithAnyTag(allExcludedTagNames).toSet()
+
                 // Odebrat obrázky které mají jakýkoliv excluded tag
                 filtered = filtered.filter { uri ->
                     val imageId = getImageIdFromUri(uri)

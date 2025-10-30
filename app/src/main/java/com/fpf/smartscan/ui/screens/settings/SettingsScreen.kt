@@ -170,6 +170,12 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.fillMaxWidth()
                 )
+                SwitchItem(
+                    text = stringResource(id = R.string.setting_hide_nsfw),
+                    checked = appSettings.hideNsfwContent,
+                    onCheckedChange = { viewModel.updateHideNsfw(it) },
+                    description = stringResource(id = R.string.setting_hide_nsfw_description)
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 

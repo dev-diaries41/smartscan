@@ -78,6 +78,8 @@
     <!-- Obecná nastavení -->
     <string name="setting_theme">Motiv</string>
     <string name="setting_color">Barva</string>
+    <string name="setting_hide_nsfw">Skrýt NSFW obsah</string>
+    <string name="setting_hide_nsfw_description">Filtrovat explicitní obsah z výsledků vyhledávání</string>
 
     <!-- Nastavení vyhledávání -->
     <string name="setting_index_frequency">Frekvence indexování</string>

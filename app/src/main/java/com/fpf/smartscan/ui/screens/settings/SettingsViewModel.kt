@@ -338,4 +338,10 @@ class SettingsViewModel(private val application: Application) : AndroidViewModel
         _appSettings.value = currentSettings.copy(color = colorScheme)
         saveSettings(sharedPrefs, _appSettings.value)
     }
+
+    fun updateHideNsfw(hide: Boolean) {
+        val currentSettings = _appSettings.value
+        _appSettings.value = currentSettings.copy(hideNsfwContent = hide)
+        saveSettings(sharedPrefs, _appSettings.value)
+    }
 }

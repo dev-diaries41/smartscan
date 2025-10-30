@@ -12,6 +12,7 @@ class TagRepository(
 
     suspend fun getActiveTagsSync(): List<UserTagEntity> = userTagDao.getActiveTagsSync()
     suspend fun getTagByName(name: String): UserTagEntity? = userTagDao.getTagByName(name)
+    suspend fun getTagByNameSync(name: String): UserTagEntity? = userTagDao.getTagByName(name)
     suspend fun insertTag(tag: UserTagEntity) = userTagDao.insertTag(tag)
     suspend fun updateTag(tag: UserTagEntity) = userTagDao.updateTag(tag)
     suspend fun deleteTag(tag: UserTagEntity) = userTagDao.deleteTag(tag)
