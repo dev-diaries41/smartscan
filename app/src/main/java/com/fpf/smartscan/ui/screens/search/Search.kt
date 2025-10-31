@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ImageSearch
 import androidx.compose.material.icons.filled.TextFields
@@ -545,7 +546,7 @@ fun SearchScreen(
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowDropDown, // TODO: Replace with Filter icon
+                    imageVector = Icons.Default.FilterList,
                     contentDescription = stringResource(R.string.filters)
                 )
                 Spacer(modifier = Modifier.width(8.dp))
