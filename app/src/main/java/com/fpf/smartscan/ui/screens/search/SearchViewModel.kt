@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.MediaType
 import com.fpf.smartscan.data.QueryType
+import com.fpf.smartscan.data.SortOption
 import com.fpf.smartscan.data.tags.TagDatabase
 import com.fpf.smartscan.data.tags.TagRepository
 import com.fpf.smartscan.data.tags.UserTagEntity
@@ -194,6 +195,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private val _availableFewShotPrototypes = MutableStateFlow<List<FewShotPrototypeEntity>>(emptyList())
     val availableFewShotPrototypes: StateFlow<List<FewShotPrototypeEntity>> = _availableFewShotPrototypes
+
+    // Sort option state
+    private val _sortOption = MutableStateFlow(SortOption.SIMILARITY)
+    val sortOption: StateFlow<SortOption> = _sortOption
 
     var imageEmbedderLastUsage: Long? = null
     var textEmbedderLastUsage: Long? = null
@@ -922,6 +927,73 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
             android.content.ContentUris.parseId(uri)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    /**
+     * Získá jméno souboru z URI
+     */
+    private fun getFileNameFromUri(uri: Uri): String? {
+        return try {
+            val projection = arrayOf(android.provider.MediaStore.MediaColumns.DISPLAY_NAME)
+            application.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val nameIndex = cursor.getColumnIndexOrThrow(android.provider.MediaStore.MediaColumns.DISPLAY_NAME)
+                    cursor.getString(nameIndex)
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting file name from URI: $uri", e)
+            null
+        }
+    }
+
+    /**
+     * Získá cestu ke složce z URI
+     */
+    private fun getFolderPathFromUri(uri: Uri): String? {
+        return try {
+            val projection = arrayOf(android.provider.MediaStore.MediaColumns.DATA)
+            application.contentResolver.query(uri, projection, null, null, null)?.use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val dataIndex = cursor.getColumnIndexOrThrow(android.provider.MediaStore.MediaColumns.DATA)
+                    val fullPath = cursor.getString(dataIndex)
+                    // Vrátit pouze cestu ke složce (bez názvu souboru)
+                    fullPath?.substringBeforeLast('/')
+                } else null
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting folder path from URI: $uri", e)
+            null
+        }
+    }
+
+    /**
+     * Aplikuje třídění na seznam URIs
+     */
+    private fun applySorting(uris: List<Uri>, sortOption: SortOption): List<Uri> {
+        return when (sortOption) {
+            SortOption.SIMILARITY -> uris // Již seřazeno podle similarity z vyhledávání
+            SortOption.DATE_NEWEST -> uris.sortedByDescending { getDateAddedFromUri(it) ?: 0L }
+            SortOption.DATE_OLDEST -> uris.sortedBy { getDateAddedFromUri(it) ?: Long.MAX_VALUE }
+            SortOption.NAME_ASC -> uris.sortedBy { getFileNameFromUri(it)?.lowercase() ?: "" }
+            SortOption.NAME_DESC -> uris.sortedByDescending { getFileNameFromUri(it)?.lowercase() ?: "" }
+            SortOption.FOLDER -> uris.sortedBy { getFolderPathFromUri(it) ?: "" }
+        }
+    }
+
+    /**
+     * Změní sort option a přetřídí výsledky
+     */
+    fun updateSortOption(option: SortOption) {
+        _sortOption.value = option
+        viewModelScope.launch(Dispatchers.IO) {
+            // Přetřiď unfilteredSearchResults
+            val sorted = applySorting(_unfilteredSearchResults.value, option)
+            _unfilteredSearchResults.emit(sorted)
+
+            // Aplikuj filtry a zobraz prvních 30
+            applyAllFilters()
         }
     }
 

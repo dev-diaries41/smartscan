@@ -59,6 +59,15 @@
     <string name="search_error_unknown">An unknown error occurred.</string>
     <string name="search_error_index_loading">Error loading index.</string>
 
+    <!-- Sort options -->
+    <string name="sort_by">Sort by</string>
+    <string name="sort_similarity">Similarity</string>
+    <string name="sort_date_newest">Date (Newest)</string>
+    <string name="sort_date_oldest">Date (Oldest)</string>
+    <string name="sort_name_asc">Name (A-Z)</string>
+    <string name="sort_name_desc">Name (Z-A)</string>
+    <string name="sort_folder">Folder</string>
+
     <!-- Donate screen -->
     <string name="label_btc">Bitcoin</string>
     <string name="label_eth">Ethereum</string>

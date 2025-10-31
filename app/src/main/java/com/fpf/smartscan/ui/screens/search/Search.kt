@@ -76,6 +76,7 @@ import com.fpf.smartscan.ui.components.search.FewShotSelector
 import com.fpf.smartscan.ui.components.search.FilterSection
 import com.fpf.smartscan.ui.components.search.UnifiedSearchBar
 import com.fpf.smartscan.ui.components.search.ActiveFiltersChips
+import com.fpf.smartscan.ui.components.search.SortDropdown
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -115,6 +116,7 @@ fun SearchScreen(
     val queryType by searchViewModel.queryType.collectAsState()
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
     val totalResults by searchViewModel.totalResults.collectAsState()
+    val sortOption by searchViewModel.sortOption.collectAsState()
 
     // Crop state
     val showCropDialog by searchViewModel.showCropDialog.collectAsState()
@@ -530,6 +532,24 @@ fun SearchScreen(
             }
 
             SearchPlaceholderDisplay(isVisible = searchResults.isEmpty())
+
+            // Sort dropdown - zobrazit pouze když jsou nějaké výsledky
+            if (searchResults.isNotEmpty()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SortDropdown(
+                        currentSortOption = sortOption,
+                        onSortOptionSelected = { option ->
+                            searchViewModel.updateSortOption(option)
+                        }
+                    )
+                }
+            }
 
             SearchResults(
                 isVisible = !isLoading && searchResults.isNotEmpty(),

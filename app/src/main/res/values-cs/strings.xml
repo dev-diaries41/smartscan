@@ -58,6 +58,15 @@
     <string name="search_error_unknown">Došlo k neznámé chybě.</string>
     <string name="search_error_index_loading">Chyba při načítání indexu.</string>
 
+    <!-- Možnosti třídění -->
+    <string name="sort_by">Třídit podle</string>
+    <string name="sort_similarity">Podobnosti</string>
+    <string name="sort_date_newest">Data (Nejnovější)</string>
+    <string name="sort_date_oldest">Data (Nejstarší)</string>
+    <string name="sort_name_asc">Jména (A-Z)</string>
+    <string name="sort_name_desc">Jména (Z-A)</string>
+    <string name="sort_folder">Složky</string>
+
     <!-- Obrazovka přispět -->
     <string name="label_btc">Bitcoin</string>
     <string name="label_eth">Ethereum</string>
