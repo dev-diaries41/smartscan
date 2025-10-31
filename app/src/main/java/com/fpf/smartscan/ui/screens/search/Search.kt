@@ -18,15 +18,24 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.ImageSearch
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material.icons.filled.VideoLibrary
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -72,10 +81,14 @@ import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
 import com.fpf.smartscan.ui.screens.settings.SettingsViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     searchViewModel: SearchViewModel = viewModel(),
-    settingsViewModel: SettingsViewModel = viewModel()
+    settingsViewModel: SettingsViewModel = viewModel(),
+    onNavigateToSettings: () -> Unit = {},
+    onNavigateToHelp: () -> Unit = {},
+    onNavigateToDonate: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val appSettings by settingsViewModel.appSettings.collectAsState()
@@ -130,6 +143,7 @@ fun SearchScreen(
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showMoveSuccessMessage by remember { mutableStateOf<String?>(null) }
     var showDeleteSuccessMessage by remember { mutableStateOf<String?>(null) }
+    var showOverflowMenu by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
 
@@ -275,6 +289,81 @@ fun SearchScreen(
     }
 
     androidx.compose.material3.Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
+                actions = {
+                    // Overflow menu button
+                    androidx.compose.material3.IconButton(
+                        onClick = { showOverflowMenu = true }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.menu_more_options)
+                        )
+                    }
+
+                    // Dropdown menu
+                    DropdownMenu(
+                        expanded = showOverflowMenu,
+                        onDismissRequest = { showOverflowMenu = false }
+                    ) {
+                        // Settings
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.title_settings)) },
+                            onClick = {
+                                showOverflowMenu = false
+                                onNavigateToSettings()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Settings,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        // Help
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.title_help)) },
+                            onClick = {
+                                showOverflowMenu = false
+                                onNavigateToHelp()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Help,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        // Donate
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.title_donate)) },
+                            onClick = {
+                                showOverflowMenu = false
+                                onNavigateToDonate()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Favorite,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                }
+            )
+        },
         bottomBar = {
             // TabRow for Media Type selection
             androidx.compose.material3.TabRow(

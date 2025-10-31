@@ -155,8 +155,7 @@ fun MainScreen() {
                     }
                 )
                 }
-            },
-            bottomBar = { BottomNavigationBar(navController) }
+            }
         ) { paddingValues ->
             NavHost(
                 navController = navController,
@@ -166,7 +165,10 @@ fun MainScreen() {
                 composable(Routes.SEARCH) {
                     SearchScreen(
                         searchViewModel = searchViewModel,
-                        settingsViewModel = settingsViewModel
+                        settingsViewModel = settingsViewModel,
+                        onNavigateToSettings = { navController.navigate(Routes.SETTINGS) },
+                        onNavigateToHelp = { navController.navigate(Routes.HELP) },
+                        onNavigateToDonate = { navController.navigate(Routes.DONATE) }
                     )
                 }
                 composable(Routes.SCAN_HISTORY) {
