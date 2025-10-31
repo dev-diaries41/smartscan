@@ -232,6 +232,8 @@
     <string name="search_results_count">%1$d výsledků</string>
     <string name="search_load_more">Načíst další</string>
     <string name="search_selection_count">%1$d vybráno</string>
+    <string name="media_type_images">Obrázky</string>
+    <string name="media_type_videos">Videa</string>
 
     <!-- Tagy -->
     <string name="tags_label">Tagy</string>

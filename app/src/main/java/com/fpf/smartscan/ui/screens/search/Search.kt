@@ -273,17 +273,64 @@ fun SearchScreen(
         }
     }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
-
-        Column(
+    androidx.compose.material3.Scaffold(
+        bottomBar = {
+            // TabRow for Media Type selection
+            androidx.compose.material3.TabRow(
+                selectedTabIndex = if (mediaType == MediaType.IMAGE) 0 else 1,
+                containerColor = MaterialTheme.colorScheme.surface,
+                divider = {
+                    androidx.compose.material3.HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant
+                    )
+                }
+            ) {
+                androidx.compose.material3.Tab(
+                    selected = mediaType == MediaType.IMAGE,
+                    onClick = {
+                        if (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE) {
+                            searchViewModel.setMediaType(MediaType.IMAGE)
+                        }
+                    },
+                    enabled = videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE,
+                    text = { Text(stringResource(R.string.media_type_images)) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = stringResource(R.string.media_type_images)
+                        )
+                    }
+                )
+                androidx.compose.material3.Tab(
+                    selected = mediaType == MediaType.VIDEO,
+                    onClick = {
+                        if (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE) {
+                            searchViewModel.setMediaType(MediaType.VIDEO)
+                        }
+                    },
+                    enabled = videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE,
+                    text = { Text(stringResource(R.string.media_type_videos)) },
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.VideoLibrary,
+                            contentDescription = stringResource(R.string.media_type_videos)
+                        )
+                    }
+                )
+            }
+        }
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Top
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Top
+            ) {
             // Selection action bar
             if (isSelectionMode) {
                 SelectionActionBar(
@@ -349,25 +396,6 @@ fun SearchScreen(
                     dateRangeEnd = dateRangeEnd,
                     onDateRangeRemove = { searchViewModel.clearDateRange() }
                 )
-            }
-
-            // Media Type Toggle - dočasně ponecháno, bude přesunuto do NavigationBar
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ){
-                MediaTypeToggle(
-                    currentMediaType = mediaType,
-                    onMediaTypeChange = { newType -> searchViewModel.setMediaType(newType) },
-                    enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE)
-                )
-
-                if(searchResults.isNotEmpty()){
-                    TextButton(onClick = {searchViewModel.clearResults() }) {
-                        Text(stringResource(R.string.menu_clear_results))
-                    }
-                }
             }
 
             // ImageSearcher pro výběr obrázku (když je QueryType.IMAGE)
@@ -533,7 +561,8 @@ fun SearchScreen(
                 }
             }
         }
-    }
+        } // End of Box
+    } // End of Scaffold
 
     // Crop Image Dialog
     if (showCropDialog) {

@@ -234,6 +234,8 @@
     <string name="search_results_count">%1$d results</string>
     <string name="search_load_more">Load more</string>
     <string name="search_selection_count">%1$d selected</string>
+    <string name="media_type_images">Images</string>
+    <string name="media_type_videos">Videos</string>
 
     <!-- Tags -->
     <string name="tags_label">Tags</string>
