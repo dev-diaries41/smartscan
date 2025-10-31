@@ -38,9 +38,12 @@
     <string name="first_indexing">
         Start the first %1$s index to enable search. You can start it manually anytime in settings—useful if you want to first configure your searchable %1$ss (all %1$ss will be indexed by default).
     </string>
-
-
-
+    <string name="search_images_placeholder">Search images...</string>
+    <string name="search_videos_placeholder">Search videos...</string>
+    <string name="select_image_to_search">Select image to search...</string>
+    <string name="switch_to_image_search">Switch to image search</string>
+    <string name="switch_to_text_search">Switch to text search</string>
+    <string name="clear_query">Clear query</string>
 
 
     <string name="storage_permissions">Storage permission required to search.</string>

@@ -38,6 +38,12 @@
     <string name="first_indexing">
         Spusťte první %1$s index pro aktivaci vyhledávání. Můžete jej spustit ručně kdykoli v nastavení—užitečné pokud chcete nejdříve nakonfigurovat prohledávané %1$s (standardně se indexují všechny %1$s).
     </string>
+    <string name="search_images_placeholder">Vyhledat obrázky...</string>
+    <string name="search_videos_placeholder">Vyhledat videa...</string>
+    <string name="select_image_to_search">Vyberte obrázek k vyhledání...</string>
+    <string name="switch_to_image_search">Přepnout na vyhledávání obrázkem</string>
+    <string name="switch_to_text_search">Přepnout na textové vyhledávání</string>
+    <string name="clear_query">Vymazat dotaz</string>
 
     <string name="storage_permissions">Pro vyhledávání je vyžadováno oprávnění k úložišti.</string>
     <string name="search_error_not_indexed">Index je prázdný.</string>

@@ -64,6 +64,7 @@ import com.fpf.smartscan.ui.components.search.DateRangeFilterDialog
 import com.fpf.smartscan.ui.components.search.getDateRangeDescription
 import com.fpf.smartscan.ui.components.search.FewShotSelector
 import com.fpf.smartscan.ui.components.search.FilterSection
+import com.fpf.smartscan.ui.components.search.UnifiedSearchBar
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -313,29 +314,39 @@ fun SearchScreen(
                 progress = videoIndexProgress
             )
 
-            // Řádek s toggles a Clear Results (přesunut nahoru nad search)
+            // Unified Search Bar podle UI mockupu
+            UnifiedSearchBar(
+                query = searchQuery,
+                onQueryChange = { newQuery -> searchViewModel.setQuery(newQuery) },
+                onClearQuery = { searchViewModel.setQuery("") },
+                queryType = queryType,
+                onQueryTypeToggle = {
+                    val newType = if (queryType == QueryType.TEXT) QueryType.IMAGE else QueryType.TEXT
+                    searchViewModel.updateQueryType(newType)
+                },
+                mediaType = mediaType,
+                onSearch = {
+                    when (queryType) {
+                        QueryType.TEXT -> searchViewModel.textSearch(appSettings.similarityThreshold)
+                        QueryType.IMAGE -> searchViewModel.imageSearch(appSettings.similarityThreshold)
+                    }
+                },
+                enabled = canSearch && hasStoragePermission && !isLoading,
+                translatedQuery = translatedQuery,
+                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+            )
+
+            // Media Type Toggle - dočasně ponecháno, bude přesunuto do NavigationBar
             Row(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ){
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Query Type Toggle Switch (TEXT ↔ IMAGE)
-                    QueryTypeToggle(
-                        currentQueryType = queryType,
-                        onQueryTypeChange = { newType -> searchViewModel.updateQueryType(newType) }
-                    )
-
-                    // Media Type Toggle Switch (IMAGE ↔ VIDEO)
-                    MediaTypeToggle(
-                        currentMediaType = mediaType,
-                        onMediaTypeChange = { newType -> searchViewModel.setMediaType(newType) },
-                        enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE)
-                    )
-                }
+                MediaTypeToggle(
+                    currentMediaType = mediaType,
+                    onMediaTypeChange = { newType -> searchViewModel.setMediaType(newType) },
+                    enabled = (videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE)
+                )
 
                 if(searchResults.isNotEmpty()){
                     TextButton(onClick = {searchViewModel.clearResults() }) {
@@ -344,6 +355,7 @@ fun SearchScreen(
                 }
             }
 
+            // ImageSearcher pro výběr obrázku (když je QueryType.IMAGE)
             if(queryType == QueryType.IMAGE){
                 ImageSearcher(
                     uri = searchImageUri,
@@ -357,23 +369,6 @@ fun SearchScreen(
                     onImageSelected = searchViewModel::updateSearchImageUri,
                     onCropClick = { searchViewModel.showCropDialog() },
                     onClearCrop = { searchViewModel.clearCrop() }
-                )
-            }else{
-                SearchBar(
-                    query = searchQuery,
-                    enabled = canSearch && hasStoragePermission && !isLoading,
-                    onSearch = { threshold -> searchViewModel.textSearch(threshold) },
-                    onQueryChange = { newQuery ->
-                        searchViewModel.setQuery(newQuery)
-                    },
-                    onClearQuery = { searchViewModel.setQuery("") },
-                    label = when (mediaType) {
-                        MediaType.IMAGE -> "Search images..."
-                        MediaType.VIDEO -> "Search videos..."
-                    },
-                    threshold = appSettings.similarityThreshold,
-                    translatedQuery = translatedQuery,
-                    trailingIcon = null
                 )
             }
 
