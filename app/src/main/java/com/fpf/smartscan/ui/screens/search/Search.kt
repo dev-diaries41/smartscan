@@ -412,67 +412,70 @@ fun SearchScreen(
                 hasResults = searchResults.isNotEmpty(),
                 onClearResults = { searchViewModel.clearResults() },
                 overflowMenuContent = {
-                    // Overflow menu button
-                    androidx.compose.material3.IconButton(
-                        onClick = { showOverflowMenu = true },
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = stringResource(R.string.menu_more_options),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
+                    // Box pro správné umístění DropdownMenu pod button
+                    Box {
+                        // Overflow menu button
+                        androidx.compose.material3.IconButton(
+                            onClick = { showOverflowMenu = true },
+                            modifier = Modifier.size(28.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.MoreVert,
+                                contentDescription = stringResource(R.string.menu_more_options),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
 
-                    // Dropdown menu
-                    DropdownMenu(
-                        expanded = showOverflowMenu,
-                        onDismissRequest = { showOverflowMenu = false }
-                    ) {
-                        // Settings
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_settings)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                onNavigateToSettings()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Settings,
-                                    contentDescription = null
-                                )
-                            }
-                        )
+                        // Dropdown menu - kotví se k IconButton v Box
+                        DropdownMenu(
+                            expanded = showOverflowMenu,
+                            onDismissRequest = { showOverflowMenu = false }
+                        ) {
+                            // Settings
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_settings)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onNavigateToSettings()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Settings,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
 
-                        // Help
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_help)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                onNavigateToHelp()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Help,
-                                    contentDescription = null
-                                )
-                            }
-                        )
+                            // Help
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_help)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onNavigateToHelp()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Help,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
 
-                        // Donate
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_donate)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                onNavigateToDonate()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Favorite,
-                                    contentDescription = null
-                                )
-                            }
-                        )
+                            // Donate
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.title_donate)) },
+                                onClick = {
+                                    showOverflowMenu = false
+                                    onNavigateToDonate()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Favorite,
+                                        contentDescription = null
+                                    )
+                                }
+                            )
+                        }
                     }
                 },
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -633,7 +636,7 @@ fun SearchScreen(
                 onClick = { showFilterBottomSheet = true },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(16.dp),
+                    .padding(bottom = 26.dp, end = 16.dp), // +10dp nahoru (16 → 26)
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
