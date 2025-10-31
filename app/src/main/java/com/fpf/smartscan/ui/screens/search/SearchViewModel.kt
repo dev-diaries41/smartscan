@@ -131,6 +131,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _totalResults = MutableStateFlow(0)
     val totalResults: StateFlow<Int> = _totalResults
 
+    // Uložení query embeddingu pro lazy loading dalších výsledků
+    private var currentQueryEmbedding: FloatArray? = null
+    private var currentThreshold: Float = 0.2f
+
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error
 
@@ -488,43 +492,37 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, threshold: Float = 0.2f) {
         val retriever = if(_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
-        // Načti VŠECHNY výsledky (ne jen prvních 30)
-        val results = retriever.query(embedding, Int.MAX_VALUE, threshold)
-        _totalResults.emit(results.size)
 
-        if (results.isEmpty()) {
+        // Uložit embedding pro lazy loading
+        currentQueryEmbedding = embedding
+        currentThreshold = threshold
+
+        // Načti VŠECHNY výsledky (potřebujeme pro správné třídění a filtrování)
+        // SDK retriever.query() vrací výsledky seřazené podle similarity (nejvyšší first)
+        val allResults = retriever.query(embedding, Int.MAX_VALUE, threshold)
+        _totalResults.emit(allResults.size)
+
+        if (allResults.isEmpty()) {
             _error.emit(application.getString(R.string.search_error_no_results))
             _searchResults.emit(emptyList())
             _unfilteredSearchResults.emit(emptyList())
+            currentQueryEmbedding = null
             return
         }
 
-        // SDK retriever.query() už vrací výsledky seřazené podle similarity (nejvyšší first)
-        // Konvertuj VŠECHNY embeddings na URIs a filtruj neplatné
-        val (filteredUris, idsToPurge) = results.map { embed ->
-            val uri = if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
-            embed.id to uri
-        }.partition { (_, uri) -> canOpenUri(application, uri) }
-
-        if (filteredUris.isEmpty()) {
-            _error.emit(application.getString(R.string.search_error_no_results))
-            _unfilteredSearchResults.emit(emptyList())
-            return
+        // Konvertuj VŠECHNY embeddings na URIs
+        // ⚡ PERFORMANCE: Odstraněn canOpenUri() check - dělal 5000x I/O operaci!
+        // Neplatné URIs se ověří lazy až při zobrazování v UI (ImageDisplay komponenta)
+        val allUris = allResults.map { embed ->
+            if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
         }
 
         // Uložení VŠECH unfiltered výsledků (již seřazených podle podobnosti z SDK)
-        val allUris = filteredUris.map { it.second }
         _unfilteredSearchResults.emit(allUris)
 
         // Aplikace všech filtrů (tagy, date range, NSFW) na VŠECHNY výsledky
-        // Vždy voláme applyAllFilters() protože NSFW filtr může být aktivní i bez vybraných tagů
+        // applyAllFilters() pak zobrazí jen prvních RESULTS_BATCH_SIZE (lazy loading)
         applyAllFilters()
-
-        if(idsToPurge.isNotEmpty()){
-            viewModelScope.launch(Dispatchers.IO) {
-                store.remove(idsToPurge.map { it.first })
-            }
-        }
     }
 
     fun toggleViewResult(uri: Uri?){
