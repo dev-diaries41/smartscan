@@ -470,18 +470,19 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     private suspend fun search(store: FileEmbeddingStore, embedding: FloatArray, threshold: Float = 0.2f) {
         val retriever = if(_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
-        var results = retriever.query(embedding, Int.MAX_VALUE, threshold)
-        _totalResults.emit( results.size)
-        results = results.take(RESULTS_BATCH_SIZE) // initial results the result loaded dynamically
+        // Načti VŠECHNY výsledky (ne jen prvních 30)
+        val results = retriever.query(embedding, Int.MAX_VALUE, threshold)
+        _totalResults.emit(results.size)
 
         if (results.isEmpty()) {
             _error.emit(application.getString(R.string.search_error_no_results))
             _searchResults.emit(emptyList())
+            _unfilteredSearchResults.emit(emptyList())
             return
         }
 
         // SDK retriever.query() už vrací výsledky seřazené podle similarity (nejvyšší first)
-        // Uložíme si je v pořadí jako přišly
+        // Konvertuj VŠECHNY embeddings na URIs a filtruj neplatné
         val (filteredUris, idsToPurge) = results.map { embed ->
             val uri = if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(embed.id)
             embed.id to uri
@@ -489,13 +490,15 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
         if (filteredUris.isEmpty()) {
             _error.emit(application.getString(R.string.search_error_no_results))
+            _unfilteredSearchResults.emit(emptyList())
+            return
         }
 
-        // Uložení unfiltered výsledků (již seřazených podle podobnosti z SDK)
-        val uris = filteredUris.map { it.second }
-        _unfilteredSearchResults.emit(uris)
+        // Uložení VŠECH unfiltered výsledků (již seřazených podle podobnosti z SDK)
+        val allUris = filteredUris.map { it.second }
+        _unfilteredSearchResults.emit(allUris)
 
-        // Aplikace všech filtrů (tagy, date range, NSFW)
+        // Aplikace všech filtrů (tagy, date range, NSFW) na VŠECHNY výsledky
         // Vždy voláme applyAllFilters() protože NSFW filtr může být aktivní i bez vybraných tagů
         applyAllFilters()
 
@@ -576,33 +579,20 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
 
     fun onLoadMore() {
         if (isLoadingMoreSearchResults.getAndSet(true)) return
-        val retriever = if (_mediaType.value == MediaType.VIDEO) videoRetriever else imageRetriever
         val currentItemsCount = _searchResults.value.size
         if (currentItemsCount >= _totalResults.value) return
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
+                // Načti další batch z již načtených unfilteredSearchResults
+                val allResults = _unfilteredSearchResults.value
+                val end = (currentItemsCount + RESULTS_BATCH_SIZE).coerceAtMost(allResults.size)
+                val nextBatch = allResults.subList(currentItemsCount, end)
 
-                val end = (currentItemsCount + RESULTS_BATCH_SIZE).coerceAtMost(_totalResults.value)
-                val batch = retriever.query(currentItemsCount, end).take(RESULTS_BATCH_SIZE)
-
-                val (filteredUris, idsToPurge) = batch.map { embed ->
-                    embed.id to if (_mediaType.value == MediaType.VIDEO) getVideoUriFromId(embed.id) else getImageUriFromId(
-                        embed.id
-                    )
-                }.partition { (_, uri) -> canOpenUri(application, uri) }
-
-                if (filteredUris.isNotEmpty()) {
-                    _searchResults.emit(_searchResults.value + filteredUris.map { it.second })
+                if (nextBatch.isNotEmpty()) {
+                    _searchResults.emit(_searchResults.value + nextBatch)
                 }
-
-                if (idsToPurge.isNotEmpty()) {
-                    val store = if (_mediaType.value == MediaType.VIDEO) videoStore else imageStore
-                    viewModelScope.launch(Dispatchers.IO) {
-                        store.remove(idsToPurge.map { it.first })
-                    }
-                }
-            }finally {
+            } finally {
                 isLoadingMoreSearchResults.set(false)
             }
         }
@@ -791,9 +781,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         // Aktivní search = máme search výsledky k filtrování
         val hasActiveSearch = _unfilteredSearchResults.value.isNotEmpty()
 
-        // Pokud nejsou žádné filtry (včetně NSFW), zobraz všechny výsledky
+        // Pokud nejsou žádné filtry (včetně NSFW), zobraz prvních 30 výsledků (lazy loading)
         if (!hasTagFilter && !hasDateFilter && !hasNsfwFilter) {
-            _searchResults.value = _unfilteredSearchResults.value
+            val initialResults = _unfilteredSearchResults.value.take(RESULTS_BATCH_SIZE)
+            _searchResults.value = initialResults
             _totalResults.value = _unfilteredSearchResults.value.size
             return
         }
@@ -874,8 +865,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
                     imageId != null && !excludedImageIds.contains(imageId)
                 }
             }
-            _searchResults.value = filtered
+
+            // Zobraz jen prvních 30 filtrovaných výsledků (lazy loading)
+            val initialResults = filtered.take(RESULTS_BATCH_SIZE)
+            _searchResults.value = initialResults
             _totalResults.value = filtered.size
+
+            // Ulož všechny filtrované výsledky pro lazy loading
+            _unfilteredSearchResults.value = filtered
         } catch (e: Exception) {
             Log.e(TAG, "Error applying filters", e)
             _searchResults.value = _unfilteredSearchResults.value
