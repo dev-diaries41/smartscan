@@ -46,6 +46,7 @@
     <string name="clear_query">Clear query</string>
     <string name="filters">Filters</string>
     <string name="filters_and_options">Filters &amp; Search Options</string>
+    <string name="search_empty_state">Find what you\'re looking for</string>
 
 
     <string name="storage_permissions">Storage permission required to search.</string>

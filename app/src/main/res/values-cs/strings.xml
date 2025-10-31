@@ -46,6 +46,7 @@
     <string name="clear_query">Vymazat dotaz</string>
     <string name="filters">Filtry</string>
     <string name="filters_and_options">Filtry a možnosti vyhledávání</string>
+    <string name="search_empty_state">Najděte, co hledáte</string>
 
     <string name="storage_permissions">Pro vyhledávání je vyžadováno oprávnění k úložišti.</string>
     <string name="search_error_not_indexed">Index je prázdný.</string>

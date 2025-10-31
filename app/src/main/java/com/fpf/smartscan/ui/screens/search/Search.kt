@@ -805,7 +805,7 @@ fun SearchPlaceholderDisplay(isVisible: Boolean) {
             )
             Text(
                 textAlign = TextAlign.Center,
-                text = "Find what you're looking for",
+                text = stringResource(R.string.search_empty_state),
                 style = MaterialTheme.typography.displayMedium,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
             )
