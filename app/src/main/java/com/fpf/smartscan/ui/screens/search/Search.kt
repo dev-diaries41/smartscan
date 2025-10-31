@@ -412,7 +412,12 @@ fun SearchScreen(
                 },
                 enabled = canSearch && hasStoragePermission && !isLoading,
                 translatedQuery = translatedQuery,
-                hasResults = searchResults.isNotEmpty() && searchQuery == lastSearchedQuery,
+                hasResults = searchResults.isNotEmpty() && (
+                    // Pro text search: query musí odpovídat
+                    (queryType == QueryType.TEXT && searchQuery == lastSearchedQuery) ||
+                    // Pro image search: lastSearchedQuery musí být [image_search]
+                    (queryType == QueryType.IMAGE && lastSearchedQuery == "[image_search]")
+                ),
                 onClearResults = { searchViewModel.clearResults() },
                 overflowMenuContent = {
                     // Box pro správné umístění DropdownMenu pod button
