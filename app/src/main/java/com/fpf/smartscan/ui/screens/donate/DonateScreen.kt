@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -24,7 +23,7 @@ import com.fpf.smartscan.R
 
 @Composable
 fun DonateScreen() {
-    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    val clipboardManager = LocalClipboardManager.current
     val btcWallet = stringResource(R.string.btc_wallet)
     val ethWallet = stringResource(R.string.eth_wallet)
     val ltcWallet = stringResource(R.string.ltc_wallet)
