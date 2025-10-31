@@ -1,4 +1,6 @@
 package com.fpf.smartscan.ui.screens.fewshot
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 
 import android.net.Uri
 import androidx.compose.foundation.Image
@@ -116,7 +118,7 @@ fun FewShotDetailScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(onClick = { viewModel.clearError() }) {
-                            Text("OK")
+                            Text(stringResource(R.string.action_ok))
                         }
                     }
                 }
@@ -176,9 +178,9 @@ fun FewShotDetailScreen(
                 showDeleteDialog = false
                 sampleToDelete = null
             },
-            title = { Text("Smazat sample?") },
+            title = { Text(stringResource(R.string.fewshot_delete_sample_title)) },
             text = {
-                Text("Opravdu chcete odstranit tento sample? Průměrný embedding bude přepočítán.")
+                Text(stringResource(R.string.fewshot_delete_sample_message))
             },
             dismissButton = {
                 TextButton(
@@ -187,7 +189,7 @@ fun FewShotDetailScreen(
                         sampleToDelete = null
                     }
                 ) {
-                    Text("Zrušit")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -199,7 +201,7 @@ fun FewShotDetailScreen(
                         sampleToDelete = null
                     }
                 ) {
-                    Text("Smazat", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             }
         )

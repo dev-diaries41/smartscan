@@ -281,4 +281,32 @@
     <string name="retagging_error_title">Re-tagging Failed</string>
     <string name="images">images</string>
     <string name="tags">tags</string>
+
+    <!-- Few-Shot Feature -->
+    <string name="fewshot_tag_name_label">Tag name</string>
+    <string name="fewshot_tag_name_placeholder">e.g., Barunka, Car, Cat</string>
+    <string name="fewshot_tag_description_label">Description (optional)</string>
+    <string name="fewshot_tag_description_placeholder">e.g., Family photos of Barunka</string>
+    <string name="fewshot_continue_button">Continue →</string>
+    <string name="fewshot_checkmark">✓</string>
+    <string name="fewshot_delete_sample_title">Delete sample?</string>
+    <string name="fewshot_delete_sample_message">Are you sure you want to remove this sample? The average embedding will be recalculated.</string>
+    <string name="fewshot_delete_prototype_title">Delete prototype?</string>
+    <string name="fewshot_delete_prototype_message">Are you sure you want to delete the prototype \'%1$s\'? This action cannot be undone.</string>
+    <string name="fewshot_screen_title">Few-Shot Tags</string>
+    <string name="fewshot_label_prefix">Few-shot: %1$s</string>
+    <string name="fewshot_crop_skip">Skip</string>
+    <string name="fewshot_crop_cancel_all">Cancel all</string>
+    <string name="fewshot_picker_continue">Continue (%1$d)</string>
+
+    <!-- Tag Manager -->
+    <string name="tag_manager_import_recommended_title">Import Recommended Tags</string>
+    <string name="tag_manager_import_recommended_button">Import recommended tags</string>
+    <string name="tag_manager_import_button">Import</string>
+    <string name="tag_manager_import_message">Do you want to import 19 recommended tags for automatic categorization?\n\nIncludes: Explicit content, Reconstructions, Children, Art, Selfie, Screenshots, Documents, Food, Nature, Pets, Cars, Travel, Celebrations, Sports, Memes</string>
+    <string name="tag_manager_importing_progress">Importing tags… %1$d/%2$d</string>
+
+    <!-- Models -->
+    <string name="model_download_button">Download</string>
+
 </resources>

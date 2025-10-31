@@ -279,4 +279,32 @@
     <string name="retagging_error_title">Přeznačkování selhalo</string>
     <string name="images">obrázků</string>
     <string name="tags">tagů</string>
+
+    <!-- Few-Shot Feature -->
+    <string name="fewshot_tag_name_label">Název tagu</string>
+    <string name="fewshot_tag_name_placeholder">např. Barunka, Auto, Kočka</string>
+    <string name="fewshot_tag_description_label">Popis (volitelné)</string>
+    <string name="fewshot_tag_description_placeholder">např. Rodinné fotky Barunky</string>
+    <string name="fewshot_continue_button">Pokračovat →</string>
+    <string name="fewshot_checkmark">✓</string>
+    <string name="fewshot_delete_sample_title">Smazat sample?</string>
+    <string name="fewshot_delete_sample_message">Opravdu chcete odstranit tento sample? Průměrný embedding bude přepočítán.</string>
+    <string name="fewshot_delete_prototype_title">Smazat prototype?</string>
+    <string name="fewshot_delete_prototype_message">Opravdu chcete smazat prototype \'%1$s\'? Tato akce je nevratná.</string>
+    <string name="fewshot_screen_title">Few-Shot Tags</string>
+    <string name="fewshot_label_prefix">Few-shot: %1$s</string>
+    <string name="fewshot_crop_skip">Přeskočit</string>
+    <string name="fewshot_crop_cancel_all">Zrušit vše</string>
+    <string name="fewshot_picker_continue">Pokračovat (%1$d)</string>
+
+    <!-- Tag Manager -->
+    <string name="tag_manager_import_recommended_title">Importovat doporučené tagy</string>
+    <string name="tag_manager_import_recommended_button">Importovat doporučené tagy</string>
+    <string name="tag_manager_import_button">Importovat</string>
+    <string name="tag_manager_import_message">Chcete importovat 19 doporučených tagů pro automatickou kategorizaci?\n\nZahrnuje: Explicitní obsah, Rekonstrukce, Děti, Art, Selfie, Screenshots, Dokumenty, Jídlo, Příroda, Mazlíčci, Auta, Cestování, Oslavy, Sport, Memes</string>
+    <string name="tag_manager_importing_progress">Importuji tagy… %1$d/%2$d</string>
+
+    <!-- Models -->
+    <string name="model_download_button">Download</string>
+
 </resources>

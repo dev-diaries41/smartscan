@@ -14,9 +14,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import com.fpf.smartscan.R
 
 /**
  * Dialog pro vytvoření nového Few-Shot tagu
@@ -77,8 +79,8 @@ fun CreateFewShotTagDialog(
                         name = it
                         showError = false
                     },
-                    label = { Text("Název tagu") },
-                    placeholder = { Text("např. Barunka, Auto, Kočka") },
+                    label = { Text(stringResource(R.string.fewshot_tag_name_label)) },
+                    placeholder = { Text(stringResource(R.string.fewshot_tag_name_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                     isError = showError,
                     supportingText = if (showError) {
@@ -112,8 +114,8 @@ fun CreateFewShotTagDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Popis (volitelné)") },
-                    placeholder = { Text("např. Rodinné fotky Barunky") },
+                    label = { Text(stringResource(R.string.fewshot_tag_description_label)) },
+                    placeholder = { Text(stringResource(R.string.fewshot_tag_description_placeholder)) },
                     modifier = Modifier.fillMaxWidth(),
                     maxLines = 2
                 )
@@ -169,7 +171,7 @@ fun CreateFewShotTagDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Zrušit")
+                        Text(stringResource(R.string.action_cancel))
                     }
                     Button(
                         onClick = {
@@ -193,7 +195,7 @@ fun CreateFewShotTagDialog(
                             }
                         }
                     ) {
-                        Text("Pokračovat →")
+                        Text(stringResource(R.string.fewshot_continue_button))
                     }
                 }
             }
@@ -248,7 +250,7 @@ private fun CategoryChip(
         onClick = onClick,
         label = { Text(category.replaceFirstChar { it.uppercase() }) },
         leadingIcon = if (isSelected) {
-            { Text("✓") }
+            { Text(stringResource(R.string.fewshot_checkmark)) }
         } else null
     )
 }

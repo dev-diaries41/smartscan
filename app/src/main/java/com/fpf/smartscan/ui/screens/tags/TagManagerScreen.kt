@@ -161,7 +161,7 @@ fun TagManagerScreen(
                         Button(
                             onClick = { showImportDialog = true }
                         ) {
-                            Text("Importovat doporučené tagy")
+                            Text(stringResource(R.string.tag_manager_import_recommended_button))
                         }
                     }
                 }
@@ -332,12 +332,12 @@ fun TagManagerScreen(
             if (showImportDialog) {
                 AlertDialog(
                     onDismissRequest = { if (!isImporting) showImportDialog = false },
-                    title = { Text("Importovat doporučené tagy") },
+                    title = { Text(stringResource(R.string.tag_manager_import_recommended_title)) },
                     text = {
                         Column {
                             if (isImporting) {
                                 // Progress indicator během importu
-                                Text("Importuji tagy... ${importProgress.first}/${importProgress.second}")
+                                Text(stringResource(R.string.tag_manager_importing_progress, importProgress.first, importProgress.second))
                                 Spacer(modifier = Modifier.height(16.dp))
                                 LinearProgressIndicator(
                                     progress = {
@@ -379,7 +379,7 @@ fun TagManagerScreen(
                             },
                             enabled = !isImporting
                         ) {
-                            Text("Importovat")
+                            Text(stringResource(R.string.tag_manager_import_button))
                         }
                     },
                     dismissButton = {

@@ -16,13 +16,20 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.fpf.smartscan.data.fewshot.FewShotPrototypeEntity
+import com.fpf.smartscan.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -74,7 +81,7 @@ fun FewShotTagsScreen(
             TopAppBar(
                 title = {
                     Column {
-                        Text("Few-Shot Tags")
+                        Text(stringResource(R.string.fewshot_screen_title))
                         if (allPrototypes.isNotEmpty()) {
                             Text(
                                 text = "${allPrototypes.size} ${
@@ -133,7 +140,7 @@ fun FewShotTagsScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Button(onClick = { viewModel.clearError() }) {
-                            Text("OK")
+                            Text(stringResource(R.string.action_ok))
                         }
                     }
                 }
@@ -171,9 +178,9 @@ fun FewShotTagsScreen(
                 showDeleteDialog = false
                 prototypeToDelete = null
             },
-            title = { Text("Smazat prototype?") },
+            title = { Text(stringResource(R.string.fewshot_delete_prototype_title)) },
             text = {
-                Text("Opravdu chcete smazat prototype '${prototypeToDelete?.name}'? Tato akce je nevratná.")
+                Text(stringResource(R.string.fewshot_delete_prototype_message, prototypeToDelete?.name ?: ""))
             },
             dismissButton = {
                 TextButton(
@@ -182,7 +189,7 @@ fun FewShotTagsScreen(
                         prototypeToDelete = null
                     }
                 ) {
-                    Text("Zrušit")
+                    Text(stringResource(R.string.action_cancel))
                 }
             },
             confirmButton = {
@@ -195,7 +202,7 @@ fun FewShotTagsScreen(
                         prototypeToDelete = null
                     }
                 ) {
-                    Text("Smazat", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.action_delete), color = MaterialTheme.colorScheme.error)
                 }
             }
         )

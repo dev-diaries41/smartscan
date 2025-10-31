@@ -349,7 +349,7 @@ fun SettingsScreen(
                                     color = MaterialTheme.colorScheme.onPrimary
                                 )
                             } else {
-                                Text("Download")
+                                Text(stringResource(R.string.model_download_button))
                             }
                         }
                     }

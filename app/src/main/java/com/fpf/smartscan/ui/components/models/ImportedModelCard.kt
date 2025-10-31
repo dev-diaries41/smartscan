@@ -58,7 +58,7 @@ fun ImportedModelCard(
                     isDeleteAlertVisible = false
                     onDelete(data)
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )

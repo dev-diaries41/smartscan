@@ -93,7 +93,7 @@ fun ActiveFiltersChips(
         if (selectedFewShotPrototype != null) {
             AssistChip(
                 onClick = { onFewShotRemove() },
-                label = { Text("Few-shot: ${selectedFewShotPrototype.name}") },
+                label = { Text(stringResource(R.string.fewshot_label_prefix, selectedFewShotPrototype.name)) },
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,

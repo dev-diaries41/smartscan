@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import com.fpf.smartscan.R
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -171,7 +173,7 @@ fun ImagePickerDialog(
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Zrušit")
+                        Text(stringResource(R.string.action_cancel))
                     }
                     Button(
                         onClick = {
@@ -179,7 +181,7 @@ fun ImagePickerDialog(
                         },
                         enabled = selectedImages.size >= 3
                     ) {
-                        Text("Pokračovat (${selectedImages.size})")
+                        Text(stringResource(R.string.fewshot_picker_continue, selectedImages.size))
                     }
                 }
             }

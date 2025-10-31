@@ -58,7 +58,7 @@ fun DownloadableModelCard(
                     isDownloadAlertVisible = false
                     onDownload(data.url)
                 }) {
-                    Text("OK")
+                    Text(stringResource(R.string.action_ok))
                 }
             }
         )
