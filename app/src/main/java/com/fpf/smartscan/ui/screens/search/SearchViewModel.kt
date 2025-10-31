@@ -786,11 +786,13 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private suspend fun applyAllFilters() {
         val hasTagFilter = _selectedTagFilters.value.isNotEmpty()
         val hasDateFilter = _dateRangeStart.value != null || _dateRangeEnd.value != null
+        val appSettings = loadSettings(application.getSharedPreferences("AsyncStorage", android.content.Context.MODE_PRIVATE))
+        val hasNsfwFilter = appSettings.hideNsfwContent
         // Aktivní search = máme search výsledky k filtrování
         val hasActiveSearch = _unfilteredSearchResults.value.isNotEmpty()
 
-        // Pokud nejsou žádné filtry, zobraz všechny výsledky
-        if (!hasTagFilter && !hasDateFilter) {
+        // Pokud nejsou žádné filtry (včetně NSFW), zobraz všechny výsledky
+        if (!hasTagFilter && !hasDateFilter && !hasNsfwFilter) {
             _searchResults.value = _unfilteredSearchResults.value
             _totalResults.value = _unfilteredSearchResults.value.size
             return
