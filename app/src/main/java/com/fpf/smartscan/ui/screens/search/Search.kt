@@ -289,81 +289,6 @@ fun SearchScreen(
     }
 
     androidx.compose.material3.Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                actions = {
-                    // Overflow menu button
-                    androidx.compose.material3.IconButton(
-                        onClick = { showOverflowMenu = true }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.MoreVert,
-                            contentDescription = stringResource(R.string.menu_more_options)
-                        )
-                    }
-
-                    // Dropdown menu
-                    DropdownMenu(
-                        expanded = showOverflowMenu,
-                        onDismissRequest = { showOverflowMenu = false }
-                    ) {
-                        // Settings
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_settings)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                onNavigateToSettings()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Settings,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-
-                        // Help
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_help)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                onNavigateToHelp()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Help,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-
-                        // Donate
-                        DropdownMenuItem(
-                            text = { Text(stringResource(R.string.title_donate)) },
-                            onClick = {
-                                showOverflowMenu = false
-                                onNavigateToDonate()
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Favorite,
-                                    contentDescription = null
-                                )
-                            }
-                        )
-                    }
-                }
-            )
-        },
         bottomBar = {
             // TabRow for Media Type selection
             androidx.compose.material3.TabRow(
@@ -382,15 +307,21 @@ fun SearchScreen(
                             searchViewModel.setMediaType(MediaType.IMAGE)
                         }
                     },
-                    enabled = videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE,
-                    text = { Text(stringResource(R.string.media_type_images)) },
-                    icon = {
+                    enabled = videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE
+                ) {
+                    // Horizontal layout: Icon + Text vedle sebe
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
                             imageVector = Icons.Default.Image,
-                            contentDescription = stringResource(R.string.media_type_images)
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
                         )
+                        Text(stringResource(R.string.media_type_images))
                     }
-                )
+                }
                 androidx.compose.material3.Tab(
                     selected = mediaType == MediaType.VIDEO,
                     onClick = {
@@ -398,15 +329,21 @@ fun SearchScreen(
                             searchViewModel.setMediaType(MediaType.VIDEO)
                         }
                     },
-                    enabled = videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE,
-                    text = { Text(stringResource(R.string.media_type_videos)) },
-                    icon = {
+                    enabled = videoIndexStatus != ProcessorStatus.ACTIVE && imageIndexStatus != ProcessorStatus.ACTIVE
+                ) {
+                    // Horizontal layout: Icon + Text vedle sebe
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Icon(
                             imageVector = Icons.Default.VideoLibrary,
-                            contentDescription = stringResource(R.string.media_type_videos)
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
                         )
+                        Text(stringResource(R.string.media_type_videos))
                     }
-                )
+                }
             }
         }
     ) { paddingValues ->
@@ -474,6 +411,70 @@ fun SearchScreen(
                 translatedQuery = translatedQuery,
                 hasResults = searchResults.isNotEmpty(),
                 onClearResults = { searchViewModel.clearResults() },
+                overflowMenuContent = {
+                    // Overflow menu button
+                    androidx.compose.material3.IconButton(
+                        onClick = { showOverflowMenu = true },
+                        modifier = Modifier.size(28.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.MoreVert,
+                            contentDescription = stringResource(R.string.menu_more_options),
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    // Dropdown menu
+                    DropdownMenu(
+                        expanded = showOverflowMenu,
+                        onDismissRequest = { showOverflowMenu = false }
+                    ) {
+                        // Settings
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.title_settings)) },
+                            onClick = {
+                                showOverflowMenu = false
+                                onNavigateToSettings()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Settings,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        // Help
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.title_help)) },
+                            onClick = {
+                                showOverflowMenu = false
+                                onNavigateToHelp()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.Help,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+
+                        // Donate
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.title_donate)) },
+                            onClick = {
+                                showOverflowMenu = false
+                                onNavigateToDonate()
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Filled.Favorite,
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                },
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
 

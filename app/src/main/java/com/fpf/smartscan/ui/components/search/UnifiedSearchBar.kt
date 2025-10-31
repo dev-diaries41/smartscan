@@ -46,9 +46,11 @@ import com.fpf.smartscan.data.QueryType
  * - Search Input
  * - Clear Query button (X - podmíněně viditelný)
  * - Clear Results button (⊗ - podmíněně viditelný)
+ * - Overflow Menu (⋮ - optional trailing content)
  *
  * Vše v jednom kompaktním baru s Material 3 designem.
  * Clear Results button se zobrazí pouze když existují výsledky.
+ * Overflow menu se zobrazí pokud je poskytnut overflowMenuContent.
  */
 @Composable
 fun UnifiedSearchBar(
@@ -74,6 +76,9 @@ fun UnifiedSearchBar(
     // Optional: Clear results action
     hasResults: Boolean = false,
     onClearResults: (() -> Unit)? = null,
+
+    // Optional: Overflow menu (pro trailing actions)
+    overflowMenuContent: (@Composable () -> Unit)? = null,
 
     modifier: Modifier = Modifier
 ) {
@@ -198,6 +203,9 @@ fun UnifiedSearchBar(
                     )
                 }
             }
+
+            // Overflow menu (conditionally visible)
+            overflowMenuContent?.invoke()
         }
     }
 
