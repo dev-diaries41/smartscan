@@ -122,6 +122,7 @@ fun SearchScreen(
     val selectedFewShotPrototype by searchViewModel.selectedFewShotPrototype.collectAsState()
 
     var showDateRangeDialog by remember { mutableStateOf(false) }
+    var showFilterBottomSheet by remember { mutableStateOf(false) }
     var hasNotificationPermission by remember { mutableStateOf(false) }
     var hasStoragePermission by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
@@ -372,28 +373,8 @@ fun SearchScreen(
                 )
             }
 
-            // Společná sekce pro všechny filtry (pouze pro IMAGE mode)
-            if (mediaType == MediaType.IMAGE) {
-                Spacer(modifier = Modifier.height(8.dp))
-                FilterSection(
-                    availableTags = availableTagsWithCounts,
-                    selectedTags = selectedTagFilters,
-                    onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) },
-                    availableFewShotPrototypes = availableFewShotPrototypes,
-                    selectedFewShotPrototype = selectedFewShotPrototype,
-                    onPrototypeSelected = { prototype ->
-                        searchViewModel.selectFewShotPrototype(prototype)
-                    },
-                    onFewShotSearchTriggered = {
-                        searchViewModel.fewShotSearch(appSettings.similarityThreshold)
-                    },
-                    dateRangeStart = dateRangeStart,
-                    dateRangeEnd = dateRangeEnd,
-                    onDateRangeClick = { showDateRangeDialog = true },
-                    onDateRangeClear = { searchViewModel.clearDateRange() },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
+            // Filtry jsou nyní v Bottom Sheet, otevíraném pomocí FAB
+            // FilterSection odstraněna z hlavního layoutu
 
             Spacer(modifier = Modifier.height(16.dp))
             LoadingIndicator(isVisible = isLoading, size = 48.dp, strokeWidth = 4.dp, modifier = Modifier.fillMaxWidth())
@@ -506,6 +487,38 @@ fun SearchScreen(
                 )
             }
         }
+
+        // Filter FAB - pouze pro IMAGE mode
+        if (mediaType == MediaType.IMAGE && !isSelectionMode) {
+            val activeFiltersCount = selectedTagFilters.size +
+                                    (if (selectedFewShotPrototype != null) 1 else 0) +
+                                    (if (dateRangeStart != null || dateRangeEnd != null) 1 else 0)
+
+            androidx.compose.material3.ExtendedFloatingActionButton(
+                onClick = { showFilterBottomSheet = true },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp),
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            ) {
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown, // TODO: Replace with Filter icon
+                    contentDescription = stringResource(R.string.filters)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(stringResource(R.string.filters))
+                if (activeFiltersCount > 0) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                    androidx.compose.material3.Badge(
+                        containerColor = MaterialTheme.colorScheme.error,
+                        contentColor = MaterialTheme.colorScheme.onError
+                    ) {
+                        Text(activeFiltersCount.toString())
+                    }
+                }
+            }
+        }
     }
 
     // Crop Image Dialog
@@ -534,6 +547,100 @@ fun SearchScreen(
                 searchViewModel.clearDateRange()
             }
         )
+    }
+
+    // Filter Bottom Sheet
+    if (showFilterBottomSheet && mediaType == MediaType.IMAGE) {
+        @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+        androidx.compose.material3.ModalBottomSheet(
+            onDismissRequest = { showFilterBottomSheet = false },
+            sheetState = androidx.compose.material3.rememberModalBottomSheetState(
+                skipPartiallyExpanded = false
+            )
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.filters_and_options),
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                // FilterSection content (bez rozbalovacího wrapperu)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // 1. Tagy
+                    if (availableTagsWithCounts.isNotEmpty()) {
+                        TagFilterChips(
+                            availableTags = availableTagsWithCounts,
+                            selectedTags = selectedTagFilters,
+                            onTagToggle = { tagName -> searchViewModel.toggleTagFilter(tagName) }
+                        )
+                    }
+
+                    // 2. Few-Shot
+                    if (availableFewShotPrototypes.isNotEmpty()) {
+                        FewShotSelector(
+                            prototypes = availableFewShotPrototypes,
+                            selectedPrototype = selectedFewShotPrototype,
+                            onPrototypeSelected = { prototype ->
+                                searchViewModel.selectFewShotPrototype(prototype)
+                            },
+                            onSearchTriggered = {
+                                searchViewModel.fewShotSearch(appSettings.similarityThreshold)
+                                showFilterBottomSheet = false
+                            }
+                        )
+                    }
+
+                    // 3. Date range button
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        androidx.compose.material3.FilterChip(
+                            selected = dateRangeStart != null || dateRangeEnd != null,
+                            onClick = { showDateRangeDialog = true },
+                            label = {
+                                Text(
+                                    text = if (dateRangeStart != null || dateRangeEnd != null) {
+                                        getDateRangeDescription(dateRangeStart, dateRangeEnd)
+                                    } else {
+                                        stringResource(R.string.date_filter_select)
+                                    }
+                                )
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarMonth,
+                                    contentDescription = stringResource(R.string.date_filter_label)
+                                )
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        if (dateRangeStart != null || dateRangeEnd != null) {
+                            androidx.compose.material3.IconButton(
+                                onClick = { searchViewModel.clearDateRange() }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = stringResource(R.string.date_filter_clear)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(32.dp))
+            }
+        }
     }
 }
 

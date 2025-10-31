@@ -44,6 +44,8 @@
     <string name="switch_to_image_search">Přepnout na vyhledávání obrázkem</string>
     <string name="switch_to_text_search">Přepnout na textové vyhledávání</string>
     <string name="clear_query">Vymazat dotaz</string>
+    <string name="filters">Filtry</string>
+    <string name="filters_and_options">Filtry a možnosti vyhledávání</string>
 
     <string name="storage_permissions">Pro vyhledávání je vyžadováno oprávnění k úložišti.</string>
     <string name="search_error_not_indexed">Index je prázdný.</string>

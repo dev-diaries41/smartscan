@@ -44,6 +44,8 @@
     <string name="switch_to_image_search">Switch to image search</string>
     <string name="switch_to_text_search">Switch to text search</string>
     <string name="clear_query">Clear query</string>
+    <string name="filters">Filters</string>
+    <string name="filters_and_options">Filters &amp; Search Options</string>
 
 
     <string name="storage_permissions">Storage permission required to search.</string>
