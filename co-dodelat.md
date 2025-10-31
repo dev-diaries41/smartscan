@@ -32,21 +32,21 @@
 - Přidat do Active Filters Chips když je aktivní
 - Vizuální indikace že NSFW obsah je filtrován
 
-### 4. **Clear Results Action** (5 minut, NÍZKÁ priorita)
-- Byl odstraněn z top baru
-- Možnosti:
-  - Přidat do overflow menu (⋮)
-  - Swipe-to-dismiss gesture
-  - Nebo nechat úplně pryč (výsledky se mažou automaticky při novém search)
+### 4. **Clear Results Action** ✅ HOTOVO (2025-01-31)
+- ✅ Implementován jako podmíněně viditelný button v UnifiedSearchBar
+- ✅ Zobrazí se pouze když existují výsledky (zero extra space)
+- ✅ Ikona: Clear (⊗) v error color pro vizuální odlišení od Clear Query (X)
+- ✅ Umístění: Trailing edge za Clear Query buttonem
+- ✅ Benefity: Discoverable, consistent, simple, space-efficient
 
 ---
 
 ## 📋 TECHNICKÝ DLUH
 
 ### Code Quality
-- [ ] Odstranit deprecated `Divider` → `HorizontalDivider` (TagEditScreen.kt)
-- [ ] Odstranit deprecated `ClipboardManager` → `Clipboard` (DonateScreen.kt)
-- [ ] Fix deprecated `Icons.Filled.Label` → `Icons.AutoMirrored.Filled.Label`
+- [x] Odstranit deprecated `Divider` → `HorizontalDivider` (TagEditScreen.kt) ✅ 2025-01-31
+- [x] Odstranit deprecated `ClipboardManager` → `Clipboard` (DonateScreen.kt) ✅ 2025-01-31
+- [x] Fix deprecated `Icons.Filled.Label` → `Icons.AutoMirrored.Filled.Label` ✅ (už bylo hotové dříve)
 
 ### Testy
 - [ ] Unit testy pro nové komponenty (UnifiedSearchBar, ActiveFiltersChips)
@@ -82,4 +82,8 @@
 ---
 
 **Poslední update**: 2025-01-31
-**Status**: UI mockup HOTOV, zbývají optimalizace a polish
+**Status**:
+- ✅ UI mockup HOTOV
+- ✅ Technický dluh (Code Quality) HOTOV
+- ✅ Clear Results Action HOTOV
+- ⏳ Zbývají: Loading States UX, NSFW Filter Toggle UI
