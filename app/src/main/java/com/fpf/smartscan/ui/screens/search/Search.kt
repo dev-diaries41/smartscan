@@ -373,7 +373,7 @@ fun SearchScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp, vertical = 4.dp),
+                    .padding(horizontal = 8.dp),  // Odstraněn vertical padding pro max prostor
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Top
             ) {
@@ -478,7 +478,7 @@ fun SearchScreen(
                         }
                     }
                 },
-                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                modifier = Modifier.padding(horizontal = 8.dp)  // Odstraněn vertical padding
             )
 
             // Active Filters Chips (pouze pro IMAGE mode)
