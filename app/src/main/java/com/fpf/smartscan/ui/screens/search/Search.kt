@@ -65,6 +65,7 @@ import com.fpf.smartscan.ui.components.search.getDateRangeDescription
 import com.fpf.smartscan.ui.components.search.FewShotSelector
 import com.fpf.smartscan.ui.components.search.FilterSection
 import com.fpf.smartscan.ui.components.search.UnifiedSearchBar
+import com.fpf.smartscan.ui.components.search.ActiveFiltersChips
 import com.fpf.smartscan.ui.components.media.SwipeableMediaViewer
 import com.fpf.smartscan.ui.permissions.RequestPermissions
 import com.fpf.smartscan.ui.screens.search.SearchViewModel.Companion.RESULTS_BATCH_SIZE
@@ -336,6 +337,19 @@ fun SearchScreen(
                 translatedQuery = translatedQuery,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
+
+            // Active Filters Chips (pouze pro IMAGE mode)
+            if (mediaType == MediaType.IMAGE) {
+                ActiveFiltersChips(
+                    selectedTags = selectedTagFilters,
+                    onTagRemove = { tagName -> searchViewModel.toggleTagFilter(tagName) },
+                    selectedFewShotPrototype = selectedFewShotPrototype,
+                    onFewShotRemove = { searchViewModel.selectFewShotPrototype(null) },
+                    dateRangeStart = dateRangeStart,
+                    dateRangeEnd = dateRangeEnd,
+                    onDateRangeRemove = { searchViewModel.clearDateRange() }
+                )
+            }
 
             // Media Type Toggle - dočasně ponecháno, bude přesunuto do NavigationBar
             Row(
