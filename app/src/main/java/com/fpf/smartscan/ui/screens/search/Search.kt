@@ -117,6 +117,7 @@ fun SearchScreen(
     val searchImageUri by searchViewModel.searchImageUri.collectAsState()
     val totalResults by searchViewModel.totalResults.collectAsState()
     val sortOption by searchViewModel.sortOption.collectAsState()
+    val lastSearchedQuery by searchViewModel.lastSearchedQuery.collectAsState()
 
     // Crop state
     val showCropDialog by searchViewModel.showCropDialog.collectAsState()
@@ -411,7 +412,7 @@ fun SearchScreen(
                 },
                 enabled = canSearch && hasStoragePermission && !isLoading,
                 translatedQuery = translatedQuery,
-                hasResults = searchResults.isNotEmpty(),
+                hasResults = searchResults.isNotEmpty() && searchQuery == lastSearchedQuery,
                 onClearResults = { searchViewModel.clearResults() },
                 overflowMenuContent = {
                     // Box pro správné umístění DropdownMenu pod button

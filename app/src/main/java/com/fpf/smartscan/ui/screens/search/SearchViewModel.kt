@@ -114,6 +114,10 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
 
+    // Poslední vyhledaný query (pro detekci změny)
+    private val _lastSearchedQuery = MutableStateFlow("")
+    val lastSearchedQuery: StateFlow<String> = _lastSearchedQuery
+
     // Přeložený dotaz (pro zobrazení v UI)
     private val _translatedQuery = MutableStateFlow<String?>(null)
     val translatedQuery: StateFlow<String?> = _translatedQuery
@@ -304,6 +308,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _isLoading.value = true
         _error.value = null
 
+        // Uložit vyhledávaný query
+        _lastSearchedQuery.value = currentQuery
+
         viewModelScope.launch((Dispatchers.IO)) {
             try {
                 // FÁZE 1: Překlad textu a zobrazení v UI
@@ -390,6 +397,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _isLoading.value = true
         _error.value = null
 
+        // Uložit že se vyhledává obrazem (prázdný string protože není text query)
+        _lastSearchedQuery.value = "[image_search]"
+
         Log.i(TAG, "imageSearch: Starting search. Cropped bitmap exists: ${_croppedBitmap.value != null}")
 
         viewModelScope.launch((Dispatchers.IO)) {
@@ -454,6 +464,9 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
         _isLoading.value = true
         _error.value = null
         _queryType.value = QueryType.TEXT // Nastavíme jako text query type (pro konzistentní UI)
+
+        // Uložit few-shot search jako poslední vyhledávání
+        _lastSearchedQuery.value = "[few_shot:${prototype.name}]"
 
         Log.i(TAG, "fewShotSearch: Searching with prototype '${prototype.name}'")
 
