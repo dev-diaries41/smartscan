@@ -172,7 +172,8 @@ fun UnifiedSearchBar(
                 )
             )
 
-            // Clear query button (conditionally visible)
+            // Clear query button (priorita - zobrazí se když je text v inputu)
+            // Clear results button se zobrazí JEN když není text v inputu
             if (query.isNotBlank() && queryType == QueryType.TEXT) {
                 IconButton(
                     onClick = onClearQuery,
@@ -186,10 +187,8 @@ fun UnifiedSearchBar(
                         modifier = Modifier.size(16.dp)
                     )
                 }
-            }
-
-            // Clear results button (conditionally visible)
-            if (hasResults && onClearResults != null) {
+            } else if (hasResults && onClearResults != null) {
+                // Clear results button - zobrazí se POUZE když není text v inputu
                 IconButton(
                     onClick = onClearResults,
                     enabled = enabled,
