@@ -383,6 +383,8 @@ fun SearchScreen(
                 },
                 enabled = canSearch && hasStoragePermission && !isLoading,
                 translatedQuery = translatedQuery,
+                hasResults = searchResults.isNotEmpty(),
+                onClearResults = { searchViewModel.clearResults() },
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
             )
 

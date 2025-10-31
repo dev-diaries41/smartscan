@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Search
@@ -43,9 +44,11 @@ import com.fpf.smartscan.data.QueryType
  * Kombinuje:
  * - Query Type Toggle (leading icon - TEXT/IMAGE)
  * - Search Input
- * - Clear button
+ * - Clear Query button (X - podmíněně viditelný)
+ * - Clear Results button (⊗ - podmíněně viditelný)
  *
- * Vše v jednom kompaktním baru s Material 3 designem
+ * Vše v jednom kompaktním baru s Material 3 designem.
+ * Clear Results button se zobrazí pouze když existují výsledky.
  */
 @Composable
 fun UnifiedSearchBar(
@@ -67,6 +70,10 @@ fun UnifiedSearchBar(
 
     // Optional: translated query display
     translatedQuery: String? = null,
+
+    // Optional: Clear results action
+    hasResults: Boolean = false,
+    onClearResults: (() -> Unit)? = null,
 
     modifier: Modifier = Modifier
 ) {
@@ -160,7 +167,7 @@ fun UnifiedSearchBar(
                 )
             )
 
-            // Clear button (conditionally visible)
+            // Clear query button (conditionally visible)
             if (query.isNotBlank() && queryType == QueryType.TEXT) {
                 IconButton(
                     onClick = onClearQuery,
@@ -172,6 +179,22 @@ fun UnifiedSearchBar(
                         contentDescription = stringResource(R.string.clear_query),
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                         modifier = Modifier.size(16.dp)
+                    )
+                }
+            }
+
+            // Clear results button (conditionally visible)
+            if (hasResults && onClearResults != null) {
+                IconButton(
+                    onClick = onClearResults,
+                    enabled = enabled,
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Clear,
+                        contentDescription = stringResource(R.string.menu_clear_results),
+                        tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
+                        modifier = Modifier.size(18.dp)
                     )
                 }
             }
