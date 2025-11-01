@@ -19,17 +19,17 @@ import com.fpf.smartscan.lib.canOpenUri
 import com.fpf.smartscan.lib.getVideoUriFromId
 import com.fpf.smartscan.lib.ImageIndexListener
 import com.fpf.smartscan.lib.VideoIndexListener
-import com.fpf.smartscansdk.core.ml.embeddings.Embedding
-import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
-import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
-import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipImageEmbedder
-import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipTextEmbedder
-import com.fpf.smartscansdk.core.ml.models.ResourceId
-import com.fpf.smartscansdk.core.utils.getBitmapFromUri
-import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingRetriever
-import com.fpf.smartscansdk.extensions.embeddings.FileEmbeddingStore
-import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
-import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
+import com.fpf.smartscansdk.core.data.Embedding
+import com.fpf.smartscansdk.core.embeddings.FileEmbeddingRetriever
+import com.fpf.smartscansdk.core.embeddings.FileEmbeddingStore
+import com.fpf.smartscansdk.core.indexers.ImageIndexer
+import com.fpf.smartscansdk.core.indexers.VideoIndexer
+import com.fpf.smartscansdk.core.media.getBitmapFromUri
+import com.fpf.smartscansdk.ml.data.ResourceId
+import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig
+import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
+import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipImageEmbedder
+import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipTextEmbedder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -54,11 +54,11 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH)
     val imageRetriever = FileEmbeddingRetriever(imageStore)
 
-    val videoStore = FileEmbeddingStore(File(application.filesDir,  VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH )
+    val videoStore = FileEmbeddingStore(File(application.filesDir, VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH )
     val videoRetriever = FileEmbeddingRetriever(videoStore)
 
-    private val textEmbedder = ClipTextEmbedder(application.resources, ResourceId(R.raw.text_encoder_quant_int8))
-    private val imageEmbedder = ClipImageEmbedder(application.resources, ResourceId(R.raw.image_encoder_quant_int8))
+    private val textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
+    private val imageEmbedder = ClipImageEmbedder(application, ResourceId(R.raw.image_encoder_quant_int8))
 
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()

@@ -23,8 +23,8 @@ import com.fpf.smartscan.services.startIndexing
 import com.fpf.smartscan.ui.permissions.StorageAccess
 import com.fpf.smartscan.ui.permissions.getStorageAccess
 import com.fpf.smartscan.ui.theme.ThemeManager
-import com.fpf.smartscansdk.extensions.indexers.ImageIndexer
-import com.fpf.smartscansdk.extensions.indexers.VideoIndexer
+import com.fpf.smartscansdk.core.indexers.ImageIndexer
+import com.fpf.smartscansdk.core.indexers.VideoIndexer
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
