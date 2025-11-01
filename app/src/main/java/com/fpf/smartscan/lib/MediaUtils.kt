@@ -10,8 +10,8 @@ import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.Log
 import androidx.documentfile.provider.DocumentFile
-import com.fpf.smartscansdk.core.ml.embeddings.clip.ClipConfig
-import com.fpf.smartscansdk.core.utils.getBitmapFromUri
+import com.fpf.smartscansdk.core.media.getBitmapFromUri
+import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

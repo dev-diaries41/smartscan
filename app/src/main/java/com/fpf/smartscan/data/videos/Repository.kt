@@ -1,7 +1,7 @@
 package com.fpf.smartscan.data.videos
 
 
-import com.fpf.smartscansdk.core.ml.embeddings.Embedding
+import com.fpf.smartscansdk.core.data.Embedding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext

@@ -79,7 +79,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.video)
 
-    implementation(libs.smartscan.extensions)
+    implementation(libs.smartscan.ml)
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.material)

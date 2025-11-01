@@ -1,7 +1,7 @@
 package com.fpf.smartscan.data.images
 
 import androidx.room.*
-import com.fpf.smartscansdk.core.ml.embeddings.Embedding
+import com.fpf.smartscansdk.core.data.Embedding
 
 @Entity(tableName = "image_embeddings")
 data class ImageEmbeddingEntity(
