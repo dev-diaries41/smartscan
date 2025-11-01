@@ -8,6 +8,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove"/>
+    <permission android:name="com.fpf.smartscan.permission.TEXT_EMBED" android:protectionLevel="normal" />
+    <permission android:name="com.fpf.smartscan.permission.IMAGE_EMBED" android:protectionLevel="normal" />
+
     <application
         android:largeHeap="true"
         android:allowBackup="true"
@@ -23,6 +26,24 @@
             android:name="com.fpf.smartscan.services.MediaIndexForegroundService"
             android:exported="false"
             android:foregroundServiceType="dataSync"/>
+        <service
+            android:name="com.fpf.smartscan.services.TextEmbedderAidlService"
+            android:exported="true"
+            android:permission="com.fpf.smartscan.permission.TEXT_EMBED"
+            >
+            <intent-filter>
+                <action android:name="com.fpf.smartscan.intent.TEXT_EMBED"/>
+            </intent-filter>
+        </service>
+        <service
+            android:name="com.fpf.smartscan.services.ImageEmbedderAidlService"
+            android:exported="true"
+            android:permission="com.fpf.smartscan.permission.IMAGE_EMBED"
+            >
+            <intent-filter>
+                <action android:name="com.fpf.smartscan.intent.IMAGE_EMBED"/>
+            </intent-filter>
+        </service>
         <activity
             android:name="com.fpf.smartscan.MainActivity"
             android:exported="true"
