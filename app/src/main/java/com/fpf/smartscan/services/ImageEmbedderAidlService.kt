@@ -99,8 +99,8 @@ class ImageEmbedderAidlService: Service() {
 
             if (match) {
                 recoveredPayload.add(bytes.sliceArray(pos until i))
-                pos = i + delimiter.size
-                i = pos
+                i +=  delimiter.size
+                pos = i
             } else {
                 i++
             }
