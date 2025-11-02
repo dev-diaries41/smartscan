@@ -101,16 +101,27 @@ suspend fun importModel(context: Context, uri: Uri) = withContext(Dispatchers.IO
     val outputPath = modelInfo.path
     val outputFile = File(context.filesDir, outputPath)
 
-    outputFile.parentFile?.mkdirs()
+    try {
+        outputFile.parentFile?.mkdirs()
 
-    copyFromUri(context, uri, outputFile)
+        copyFromUri(context, uri, outputFile)
 
-    if (outputFile.extension == "zip") {
-        // If it's a zip, unzip to the same folder
-        val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
-        if (!targetDir.exists()) targetDir.mkdirs()
+        if (outputFile.extension == "zip") {
+            // If it's a zip, unzip to the same folder
+            val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
+            if (!targetDir.exists()) targetDir.mkdirs()
 
-        unzipFiles(outputFile, targetDir)
+            val extractedFiles = unzipFiles(outputFile, targetDir)
+            val extractedFilesPaths = extractedFiles.map{it.path}
+            val isValid = extractedFilesPaths.all{ extractedPath ->
+                modelInfo.dependentModelPaths.any{ dependency -> extractedPath.contains(dependency)}
+            }
+            if(!isValid){
+                extractedFiles.forEach { it.delete() }
+                error("Invalid model file")
+            }
+        }
+    }finally {
+        outputFile.delete()
     }
-    outputFile.delete()
 }
