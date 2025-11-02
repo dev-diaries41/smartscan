@@ -7,8 +7,8 @@ import kotlinx.coroutines.flow.StateFlow
 import com.fpf.smartscan.R
 import com.fpf.smartscan.data.ProcessorStatus
 import com.fpf.smartscansdk.core.data.Embedding
-import com.fpf.smartscansdk.core.data.IProcessorListener
 import com.fpf.smartscansdk.core.data.Metrics
+import com.fpf.smartscansdk.core.processors.IProcessorListener
 
 abstract class BaseIndexListener(private val notificationId: Int, private val tag: String) : IProcessorListener<Long, Embedding> {
     private val _progress = MutableStateFlow(0f)

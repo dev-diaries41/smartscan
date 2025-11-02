@@ -27,7 +27,6 @@ import com.fpf.smartscansdk.core.indexers.VideoIndexer
 import com.fpf.smartscansdk.core.media.getBitmapFromUri
 import com.fpf.smartscansdk.ml.data.ResourceId
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig
-import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipImageEmbedder
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipTextEmbedder
 import kotlinx.coroutines.flow.Flow
@@ -51,14 +50,14 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoIndexProgress = VideoIndexListener.progress
     val videoIndexStatus = VideoIndexListener.indexingStatus
 
-    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH)
-    val imageRetriever = FileEmbeddingRetriever(imageStore)
-
-    val videoStore = FileEmbeddingStore(File(application.filesDir, VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH )
-    val videoRetriever = FileEmbeddingRetriever(videoStore)
-
     private val textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
     private val imageEmbedder = ClipImageEmbedder(application, ResourceId(R.raw.image_encoder_quant_int8))
+
+    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), imageEmbedder.embeddingDim)
+    val imageRetriever = FileEmbeddingRetriever(imageStore)
+
+    val videoStore = FileEmbeddingStore(File(application.filesDir, VideoIndexer.INDEX_FILENAME), imageEmbedder.embeddingDim )
+    val videoRetriever = FileEmbeddingRetriever(videoStore)
 
     private val repository: ImageEmbeddingRepository = ImageEmbeddingRepository(
         ImageEmbeddingDatabase.getDatabase(application).imageEmbeddingDao()
