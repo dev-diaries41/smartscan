@@ -13,11 +13,11 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.fpf.smartscan.R
-import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.ModelInfo
 
 @Composable
 fun ModelsList(
-    models: List<DownloadableModel>,
+    models: List<ModelInfo>,
     onDownload: (url: String) -> Unit,
 ) {
     val scrollState = rememberScrollState()

@@ -5,10 +5,6 @@
     <string name="source_code_url">https://github.com/dev-diaries41/smartscan</string>
     <string name="reddit_url">https://www.reddit.com/r/SmartScan/</string>
 
-    <!--Models info-->
-    <string name="inception_resnet_v1_model">Inception Resnet V1</string>
-    <string name="inception_resnet_v1_model_url">https://github.com/dev-diaries41/smartscan-models/releases/download/1.0.0/facial_recognition_inception_resnet_v1.zip</string>
-
     <!-- Screen titles-->
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
