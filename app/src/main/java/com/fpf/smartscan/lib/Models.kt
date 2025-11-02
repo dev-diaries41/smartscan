@@ -69,7 +69,6 @@ fun getImportedModels(context: Context): List<ImportedModel>{
                 ))
             }
         }
-
         return importedModels
     }catch (e: Exception){
         Log.e("getImportedModels", "Error getting imported models: ${e.message}")
@@ -98,30 +97,29 @@ suspend fun importModel(context: Context, uri: Uri) = withContext(Dispatchers.IO
     val modelPathsMap = getModelPathMap()
     val modelName = getModelNameFromUri(context, uri)
     val modelInfo = modelPathsMap[modelName]!!
-    val outputPath = modelInfo.path
-    val outputFile = File(context.filesDir, outputPath)
+    val outputFile = File(context.filesDir, modelInfo.path)
 
-    try {
-        outputFile.parentFile?.mkdirs()
+    outputFile.parentFile?.mkdirs()
 
-        copyFromUri(context, uri, outputFile)
+    copyFromUri(context, uri, outputFile)
 
-        if (outputFile.extension == "zip") {
-            // If it's a zip, unzip to the same folder
-            val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
-            if (!targetDir.exists()) targetDir.mkdirs()
+    if (outputFile.extension == "zip") {
+        val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
+        if (!targetDir.exists()) targetDir.mkdirs()
 
-            val extractedFiles = unzipFiles(outputFile, targetDir)
-            val extractedFilesPaths = extractedFiles.map{it.path}
-            val isValid = extractedFilesPaths.all{ extractedPath ->
-                modelInfo.dependentModelPaths.any{ dependency -> extractedPath.contains(dependency)}
-            }
+        val extractedFiles = unzipFiles(outputFile, targetDir)
+        val extractedFilesPaths = extractedFiles.map{it.path}
+        val isValid = extractedFilesPaths.all{ extractedPath ->
+            modelInfo.dependentModelPaths.any{ dependency -> extractedPath.contains(dependency)}
+        }
+
+        try{
             if(!isValid){
                 extractedFiles.forEach { it.delete() }
                 error("Invalid model file")
             }
+        }finally {
+            outputFile.delete()
         }
-    }finally {
-        outputFile.delete()
     }
 }
