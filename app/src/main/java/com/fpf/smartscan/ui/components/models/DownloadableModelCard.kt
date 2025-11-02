@@ -30,12 +30,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.smartScanModelTypeOptions
-import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.ModelInfo
 
 
 @Composable
 fun DownloadableModelCard(
-    data: DownloadableModel,
+    data: ModelInfo,
     onDownload: (url: String) -> Unit,
 ) {
     var isDownloadAlertVisible by remember { mutableStateOf(false) }

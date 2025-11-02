@@ -7,7 +7,7 @@ enum class SmartScanModelType(val tag: String) {
     TEXT_ENCODER("text_encoder")
 }
 
-data class DownloadableModel(
+data class ModelInfo(
     val type: SmartScanModelType,
     val name: String,
     val url: String,

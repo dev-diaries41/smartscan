@@ -5,7 +5,7 @@ import android.net.Uri
 import android.util.Log
 import com.fpf.smartscan.R
 import com.fpf.smartscan.constants.modelPathsMap
-import com.fpf.smartscan.data.DownloadableModel
+import com.fpf.smartscan.data.ModelInfo
 import com.fpf.smartscan.data.ImportedModel
 import com.fpf.smartscan.data.SmartScanModelType
 import kotlinx.coroutines.Dispatchers
@@ -15,8 +15,8 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipInputStream
 
-fun getDownloadableModels(context: Context): List<DownloadableModel>{
-    val facialRecognitionModel = DownloadableModel(
+fun getDownloadableModels(context: Context): List<ModelInfo>{
+    val facialRecognitionModel = ModelInfo(
         type = SmartScanModelType.FACE,
         name = context.getString(R.string.inception_resnet_v1_model),
         url = context.getString(R.string.inception_resnet_v1_model_url),
