@@ -23,7 +23,6 @@ import com.fpf.smartscansdk.core.embeddings.FileEmbeddingStore
 import com.fpf.smartscansdk.core.indexers.ImageIndexer
 import com.fpf.smartscansdk.core.indexers.VideoIndexer
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig
-import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipConfig.CLIP_EMBEDDING_LENGTH
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipImageEmbedder
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -95,7 +94,7 @@ class MediaIndexForegroundService : Service() {
 
                 if (mediaType == TYPE_IMAGE || mediaType == TYPE_BOTH) {
                     // cache not needed for indexing
-                    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH, useCache = false)
+                    val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), embeddingHandler.embeddingDim, useCache = false)
                     val imageIndexer = ImageIndexer(embeddingHandler, context=application, listener = ImageIndexListener, store = imageStore)
                     val ids = queryImageIds(application, appSettings.searchableImageDirectories.map{it.toUri()})
                     val existingIds = if(imageStore.exists) imageStore.get().map{it.id}.toSet() else emptySet()
@@ -104,7 +103,7 @@ class MediaIndexForegroundService : Service() {
                 }
 
                 if (mediaType == TYPE_VIDEO || mediaType == TYPE_BOTH) {
-                    val videoStore = FileEmbeddingStore(File(application.filesDir,  VideoIndexer.INDEX_FILENAME), CLIP_EMBEDDING_LENGTH, useCache = false )
+                    val videoStore = FileEmbeddingStore(File(application.filesDir,  VideoIndexer.INDEX_FILENAME), embeddingHandler.embeddingDim, useCache = false )
                     val videoIndexer = VideoIndexer(embeddingHandler, context=application, listener = VideoIndexListener, store = videoStore, width = ClipConfig.IMAGE_SIZE_X, height = ClipConfig.IMAGE_SIZE_Y)
                     val ids = queryVideoIds(application, appSettings.searchableVideoDirectories.map { it.toUri() })
                     val existingIds = if(videoStore.exists) videoStore.get().map{it.id}.toSet() else emptySet()
