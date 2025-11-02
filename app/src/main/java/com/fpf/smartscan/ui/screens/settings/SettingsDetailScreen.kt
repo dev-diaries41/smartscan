@@ -20,7 +20,7 @@ import com.fpf.smartscan.R
 import com.fpf.smartscan.ui.components.CustomSlider
 import androidx.core.net.toUri
 import com.fpf.smartscan.constants.SettingTypes
-import com.fpf.smartscan.lib.getDownloadableModels
+import com.fpf.smartscan.constants.downloadableModels
 import com.fpf.smartscan.ui.components.BackupAndRestore
 import com.fpf.smartscan.ui.components.models.ModelManager
 import com.fpf.smartscan.ui.components.models.ModelsList
@@ -64,7 +64,7 @@ fun SettingsDetailScreen(
                 }
                 SettingTypes.MODELS -> {
                     ModelsList(
-                        models = getDownloadableModels(context),
+                        models = downloadableModels,
                         onDownload = { url ->
                             val intent = Intent(Intent.ACTION_VIEW, url.toUri())
                             context.startActivity(intent)
