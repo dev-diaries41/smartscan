@@ -3,54 +3,84 @@ package com.fpf.smartscan.lib
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.fpf.smartscan.R
-import com.fpf.smartscan.constants.modelPathsMap
-import com.fpf.smartscan.data.ModelInfo
+import com.fpf.smartscan.constants.INCEPTION_RESNET_DEP_FACE_DETECTOR
+import com.fpf.smartscan.constants.INCEPTION_RESNET_DEP_INCEPTION
+import com.fpf.smartscan.constants.MODEL_DIR
+import com.fpf.smartscan.constants.downloadableModels
+import com.fpf.smartscan.constants.facialRecognitionModel
+import com.fpf.smartscan.constants.miniLmTextEmbedderModel
 import com.fpf.smartscan.data.ImportedModel
+import com.fpf.smartscan.data.ModelPathInfo
 import com.fpf.smartscan.data.SmartScanModelType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.util.zip.ZipInputStream
 
-fun getDownloadableModels(context: Context): List<ModelInfo>{
-    val facialRecognitionModel = ModelInfo(
-        type = SmartScanModelType.FACE,
-        name = context.getString(R.string.inception_resnet_v1_model),
-        url = context.getString(R.string.inception_resnet_v1_model_url),
+fun filenameFromUrl(url:String) = url.split("/").last()
+
+fun getModelPathMap(): Map<String, ModelPathInfo>{
+    val inceptionResnetFilename = filenameFromUrl(facialRecognitionModel.url)
+    val inceptionResnetDir = inceptionResnetFilename.substringBefore(".")
+
+    val modelsPathMap = mapOf(
+        facialRecognitionModel.name to ModelPathInfo(
+            path = "$MODEL_DIR/$inceptionResnetFilename",
+            dependentModelPaths = listOf(
+                "$MODEL_DIR/$inceptionResnetDir/$INCEPTION_RESNET_DEP_FACE_DETECTOR",
+                "$MODEL_DIR/$inceptionResnetDir/$INCEPTION_RESNET_DEP_INCEPTION"
+            )
+        ),
+        miniLmTextEmbedderModel.name to ModelPathInfo("$MODEL_DIR/${filenameFromUrl(miniLmTextEmbedderModel.url)}"),
     )
-    return listOf(facialRecognitionModel)
+    return modelsPathMap
+}
+
+fun getTypeFromName(name: String): SmartScanModelType{
+    return downloadableModels.find{it.name == name}?.type?: error("error getting type")
+}
+fun getModelNameFromUri(context: Context, uri: Uri): String{
+    val modelFilenames = downloadableModels.map { filenameFromUrl(it.url) }
+    val importedFilename = getFileName(context, uri)
+    val index = modelFilenames.indexOfFirst{ it == importedFilename}
+    if(index < 0) error("error getting model name")
+
+    return downloadableModels[index].name
 }
 
 fun getImportedModels(context: Context): List<ImportedModel>{
+    val importedModels = mutableListOf<ImportedModel>()
     try {
-        val facialRecognitionModel = ImportedModel(
-            type = SmartScanModelType.FACE,
-            name = context.getString(R.string.inception_resnet_v1_model),
-            dependentModelPaths = modelPathsMap[SmartScanModelType.FACE]!!.dependentModelPaths,
-        )
-        val importedModels = mutableListOf(facialRecognitionModel).filter {  isImported(context, it)}
+        val modelPathsMap = getModelPathMap()
+        for((name, pathInfo) in modelPathsMap.entries){
+            if(pathInfo.dependentModelPaths.isNotEmpty()){
+                val files = pathInfo.dependentModelPaths.map{File(context.filesDir, it)}
+                if(files.all{it.exists()}){
+                    importedModels.add(ImportedModel(
+                        type = getTypeFromName(name),
+                        name = name,
+                        dependentModelPaths = pathInfo.dependentModelPaths
+                    ))
+                }
+            }
+            else if(File(context.filesDir, pathInfo.path).exists()) {
+                importedModels.add(ImportedModel(
+                    type = getTypeFromName(name),
+                    name = name,
+                ))
+            }
+        }
+
         return importedModels
     }catch (e: Exception){
         Log.e("getImportedModels", "Error getting imported models: ${e.message}")
-        return emptyList()
+        return importedModels
     }
-}
-
-fun isImported(context: Context, model: ImportedModel): Boolean{
-    if(File(context.filesDir, modelPathsMap[model.type]!!.path).exists()) {
-        return true
-    }else if(model.dependentModelPaths.isNotEmpty()){
-        return model.dependentModelPaths.any{File(context.filesDir, it).exists()}
-    }
-    return false
 }
 
 fun deleteModel(context: Context, model: ImportedModel): Boolean{
     try {
-        val modelPathInfo = modelPathsMap[model.type]!!
+        val modelPathsMap = getModelPathMap()
+        val modelPathInfo = modelPathsMap[model.name]!!
         val file = File(context.filesDir, modelPathInfo.path )
         file.delete()
 
@@ -64,44 +94,23 @@ fun deleteModel(context: Context, model: ImportedModel): Boolean{
     }
 }
 
-fun getTypeFromUri(context: Context, uri: Uri): SmartScanModelType?{
-    val models = getDownloadableModels(context)
-    val modelFilenames = models.map { it.url.split("/").last() }
-    val importedFilename = getFileName(context, uri)
-    val index = modelFilenames.indexOfFirst{ it == importedFilename}
-    if(index < 0) return null
-
-    return models[index].type
-}
-
 suspend fun importModel(context: Context, uri: Uri) = withContext(Dispatchers.IO){
-    val type = getTypeFromUri(context, uri)
-    val modelInfo = modelPathsMap[type] ?: error("Invalid model file")
+    val modelPathsMap = getModelPathMap()
+    val modelName = getModelNameFromUri(context, uri)
+    val modelInfo = modelPathsMap[modelName]!!
     val outputPath = modelInfo.path
     val outputFile = File(context.filesDir, outputPath)
 
     outputFile.parentFile?.mkdirs()
 
-    context.contentResolver.openInputStream(uri)?.use { input ->
-        FileOutputStream(outputFile).use { output -> input.copyTo(output) }
-    }
+    copyFromUri(context, uri, outputFile)
 
-    // If it's a zip, unzip to the same folder
     if (outputFile.extension == "zip") {
+        // If it's a zip, unzip to the same folder
         val targetDir = File(outputFile.parentFile, outputFile.nameWithoutExtension)
         if (!targetDir.exists()) targetDir.mkdirs()
 
-        ZipInputStream(FileInputStream(outputFile)).use { zip ->
-            var entry = zip.nextEntry
-            while (entry != null) {
-                val entryFile = File(targetDir, entry.name)
-                FileOutputStream(entryFile).use { out ->
-                    zip.copyTo(out)
-                }
-                zip.closeEntry()
-                entry = zip.nextEntry
-            }
-        }
+        unzipFiles(outputFile, targetDir)
     }
     outputFile.delete()
 }
