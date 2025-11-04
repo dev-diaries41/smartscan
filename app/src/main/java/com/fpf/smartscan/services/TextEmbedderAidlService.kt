@@ -29,6 +29,8 @@ class TextEmbedderAidlService: Service() {
     }
     private lateinit var textEmbedder: TextEmbeddingProvider
 
+    private var selectedModel = DEFAULT_MODEL
+
     override fun onCreate() {
         super.onCreate()
         textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
@@ -85,16 +87,20 @@ class TextEmbedderAidlService: Service() {
         }
 
         override fun selectModel(model: String): Boolean {
+            if(model == selectedModel) return true
+
             val availableModels = listModels() + DEFAULT_MODEL
             if(!availableModels.contains(model)) return false
 
+            selectedModel = model
+
             val modelPathsMap = getModelPathMap()
+            val pathInfo = modelPathsMap[model]
 
             textEmbedder = when(model){
                 miniLmTextEmbedderModel.name -> {
-                    val pathInfo = modelPathsMap[model]!!
                     textEmbedder.closeSession()
-                    MiniLMTextEmbedder(application, FilePath(File(application.filesDir, pathInfo.path).path))
+                    MiniLMTextEmbedder(application, FilePath(File(application.filesDir, pathInfo!!.path).path))
                 }
                 DEFAULT_MODEL -> {
                     textEmbedder.closeSession()
