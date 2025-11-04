@@ -18,6 +18,7 @@ import com.fpf.smartscansdk.ml.data.ResourceId
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipTextEmbedder
 import com.fpf.smartscansdk.ml.models.providers.embeddings.minilm.MiniLMTextEmbedder
 import kotlinx.coroutines.runBlocking
+import java.io.File
 
 
 class TextEmbedderAidlService: Service() {
@@ -93,7 +94,7 @@ class TextEmbedderAidlService: Service() {
                 miniLmTextEmbedderModel.name -> {
                     val pathInfo = modelPathsMap[model]!!
                     textEmbedder.closeSession()
-                    MiniLMTextEmbedder(application, FilePath(pathInfo.path))
+                    MiniLMTextEmbedder(application, FilePath(File(application.filesDir, pathInfo.path).path))
                 }
                 DEFAULT_MODEL -> {
                     textEmbedder.closeSession()
