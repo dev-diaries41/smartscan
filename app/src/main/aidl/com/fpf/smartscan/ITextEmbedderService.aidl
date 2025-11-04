@@ -7,4 +7,6 @@ interface ITextEmbedderService {
     void closeSession();
     float[] embed(in String data);
     float[] embedBatch(in List<String> data);  // concatenate
+    List<String> listModels();
+    boolean selectModel(in String name);
 }
