@@ -84,12 +84,14 @@ class TextEmbedderAidlService: Service() {
         }
 
         override fun selectModel(model: String): Boolean {
-            if(!listModels().contains(model)) throw RemoteException("Selected model is not available")
+            val availableModels = listModels() + DEFAULT_MODEL
+            if(!availableModels.contains(model)) throw RemoteException("Selected model is not available")
 
             val modelPathsMap = getModelPathMap()
-            val pathInfo = modelPathsMap[model]!!
+
             textEmbedder = when(model){
                 miniLmTextEmbedderModel.name -> {
+                    val pathInfo = modelPathsMap[model]!!
                     textEmbedder.closeSession()
                     MiniLMTextEmbedder(application, FilePath(pathInfo.path))
                 }
