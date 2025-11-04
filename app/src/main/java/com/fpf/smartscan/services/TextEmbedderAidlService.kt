@@ -86,7 +86,7 @@ class TextEmbedderAidlService: Service() {
 
         override fun selectModel(model: String): Boolean {
             val availableModels = listModels() + DEFAULT_MODEL
-            if(!availableModels.contains(model)) throw RemoteException("Selected model is not available")
+            if(!availableModels.contains(model)) return false
 
             val modelPathsMap = getModelPathMap()
 
