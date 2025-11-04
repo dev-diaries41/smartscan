@@ -3,12 +3,20 @@ package com.fpf.smartscan.services
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.os.RemoteException
 import android.util.Log
 import com.fpf.smartscan.ITextEmbedderService
 import com.fpf.smartscan.R
+import com.fpf.smartscan.constants.miniLmTextEmbedderModel
+import com.fpf.smartscan.data.SmartScanModelType
+import com.fpf.smartscan.lib.getImportedModels
+import com.fpf.smartscan.lib.getModelPathMap
+import com.fpf.smartscansdk.core.embeddings.TextEmbeddingProvider
 import com.fpf.smartscansdk.core.embeddings.flattenEmbeddings
+import com.fpf.smartscansdk.ml.data.FilePath
 import com.fpf.smartscansdk.ml.data.ResourceId
 import com.fpf.smartscansdk.ml.models.providers.embeddings.clip.ClipTextEmbedder
+import com.fpf.smartscansdk.ml.models.providers.embeddings.minilm.MiniLMTextEmbedder
 import kotlinx.coroutines.runBlocking
 
 
@@ -16,8 +24,9 @@ class TextEmbedderAidlService: Service() {
 
     companion object {
         const val TAG = "TextEmbedderAidlService"
+        private const val DEFAULT_MODEL = "Default"
     }
-    private lateinit var textEmbedder: ClipTextEmbedder
+    private lateinit var textEmbedder: TextEmbeddingProvider
 
     override fun onCreate() {
         super.onCreate()
@@ -68,6 +77,29 @@ class TextEmbedderAidlService: Service() {
                     null
                 }
             }
+        }
+
+        override fun listModels(): List<String> {
+            return getImportedModels(application).filter { it.type == SmartScanModelType.TEXT_ENCODER }.map { it.name }
+        }
+
+        override fun selectModel(model: String): Boolean {
+            if(!listModels().contains(model)) throw RemoteException("Selected model is not available")
+
+            val modelPathsMap = getModelPathMap()
+            val pathInfo = modelPathsMap[model]!!
+            textEmbedder = when(model){
+                miniLmTextEmbedderModel.name -> {
+                    textEmbedder.closeSession()
+                    MiniLMTextEmbedder(application, FilePath(pathInfo.path))
+                }
+                DEFAULT_MODEL -> {
+                    textEmbedder.closeSession()
+                    ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
+                }
+                else -> return false
+            }
+            return true
         }
     }
 }
