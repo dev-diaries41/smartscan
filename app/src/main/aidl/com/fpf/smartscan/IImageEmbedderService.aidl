@@ -9,4 +9,6 @@ interface IImageEmbedderService {
     void closeSession();
     float[] embed(in byte[] data);
     float[] embedBatch(in byte[] data); //inputs and outputs are concatenated
+    List<String> listModels();
+    boolean selectModel(in String name);
 }
