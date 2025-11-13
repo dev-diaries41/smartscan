@@ -28,7 +28,7 @@ class ImageEmbedderAidlService: Service() {
 
     override fun onCreate() {
         super.onCreate()
-        imageEmbedder = ClipImageEmbedder(application, ResourceId(R.raw.image_encoder_quant_int8))
+        imageEmbedder = ClipImageEmbedder(application, ResourceId(R.raw.clip_image_encoder_quant))
     }
 
     override fun onBind(intent: Intent): IBinder {

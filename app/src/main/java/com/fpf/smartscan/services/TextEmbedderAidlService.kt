@@ -33,7 +33,7 @@ class TextEmbedderAidlService: Service() {
 
     override fun onCreate() {
         super.onCreate()
-        textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
+        textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.clip_text_encoder_quant))
     }
 
     override fun onBind(intent: Intent): IBinder {
@@ -104,7 +104,7 @@ class TextEmbedderAidlService: Service() {
                 }
                 DEFAULT_MODEL -> {
                     textEmbedder.closeSession()
-                    ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
+                    ClipTextEmbedder(application, ResourceId(R.raw.clip_text_encoder_quant))
                 }
                 else -> return false
             }

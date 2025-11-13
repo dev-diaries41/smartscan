@@ -50,8 +50,8 @@ class SearchViewModel(private val application: Application) : AndroidViewModel(a
     val videoIndexProgress = VideoIndexListener.progress
     val videoIndexStatus = VideoIndexListener.indexingStatus
 
-    private val textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.text_encoder_quant_int8))
-    private val imageEmbedder = ClipImageEmbedder(application, ResourceId(R.raw.image_encoder_quant_int8))
+    private val textEmbedder = ClipTextEmbedder(application, ResourceId(R.raw.clip_text_encoder_quant))
+    private val imageEmbedder = ClipImageEmbedder(application, ResourceId(R.raw.clip_image_encoder_quant))
 
     val imageStore = FileEmbeddingStore(File(application.filesDir, ImageIndexer.INDEX_FILENAME), imageEmbedder.embeddingDim)
     val imageRetriever = FileEmbeddingRetriever(imageStore)
